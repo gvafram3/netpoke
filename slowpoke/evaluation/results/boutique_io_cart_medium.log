@@ -1,0 +1,2783 @@
+benchmark                        : boutique
+num_threads                      : 8
+num_conns                        : 1024
+target_service                   : cart
+request_type                     : mix
+repetitions                      : 1
+target_num_exp                   : 10
+pre_run                          : False
+num_req                          : 100000
+groundtruths                     : []
+slowdowns                        : []
+predicteds                       : []
+errs                             : []
+poker_batch_req                  : 100
+client_cpu_quota                 : 4
+random_seed                      : 1234
+request_ratio                    : {'cart': 0.45175405908969923, 'checkout': 0.05106201756720788, 'currency': 0.2597231833910035, 'email': 0.0, 'frontend': 1.0, 'payment': 0.05106201756720788, 'product_catalog': 0.6091136545115784, 'recommendations': 0.0, 'shipping': 0.10212403513441576}
+baseline_service_processing_time : {'cart': 1000, 'checkout': 0, 'currency': 0, 'email': 0, 'frontend': 0, 'payment': 0, 'product_catalog': 0, 'recommendations': 0, 'shipping': 0}
+cpu_quota                        : {'cart': 2, 'checkout': 2, 'currency': 2, 'email': 2, 'frontend': 2, 'payment': 2, 'product_catalog': 2, 'recommendations': 2, 'shipping': 2}
+target_processing_time_range     : [0, 1000]
+baseline_throughputs             : []
+poker_batch                      : 20000000
+[test.py] Starting experiment...
+[test.py] >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Running experiment 0...
+[test.py] Actual processing time range: [0, 100, 200, 300, 400, 500, 600, 700, 800, 900]
+[test.py] Running baseline experiment
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   463.12ms  687.54ms   2.99s    83.35%
+        Req/Sec   142.51    111.67   549.00     63.16%
+        Latency Distribution
+        50%  165.42ms
+        75%  515.22ms
+        90%    1.62s
+        99%    2.63s
+        3147 requests in 3.06s, 1.44MB read
+        Socket errors: connect 0, read 0, write 0, timeout 3
+        Requests/sec:   1027.31
+        Transfer/sec:    480.43KB
+        [run.sh] Speed is 1027.31, duration is 146
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d146s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-jxdpp              1080m        24Mi
+        checkout-64946b79ff-6xzvs          111m         31Mi
+        currency-574948696f-qkvjj          82m          9Mi
+        email-6dd949cb67-j8tcc             1m           4Mi
+        frontend-78465f775f-x6dct          496m         86Mi
+        payment-9b9c855-b6lmj              19m          8Mi
+        productcatalog-57cbb74c54-q464b    149m         10Mi
+        recommendations-64d8b547d9-98t2m   1m           4Mi
+        shipping-fdf5bd577-szmrw           37m          10Mi
+        ubuntu-client-cb9cd665d-crn8q      101m         51Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.60s     1.63s    4.64s    75.37%
+        Req/Sec    94.89     62.35   584.00     69.78%
+        Latency Distribution
+        50%    1.75s
+        75%    3.17s
+        90%    3.95s
+        99%    4.37s
+        100000 requests in 2.43m, 62.36MB read
+        Requests/sec:    684.93
+        Transfer/sec:    437.34KB
+        ------------------------------
+        stop time: 133.651519
+        stop time: 133.492385
+        stop time: 133.332165
+        stop time: 134.084862
+        stop time: 134.148675
+        stop time: 134.260197
+        stop time: 133.970152
+        stop time: 134.233838
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [133.651519, 133.492385, 133.332165, 134.084862, 134.148675, 134.260197, 133.970152, 134.233838]
+    [exp] Throughput: 746.8442611534281
+[test.py] Baseline throughput: 746.8442611534281
+[test.py] Running 0th optmization experiment
+[test.py] Running 0th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '0', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   453.06ms  655.52ms   3.00s    83.47%
+        Req/Sec   175.26    164.31   683.00     72.13%
+        Latency Distribution
+        50%  175.00ms
+        75%  521.76ms
+        90%    1.47s
+        99%    2.66s
+        3390 requests in 3.10s, 1.67MB read
+        Socket errors: connect 0, read 0, write 0, timeout 3
+        Requests/sec:   1093.21
+        Transfer/sec:    551.41KB
+        [run.sh] Speed is 1093.21, duration is 137
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d137s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77bcc7fdb9-wsc7q              465m         18Mi
+        checkout-64946b79ff-tq6s4          122m         18Mi
+        currency-574948696f-bkp4z          103m         9Mi
+        email-6dd949cb67-fpthf             0m           3Mi
+        frontend-78465f775f-845kf          461m         85Mi
+        payment-9b9c855-cxqq9              17m          9Mi
+        productcatalog-57cbb74c54-k26tf    119m         9Mi
+        recommendations-64d8b547d9-j95qr   0m           4Mi
+        shipping-fdf5bd577-rjx4s           40m          9Mi
+        ubuntu-client-cb9cd665d-vf62v      113m         31Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.60s     1.61s    4.60s    75.94%
+        Req/Sec    95.82     62.79   680.00     70.36%
+        Latency Distribution
+        50%    1.64s
+        75%    3.02s
+        90%    3.93s
+        99%    4.30s
+        100000 requests in 2.28m, 62.37MB read
+        Requests/sec:    729.93
+        Transfer/sec:    466.21KB
+        ------------------------------
+        stop time: 131.937241
+        stop time: 131.972406
+        stop time: 132.430791
+        stop time: 132.773479
+        stop time: 132.800105
+        stop time: 132.597531
+        stop time: 132.424005
+        stop time: 132.213064
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [131.937241, 131.972406, 132.430791, 132.773479, 132.800105, 132.597531, 132.424005, 132.213064]
+    [exp] Throughput: 755.3236471094611
+[test.py] Running 0th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '4423.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '869.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '225.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '4423.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '370.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '2211.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   709.36ms  573.04ms   2.73s    69.83%
+        Req/Sec   104.18     72.26   509.00     68.42%
+        Latency Distribution
+        50%  509.35ms
+        75%    1.10s
+        90%    1.62s
+        99%    2.20s
+        2169 requests in 3.10s, 710.22KB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:    699.07
+        Transfer/sec:    228.91KB
+        [run.sh] Speed is 699.07, duration is 200
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d200s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-8cchm              1086m        18Mi
+        checkout-778d9d8f7f-h4wxw          114m         18Mi
+        currency-754fd949cf-c5gq7          88m          9Mi
+        email-6dd949cb67-ghv4w             1m           3Mi
+        frontend-7d6c468d67-zxvh6          451m         87Mi
+        payment-dd8d97c85-vwh9s            20m          8Mi
+        productcatalog-568b4dfc7-h4nlm     104m         10Mi
+        recommendations-64d8b547d9-d5rwc   1m           3Mi
+        shipping-859b75d6d4-hbg5h          31m          8Mi
+        ubuntu-client-cb9cd665d-xlqcg      111m         35Mi
+        Running 3m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.44s     1.78s    4.79s    69.10%
+        Req/Sec    92.99     63.28   630.00     75.42%
+        Latency Distribution
+        50%    5.85ms
+        75%    3.61s
+        90%    4.08s
+        99%    4.38s
+        100000 requests in 3.33m, 62.34MB read
+        Requests/sec:    500.00
+        Transfer/sec:    319.16KB
+        ------------------------------
+        stop time: 136.297586
+        stop time: 136.084769
+        stop time: 136.287312
+        stop time: 136.308326
+        stop time: 136.555392
+        stop time: 136.697941
+        stop time: 136.648091
+        stop time: 136.464080
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [136.297586, 136.084769, 136.287312, 136.308326, 136.555392, 136.697941, 136.648091, 136.46408]
+    [exp] Throughput: 733.0414321422396
+[test.py] Finished running 0th optmization experiment: groundtruth->755.3236471094611, slowdown->733.0414321422396, predicted->878.5012235870685, err->16.307920048444675
+[test.py] Running 1th optmization experiment
+[test.py] Running 1th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '100', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   481.03ms  646.41ms   2.99s    85.10%
+        Req/Sec   148.62    127.84   510.00     73.11%
+        Latency Distribution
+        50%  170.33ms
+        75%  701.00ms
+        90%    1.55s
+        99%    2.68s
+        3295 requests in 3.10s, 1.66MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1063.93
+        Transfer/sec:    549.75KB
+        [run.sh] Speed is 1063.93, duration is 140
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d140s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-7dfdbb6c84-svg6v              688m         18Mi
+        checkout-64946b79ff-w2877          134m         17Mi
+        currency-574948696f-vsfvc          93m          9Mi
+        email-6dd949cb67-kdhnd             1m           4Mi
+        frontend-78465f775f-tjs5k          321m         87Mi
+        payment-9b9c855-nqp6f              22m          7Mi
+        productcatalog-57cbb74c54-gjsv2    164m         10Mi
+        recommendations-64d8b547d9-5ztwm   0m           4Mi
+        shipping-fdf5bd577-cfqzr           31m          8Mi
+        ubuntu-client-cb9cd665d-ck77n      114m         33Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.54s     1.57s    4.49s    75.33%
+        Req/Sec    98.72     64.85     0.87k    72.10%
+        Latency Distribution
+        50%    1.69s
+        75%    3.06s
+        90%    3.82s
+        99%    4.17s
+        100000 requests in 2.33m, 62.36MB read
+        Requests/sec:    714.28
+        Transfer/sec:    456.12KB
+        ------------------------------
+        stop time: 127.929731
+        stop time: 128.762135
+        stop time: 128.312968
+        stop time: 128.813594
+        stop time: 128.266639
+        stop time: 128.987173
+        stop time: 129.011738
+        stop time: 129.337224
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [127.929731, 128.762135, 128.312968, 128.813594, 128.266639, 128.987173, 129.011738, 129.337224]
+    [exp] Throughput: 777.1357326289069
+[test.py] Running 1th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '3981.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '782.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '203.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '3981.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '333.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '1990.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   533.24ms  683.00ms   2.98s    83.81%
+        Req/Sec   154.17    147.22   610.00     81.59%
+        Latency Distribution
+        50%  106.93ms
+        75%    1.06s
+        90%    1.64s
+        99%    2.44s
+        3271 requests in 3.09s, 1.55MB read
+        Socket errors: connect 0, read 0, write 0, timeout 3
+        Requests/sec:   1057.25
+        Transfer/sec:    512.40KB
+        [run.sh] Speed is 1057.25, duration is 141
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d141s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-zwfw6              674m         18Mi
+        checkout-898c64986-xl6h7           116m         18Mi
+        currency-bfcf4b7fc-rrlf8           87m          9Mi
+        email-6dd949cb67-lrrqt             0m           3Mi
+        frontend-7d9d55c994-qznqr          331m         86Mi
+        payment-75774c4f88-8kjgt           20m          8Mi
+        productcatalog-6d7d54bd98-67ddb    147m         10Mi
+        recommendations-64d8b547d9-kkwrz   1m           3Mi
+        shipping-7886b57b4c-8n59x          34m          9Mi
+        ubuntu-client-cb9cd665d-fgqtr      86m          30Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.66s     1.66s    4.71s    76.02%
+        Req/Sec    93.01     65.26     1.49k    75.11%
+        Latency Distribution
+        50%    1.67s
+        75%    3.09s
+        90%    4.06s
+        99%    4.42s
+        100000 requests in 2.35m, 62.35MB read
+        Requests/sec:    709.22
+        Transfer/sec:    452.79KB
+        ------------------------------
+        stop time: 135.938581
+        stop time: 136.434024
+        stop time: 137.029081
+        stop time: 137.907362
+        stop time: 137.487388
+        stop time: 137.348621
+        stop time: 137.147255
+        stop time: 137.671984
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [135.938581, 136.434024, 137.029081, 137.907362, 137.487388, 137.348621, 137.147255, 137.671984]
+    [exp] Throughput: 729.285358618454
+[test.py] Finished running 1th optmization experiment: groundtruth->777.1357326289069, slowdown->729.285358618454, predicted->856.2259296315356, err->10.17714070810785
+[test.py] Running 2th optmization experiment
+[test.py] Running 2th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '200', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   457.28ms  637.50ms   2.98s    84.30%
+        Req/Sec   151.23    153.70   720.00     85.38%
+        Latency Distribution
+        50%  118.76ms
+        75%  610.24ms
+        90%    1.44s
+        99%    2.60s
+        3321 requests in 3.09s, 1.66MB read
+        Socket errors: connect 0, read 0, write 0, timeout 2
+        Requests/sec:   1075.26
+        Transfer/sec:    550.18KB
+        [run.sh] Speed is 1075.26, duration is 139
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d139s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-7896bcb467-ptxfq              880m         19Mi
+        checkout-64946b79ff-b7dv8          124m         18Mi
+        currency-574948696f-hd7bm          90m          8Mi
+        email-6dd949cb67-kz7q2             1m           3Mi
+        frontend-78465f775f-dvkrn          506m         85Mi
+        payment-9b9c855-76bcj              21m          7Mi
+        productcatalog-57cbb74c54-djbn2    163m         9Mi
+        recommendations-64d8b547d9-h5m99   0m           3Mi
+        shipping-fdf5bd577-j4p52           34m          8Mi
+        ubuntu-client-cb9cd665d-ks44w      125m         32Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.52s     1.55s    4.33s    75.08%
+        Req/Sec   100.04     65.20   770.00     72.97%
+        Latency Distribution
+        50%    1.70s
+        75%    3.04s
+        90%    3.78s
+        99%    4.03s
+        100000 requests in 2.32m, 62.36MB read
+        Requests/sec:    719.42
+        Transfer/sec:    459.41KB
+        ------------------------------
+        stop time: 126.518135
+        stop time: 126.920098
+        stop time: 126.419106
+        stop time: 126.710077
+        stop time: 127.037359
+        stop time: 127.329427
+        stop time: 126.254201
+        stop time: 126.794636
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [126.518135, 126.920098, 126.419106, 126.710077, 127.037359, 127.329427, 126.254201, 126.794636]
+    [exp] Throughput: 788.9678320349104
+[test.py] Running 2th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '3538.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '695.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '180.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '3538.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '296.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '1769.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   559.44ms  737.18ms   2.99s    81.33%
+        Req/Sec   151.15    138.32   707.00     83.41%
+        Latency Distribution
+        50%  136.22ms
+        75%  841.21ms
+        90%    1.76s
+        99%    2.68s
+        3259 requests in 3.07s, 1.80MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1061.39
+        Transfer/sec:    599.78KB
+        [run.sh] Speed is 1061.39, duration is 141
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d141s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-m2swz              794m         18Mi
+        checkout-dd5cf7ff9-bmv2m           112m         18Mi
+        currency-76b7cf4cc6-hsc78          83m          10Mi
+        email-6dd949cb67-qhm7g             0m           3Mi
+        frontend-7754498555-ngc5q          467m         85Mi
+        payment-6b458c4885-kstxw           21m          8Mi
+        productcatalog-7796fdb648-p97hf    86m          9Mi
+        recommendations-64d8b547d9-szwxb   1m           3Mi
+        shipping-66fbdf99d8-vxr89          27m          9Mi
+        ubuntu-client-cb9cd665d-wlz9d      106m         33Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.60s     1.62s    4.47s    75.08%
+        Req/Sec    95.47     63.65   633.00     69.66%
+        Latency Distribution
+        50%    1.83s
+        75%    3.20s
+        90%    3.94s
+        99%    4.22s
+        100000 requests in 2.35m, 62.36MB read
+        Requests/sec:    709.22
+        Transfer/sec:    452.85KB
+        ------------------------------
+        stop time: 132.751519
+        stop time: 133.275032
+        stop time: 133.155341
+        stop time: 132.473362
+        stop time: 133.612950
+        stop time: 133.064543
+        stop time: 133.513165
+        stop time: 132.811874
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [132.751519, 133.275032, 133.155341, 132.473362, 133.61295, 133.064543, 133.513165, 132.811874]
+    [exp] Throughput: 751.4151594247583
+[test.py] Finished running 2th optmization experiment: groundtruth->788.9678320349104, slowdown->751.4151594247583, predicted->869.4740293260359, err->10.203989823448616
+[test.py] Running 3th optmization experiment
+[test.py] Running 3th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '300', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   471.45ms  672.58ms   3.00s    82.06%
+        Req/Sec   148.70    136.98   565.00     78.44%
+        Latency Distribution
+        50%   89.02ms
+        75%  593.31ms
+        90%    1.58s
+        99%    2.47s
+        3334 requests in 3.06s, 1.75MB read
+        Socket errors: connect 0, read 0, write 0, timeout 2
+        Requests/sec:   1087.81
+        Transfer/sec:    585.05KB
+        [run.sh] Speed is 1087.81, duration is 137
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d137s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-64cd85dfcd-pxmps              690m         18Mi
+        checkout-64946b79ff-x8r5g          132m         17Mi
+        currency-574948696f-xhqtk          90m          9Mi
+        email-6dd949cb67-gkk24             0m           3Mi
+        frontend-78465f775f-nchkt          384m         86Mi
+        payment-9b9c855-cnj95              20m          7Mi
+        productcatalog-57cbb74c54-nb5zd    143m         9Mi
+        recommendations-64d8b547d9-hh5k7   0m           3Mi
+        shipping-fdf5bd577-b5brq           18m          8Mi
+        ubuntu-client-cb9cd665d-68vfn      89m          36Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.68s     1.66s    4.97s    35.61%
+        Req/Sec    91.93     59.81   570.00     70.03%
+        Latency Distribution
+        50%    1.61s
+        75%    3.09s
+        90%    4.06s
+        99%    4.53s
+        99145 requests in 2.28m, 61.84MB read
+        Requests/sec:    723.19
+        Transfer/sec:    461.87KB
+        ------------------------------
+        [run.sh] Test finished with status 1
+        > STDERR
+        > No resources found in default namespace.
+        > PANIC: unprotected error in call to Lua API (/wrk/scripts/online-boutique/mix.lua:144: bad argument #1 to 'format' (number expected, got nil))
+        > command terminated with exit code 1
+    [exp] Error running bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000
+[test.py] Found 0 throughtput, rerun experiment
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '300', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   445.60ms  682.66ms   3.00s    83.23%
+        Req/Sec   148.41    110.93   592.00     69.48%
+        Latency Distribution
+        50%  123.73ms
+        75%  566.68ms
+        90%    1.57s
+        99%    2.69s
+        3432 requests in 3.06s, 1.54MB read
+        Requests/sec:   1122.79
+        Transfer/sec:    516.15KB
+        [run.sh] Speed is 1122.79, duration is 133
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d133s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-64cd85dfcd-gs6fr              908m         20Mi
+        checkout-64946b79ff-lpzw9          90m          18Mi
+        currency-574948696f-2hs9x          71m          8Mi
+        email-6dd949cb67-brmzd             0m           3Mi
+        frontend-78465f775f-zqc29          496m         85Mi
+        payment-9b9c855-4xhxf              11m          8Mi
+        productcatalog-57cbb74c54-n7b7c    127m         9Mi
+        recommendations-64d8b547d9-bh8w6   1m           3Mi
+        shipping-fdf5bd577-tz4pn           40m          8Mi
+        ubuntu-client-cb9cd665d-vzb7k      139m         31Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.53s     1.55s    4.29s    75.29%
+        Req/Sec    99.53     64.54   727.00     73.21%
+        Latency Distribution
+        50%    1.74s
+        75%    3.01s
+        90%    3.78s
+        99%    4.04s
+        100000 requests in 2.22m, 62.37MB read
+        Requests/sec:    751.88
+        Transfer/sec:    480.16KB
+        ------------------------------
+        stop time: 127.160996
+        stop time: 126.696411
+        stop time: 127.331904
+        stop time: 126.768342
+        stop time: 126.855740
+        stop time: 126.948055
+        stop time: 127.473750
+        stop time: 126.897329
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [127.160996, 126.696411, 127.331904, 126.768342, 126.85574, 126.948055, 127.47375, 126.897329]
+    [exp] Throughput: 787.2988795682948
+[test.py] Running 3th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '3096.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '608.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '158.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '3096.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '259.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '1548.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   532.80ms  669.57ms   3.00s    84.46%
+        Req/Sec   147.28    132.87   545.00     81.82%
+        Latency Distribution
+        50%  246.24ms
+        75%  783.28ms
+        90%    1.58s
+        99%    2.85s
+        3238 requests in 3.09s, 1.59MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1048.02
+        Transfer/sec:    526.37KB
+        [run.sh] Speed is 1048.02, duration is 143
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d143s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-hkwm8              1077m        19Mi
+        checkout-5d8fb654c4-xk5f2          75m          18Mi
+        currency-b978c949d-7mxh7           83m          9Mi
+        email-6dd949cb67-542nw             0m           3Mi
+        frontend-64f7789cd9-h2ck5          468m         84Mi
+        payment-56bd8fcd76-cktkh           19m          8Mi
+        productcatalog-854ddb6d5f-2qv67    153m         10Mi
+        recommendations-64d8b547d9-wjjjt   0m           3Mi
+        shipping-f9b586bfc-4pb5p           37m          8Mi
+        ubuntu-client-cb9cd665d-zr8nb      117m         33Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.59s     1.61s    4.56s    75.09%
+        Req/Sec    95.42     62.56   666.00     70.90%
+        Latency Distribution
+        50%    1.79s
+        75%    3.17s
+        90%    3.93s
+        99%    4.25s
+        100000 requests in 2.38m, 62.36MB read
+        Requests/sec:    699.30
+        Transfer/sec:    446.57KB
+        ------------------------------
+        stop time: 132.624766
+        stop time: 132.390056
+        stop time: 132.360245
+        stop time: 132.798396
+        stop time: 132.790862
+        stop time: 132.882857
+        stop time: 132.700791
+        stop time: 133.260915
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [132.624766, 132.390056, 132.360245, 132.798396, 132.790862, 132.882857, 132.700791, 133.260915]
+    [exp] Throughput: 753.4312521218978
+[test.py] Finished running 3th optmization experiment: groundtruth->787.2988795682948, slowdown->753.4312521218978, predicted->855.3242988873058, err->8.64035515410766
+[test.py] Running 4th optmization experiment
+[test.py] Running 4th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '400', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   486.35ms  748.78ms   3.00s    81.32%
+        Req/Sec   158.80    147.70   690.00     76.53%
+        Latency Distribution
+        50%   99.78ms
+        75%  809.73ms
+        90%    1.69s
+        99%    2.75s
+        3508 requests in 3.07s, 1.56MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1143.60
+        Transfer/sec:    521.76KB
+        [run.sh] Speed is 1143.60, duration is 131
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d131s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-86f8d8899c-pkn7m              920m         19Mi
+        checkout-64946b79ff-jk4vr          130m         17Mi
+        currency-574948696f-2cqvd          93m          8Mi
+        email-6dd949cb67-zzd9c             1m           3Mi
+        frontend-78465f775f-dc9pb          542m         85Mi
+        payment-9b9c855-jfcg4              21m          7Mi
+        productcatalog-57cbb74c54-fjcwp    174m         9Mi
+        recommendations-64d8b547d9-xlvxf   0m           3Mi
+        shipping-fdf5bd577-z6zfk           34m          7Mi
+        ubuntu-client-cb9cd665d-pgjs2      120m         37Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.60s     1.58s    4.68s    34.73%
+        Req/Sec    96.60     63.57   764.00     72.21%
+        Latency Distribution
+        50%    1.52s
+        75%    2.94s
+        90%    3.89s
+        99%    4.29s
+        99726 requests in 2.18m, 62.19MB read
+        Requests/sec:    760.73
+        Transfer/sec:    485.76KB
+        ------------------------------
+        [run.sh] Test finished with status 1
+        > STDERR
+        > No resources found in default namespace.
+        > PANIC: unprotected error in call to Lua API (/wrk/scripts/online-boutique/mix.lua:144: bad argument #1 to 'format' (number expected, got nil))
+        > command terminated with exit code 1
+    [exp] Error running bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000
+[test.py] Found 0 throughtput, rerun experiment
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '400', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   486.21ms  697.68ms   3.00s    82.05%
+        Req/Sec   146.22    136.90   575.00     83.48%
+        Latency Distribution
+        50%  105.35ms
+        75%  687.19ms
+        90%    1.57s
+        99%    2.54s
+        3355 requests in 3.09s, 1.81MB read
+        Requests/sec:   1086.20
+        Transfer/sec:    598.44KB
+        [run.sh] Speed is 1086.20, duration is 138
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d138s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-86f8d8899c-6xs7q              395m         18Mi
+        checkout-64946b79ff-9744b          98m          18Mi
+        currency-574948696f-8dm6n          89m          9Mi
+        email-6dd949cb67-pw8c9             0m           3Mi
+        frontend-78465f775f-5cw49          526m         85Mi
+        payment-9b9c855-zg86t              26m          8Mi
+        productcatalog-57cbb74c54-5sdtv    126m         9Mi
+        recommendations-64d8b547d9-8zxsz   0m           3Mi
+        shipping-fdf5bd577-z8sc6           37m          8Mi
+        ubuntu-client-cb9cd665d-xkk45      108m         28Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.54s     1.57s    4.34s    75.15%
+        Req/Sec    98.85     65.51     0.87k    71.97%
+        Latency Distribution
+        50%    1.75s
+        75%    3.07s
+        90%    3.82s
+        99%    4.10s
+        100000 requests in 2.30m, 62.35MB read
+        Requests/sec:    724.64
+        Transfer/sec:    462.69KB
+        ------------------------------
+        stop time: 127.856936
+        stop time: 128.171600
+        stop time: 128.470002
+        stop time: 128.574952
+        stop time: 128.988395
+        stop time: 128.778978
+        stop time: 128.302386
+        stop time: 129.072691
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [127.856936, 128.1716, 128.470002, 128.574952, 128.988395, 128.778978, 128.302386, 129.072691]
+    [exp] Throughput: 778.0466815171139
+[test.py] Running 4th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '2654.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '521.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '135.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '2654.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '222.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '1327.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   499.69ms  747.98ms   2.98s    80.65%
+        Req/Sec   143.69    121.30   606.00     80.48%
+        Latency Distribution
+        50%  112.89ms
+        75%  874.47ms
+        90%    1.71s
+        99%    2.73s
+        3314 requests in 3.07s, 1.33MB read
+        Requests/sec:   1078.42
+        Transfer/sec:    443.48KB
+        [run.sh] Speed is 1078.42, duration is 139
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d139s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-7rk5d              1078m        18Mi
+        checkout-6f486fddd4-wwbvv          124m         18Mi
+        currency-6b77f65b4b-7jtpq          73m          9Mi
+        email-6dd949cb67-rlp5f             0m           3Mi
+        frontend-8567b6f77f-8sbf2          234m         86Mi
+        payment-9bb5bc99d-47b9g            18m          8Mi
+        productcatalog-67cc694cb-zpvbw     161m         9Mi
+        recommendations-64d8b547d9-qklnz   0m           3Mi
+        shipping-84577cdf74-bt6n2          38m          9Mi
+        ubuntu-client-cb9cd665d-8m24q      92m          30Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.60s     1.61s    4.44s    75.07%
+        Req/Sec    95.92     64.48     1.28k    71.53%
+        Latency Distribution
+        50%    1.83s
+        75%    3.19s
+        90%    3.92s
+        99%    4.21s
+        100000 requests in 2.32m, 62.36MB read
+        Requests/sec:    719.42
+        Transfer/sec:    459.41KB
+        ------------------------------
+        stop time: 132.279989
+        stop time: 131.496452
+        stop time: 132.234106
+        stop time: 131.899655
+        stop time: 132.420911
+        stop time: 132.748811
+        stop time: 132.834348
+        stop time: 133.021985
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [132.279989, 131.496452, 132.234106, 131.899655, 132.420911, 132.748811, 132.834348, 133.021985]
+    [exp] Throughput: 755.4751239384564
+[test.py] Finished running 4th optmization experiment: groundtruth->778.0466815171139, slowdown->755.4751239384564, predicted->841.6487503786751, err->8.174582627554358
+[test.py] Running 5th optmization experiment
+[test.py] Running 5th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '500', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   494.01ms  722.58ms   2.97s    81.89%
+        Req/Sec   152.83    135.05   676.00     73.04%
+        Latency Distribution
+        50%   85.24ms
+        75%  684.60ms
+        90%    1.69s
+        99%    2.75s
+        3298 requests in 3.08s, 1.66MB read
+        Socket errors: connect 0, read 0, write 0, timeout 2
+        Requests/sec:   1069.32
+        Transfer/sec:    552.48KB
+        [run.sh] Speed is 1069.32, duration is 140
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d140s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-85b5b66cbd-cn7tb              942m         19Mi
+        checkout-64946b79ff-hwb4s          112m         18Mi
+        currency-574948696f-w94z6          93m          9Mi
+        email-6dd949cb67-ss9t2             1m           3Mi
+        frontend-78465f775f-tjjzl          506m         87Mi
+        payment-9b9c855-vldgk              20m          7Mi
+        productcatalog-57cbb74c54-m8sd5    164m         9Mi
+        recommendations-64d8b547d9-n7hlq   0m           3Mi
+        shipping-fdf5bd577-dvcck           35m          8Mi
+        ubuntu-client-cb9cd665d-llv6d      105m         36Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.72s     1.70s    5.38s    35.46%
+        Req/Sec    90.34     62.90     1.07k    76.06%
+        Latency Distribution
+        50%    1.68s
+        75%    3.24s
+        90%    4.18s
+        99%    4.78s
+        99111 requests in 2.33m, 61.79MB read
+        Requests/sec:    707.43
+        Transfer/sec:    451.62KB
+        ------------------------------
+        [run.sh] Test finished with status 1
+        > STDERR
+        > No resources found in default namespace.
+        > PANIC: unprotected error in call to Lua API (/wrk/scripts/online-boutique/mix.lua:144: bad argument #1 to 'format' (number expected, got nil))
+        > command terminated with exit code 1
+    [exp] Error running bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000
+[test.py] Found 0 throughtput, rerun experiment
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '500', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   486.30ms  713.83ms   2.90s    83.34%
+        Req/Sec   154.79    137.64   643.00     75.37%
+        Latency Distribution
+        50%  111.03ms
+        75%  618.83ms
+        90%    1.64s
+        99%    2.71s
+        3303 requests in 3.07s, 1.80MB read
+        Requests/sec:   1074.22
+        Transfer/sec:    598.28KB
+        [run.sh] Speed is 1074.22, duration is 139
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d139s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-85b5b66cbd-m77xl              949m         19Mi
+        checkout-64946b79ff-vqjl6          139m         18Mi
+        currency-574948696f-29rgh          89m          8Mi
+        email-6dd949cb67-sbssd             0m           3Mi
+        frontend-78465f775f-zqf9z          506m         86Mi
+        payment-9b9c855-42n6d              21m          7Mi
+        productcatalog-57cbb74c54-99kc9    136m         9Mi
+        recommendations-64d8b547d9-x89vs   1m           3Mi
+        shipping-fdf5bd577-csq2x           32m          7Mi
+        ubuntu-client-cb9cd665d-nt78q      115m         33Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.60s     1.61s    4.61s    75.79%
+        Req/Sec    95.89     63.37   680.00     70.29%
+        Latency Distribution
+        50%    1.70s
+        75%    3.05s
+        90%    3.91s
+        99%    4.34s
+        100000 requests in 2.32m, 62.35MB read
+        Requests/sec:    719.42
+        Transfer/sec:    459.31KB
+        ------------------------------
+        stop time: 132.378930
+        stop time: 132.382484
+        stop time: 132.789123
+        stop time: 132.665287
+        stop time: 132.379583
+        stop time: 132.113271
+        stop time: 132.830614
+        stop time: 133.048904
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [132.37893, 132.382484, 132.789123, 132.665287, 132.379583, 132.113271, 132.830614, 133.048904]
+    [exp] Throughput: 754.2984195158816
+[test.py] Running 5th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '2211.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '434.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '112.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '2211.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '185.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '1105.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   525.49ms  689.58ms   2.99s    84.66%
+        Req/Sec   141.42    134.54   590.00     86.30%
+        Latency Distribution
+        50%  183.10ms
+        75%  777.73ms
+        90%    1.62s
+        99%    2.81s
+        3296 requests in 3.07s, 1.72MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1074.96
+        Transfer/sec:    574.62KB
+        [run.sh] Speed is 1074.96, duration is 139
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d139s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-r57kd              533m         18Mi
+        checkout-7f7cbd8bd8-4wj5d          127m         17Mi
+        currency-774669489-fkf4t           97m          9Mi
+        email-6dd949cb67-rzksc             1m           3Mi
+        frontend-548ccc9f7d-t5sx8          293m         87Mi
+        payment-875f4cd54-vldcw            23m          7Mi
+        productcatalog-6fd5d586b-7w8rz     157m         9Mi
+        recommendations-64d8b547d9-72czm   0m           3Mi
+        shipping-85479b6697-tkpj8          22m          8Mi
+        ubuntu-client-cb9cd665d-fbdvm      106m         33Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.65s     1.65s    4.98s    73.16%
+        Req/Sec    93.50     62.16   690.00     70.10%
+        Latency Distribution
+        50%    1.75s
+        75%    3.17s
+        90%    4.02s
+        99%    4.47s
+        100000 requests in 2.32m, 62.35MB read
+        Requests/sec:    719.42
+        Transfer/sec:    459.30KB
+        ------------------------------
+        stop time: 135.742397
+        stop time: 135.175442
+        stop time: 135.947207
+        stop time: 136.188461
+        stop time: 135.770121
+        stop time: 136.238574
+        stop time: 136.252723
+        stop time: 135.711277
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [135.742397, 135.175442, 135.947207, 136.188461, 135.770121, 136.238574, 136.252723, 135.711277]
+    [exp] Throughput: 735.9528211262013
+[test.py] Finished running 5th optmization experiment: groundtruth->754.2984195158816, slowdown->735.9528211262013, predicted->802.6685597743776, err->6.412599974628157
+[test.py] Running 6th optmization experiment
+[test.py] Running 6th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '600', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   463.23ms  696.75ms   2.99s    82.13%
+        Req/Sec   149.85    120.77   727.00     77.62%
+        Latency Distribution
+        50%  135.31ms
+        75%  680.07ms
+        90%    1.63s
+        99%    2.69s
+        3398 requests in 3.06s, 1.46MB read
+        Socket errors: connect 0, read 0, write 0, timeout 2
+        Requests/sec:   1110.69
+        Transfer/sec:    488.46KB
+        [run.sh] Speed is 1110.69, duration is 135
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d135s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-885ccb767-8wwlj               551m         19Mi
+        checkout-64946b79ff-2mv7s          88m          16Mi
+        currency-574948696f-mwdbt          49m          9Mi
+        email-6dd949cb67-t6bjg             0m           3Mi
+        frontend-78465f775f-m22jb          556m         82Mi
+        payment-9b9c855-wcqgz              11m          7Mi
+        productcatalog-57cbb74c54-kztmd    95m          9Mi
+        recommendations-64d8b547d9-hghzt   1m           3Mi
+        shipping-fdf5bd577-wdmtb           40m          8Mi
+        ubuntu-client-cb9cd665d-98257      60m          21Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.57s     1.58s    4.43s    75.40%
+        Req/Sec    97.63     66.57     0.86k    71.93%
+        Latency Distribution
+        50%    1.76s
+        75%    2.97s
+        90%    3.86s
+        99%    4.16s
+        100000 requests in 2.25m, 62.36MB read
+        Requests/sec:    740.74
+        Transfer/sec:    473.03KB
+        ------------------------------
+        stop time: 129.538274
+        stop time: 129.674905
+        stop time: 130.223245
+        stop time: 129.086396
+        stop time: 129.903517
+        stop time: 130.054193
+        stop time: 130.474202
+        stop time: 130.346981
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [129.538274, 129.674905, 130.223245, 129.086396, 129.903517, 130.054193, 130.474202, 130.346981]
+    [exp] Throughput: 769.7476007142884
+[test.py] Running 6th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '1769.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '347.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '90.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '1769.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '148.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '884.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   465.64ms  691.41ms   2.99s    82.65%
+        Req/Sec   142.18    118.93   610.00     76.13%
+        Latency Distribution
+        50%  127.07ms
+        75%  764.72ms
+        90%    1.57s
+        99%    2.77s
+        3397 requests in 3.08s, 1.23MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1104.34
+        Transfer/sec:    409.14KB
+        [run.sh] Speed is 1104.34, duration is 135
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d135s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-lrmh5              930m         19Mi
+        checkout-986fccf44-wbzpp           77m          18Mi
+        currency-974f6f6d-8zvv4            99m          9Mi
+        email-6dd949cb67-xxmtm             1m           3Mi
+        frontend-54d5979668-c59vw          530m         85Mi
+        payment-7879b65cf8-j9mxc           17m          7Mi
+        productcatalog-5f8cc75f4c-nsngz    161m         10Mi
+        recommendations-64d8b547d9-4ctzk   0m           3Mi
+        shipping-574c5ccbb8-gbngb          39m          8Mi
+        ubuntu-client-cb9cd665d-pgpf4      85m          33Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.64s     1.62s    4.68s    34.48%
+        Req/Sec    94.36     62.06   580.00     69.74%
+        Latency Distribution
+        50%    1.57s
+        75%    2.99s
+        90%    3.99s
+        99%    4.32s
+        99997 requests in 2.25m, 62.36MB read
+        Requests/sec:    740.33
+        Transfer/sec:    472.73KB
+        ------------------------------
+        stop time: 134.289625
+        stop time: 134.628209
+        stop time: 134.522968
+        stop time: 134.862175
+        [run.sh] Test finished with status 1
+        > STDERR
+        > No resources found in default namespace.
+        > PANIC: unprotected error in call to Lua API (/wrk/scripts/online-boutique/mix.lua:144: bad argument #1 to 'format' (number expected, got nil))
+        > command terminated with exit code 1
+    [exp] Error running bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000
+[test.py] Found 0 throughput, rerun experiment
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '1769.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '347.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '90.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '1769.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '148.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '884.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   512.07ms  671.75ms   2.99s    83.96%
+        Req/Sec   153.78    129.76   595.00     69.71%
+        Latency Distribution
+        50%  201.43ms
+        75%  665.18ms
+        90%    1.58s
+        99%    2.78s
+        3285 requests in 3.09s, 1.64MB read
+        Requests/sec:   1064.27
+        Transfer/sec:    544.74KB
+        [run.sh] Speed is 1064.27, duration is 140
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d140s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-mtvr5              1077m        19Mi
+        checkout-986fccf44-fjdfr           139m         18Mi
+        currency-974f6f6d-5znvw            68m          9Mi
+        email-6dd949cb67-lqx46             1m           3Mi
+        frontend-54d5979668-vptkl          213m         86Mi
+        payment-7879b65cf8-v99zd           15m          8Mi
+        productcatalog-5f8cc75f4c-pjhbd    149m         10Mi
+        recommendations-64d8b547d9-rxpwb   0m           3Mi
+        shipping-574c5ccbb8-bc8lg          26m          9Mi
+        ubuntu-client-cb9cd665d-hssbq      101m         35Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.68s     1.67s    5.05s    34.91%
+        Req/Sec    92.11     60.63   580.00     70.19%
+        Latency Distribution
+        50%    1.77s
+        75%    3.23s
+        90%    4.05s
+        99%    4.67s
+        100001 requests in 2.33m, 62.37MB read
+        Requests/sec:    714.28
+        Transfer/sec:    456.18KB
+        ------------------------------
+        stop time: 137.619073
+        stop time: 137.513135
+        stop time: 137.777568
+        stop time: 137.605513
+        stop time: 137.771923
+        stop time: 138.196222
+        stop time: 138.042753
+        stop time: 138.180922
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [137.619073, 137.513135, 137.777568, 137.605513, 137.771923, 138.196222, 138.042753, 138.180922]
+    [exp] Throughput: 725.487297098762
+[test.py] Finished running 6th optmization experiment: groundtruth->769.7476007142884, slowdown->725.487297098762, predicted->776.3775790003962, err->0.8613184737380746
+[test.py] Running 7th optmization experiment
+[test.py] Running 7th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '700', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   490.24ms  709.27ms   2.99s    81.37%
+        Req/Sec   145.12    126.66   500.00     79.17%
+        Latency Distribution
+        50%  124.78ms
+        75%  799.45ms
+        90%    1.64s
+        99%    2.63s
+        3278 requests in 3.07s, 1.73MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1066.81
+        Transfer/sec:    575.41KB
+        [run.sh] Speed is 1066.81, duration is 140
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d140s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-579694474-cjxqs               953m         19Mi
+        checkout-64946b79ff-fsq4w          111m         17Mi
+        currency-574948696f-xjvj5          91m          9Mi
+        email-6dd949cb67-ljq2h             0m           3Mi
+        frontend-78465f775f-npmgj          516m         85Mi
+        payment-9b9c855-fvf2c              19m          9Mi
+        productcatalog-57cbb74c54-9tvlb    163m         9Mi
+        recommendations-64d8b547d9-97bdn   0m           3Mi
+        shipping-fdf5bd577-bqzdx           32m          8Mi
+        ubuntu-client-cb9cd665d-cjkzq      111m         35Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.60s     1.62s    4.59s    75.81%
+        Req/Sec    95.72     63.21   696.00     69.45%
+        Latency Distribution
+        50%    1.73s
+        75%    3.04s
+        90%    3.94s
+        99%    4.30s
+        100000 requests in 2.33m, 62.35MB read
+        Requests/sec:    714.28
+        Transfer/sec:    456.05KB
+        ------------------------------
+        stop time: 132.131921
+        stop time: 132.328317
+        stop time: 132.865668
+        stop time: 132.901542
+        stop time: 132.536013
+        stop time: 132.418968
+        stop time: 132.947121
+        stop time: 132.587901
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [132.131921, 132.328317, 132.865668, 132.901542, 132.536013, 132.418968, 132.947121, 132.587901]
+    [exp] Throughput: 754.2065035752861
+[test.py] Running 7th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '1327.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '260.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '67.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '1327.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '111.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '663.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   487.13ms  717.07ms   3.00s    82.80%
+        Req/Sec   137.74    103.42   490.00     64.49%
+        Latency Distribution
+        50%  150.83ms
+        75%  669.95ms
+        90%    1.74s
+        99%    2.63s
+        3167 requests in 3.07s, 1.26MB read
+        Socket errors: connect 0, read 0, write 0, timeout 5
+        Requests/sec:   1029.98
+        Transfer/sec:    418.92KB
+        [run.sh] Speed is 1029.98, duration is 145
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d145s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-zw44p              1041m        19Mi
+        checkout-5f47df86b6-6wdcl          120m         18Mi
+        currency-594f5fbf4d-b45xc          89m          9Mi
+        email-6dd949cb67-r2pnw             0m           3Mi
+        frontend-86bd495dd7-9qcvt          513m         85Mi
+        payment-587665b88d-4np86           18m          8Mi
+        productcatalog-5c6b7bb7cc-88fwp    161m         9Mi
+        recommendations-64d8b547d9-d8j52   0m           3Mi
+        shipping-58bc5cc8c9-s7cmt          43m          8Mi
+        ubuntu-client-cb9cd665d-v7m8v      110m         35Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.62s     1.65s    4.69s    75.44%
+        Req/Sec    93.99     62.13   590.00     70.33%
+        Latency Distribution
+        50%    1.79s
+        75%    3.18s
+        90%    4.00s
+        99%    4.38s
+        100000 requests in 2.42m, 62.36MB read
+        Requests/sec:    689.65
+        Transfer/sec:    440.38KB
+        ------------------------------
+        stop time: 135.210579
+        stop time: 134.934831
+        stop time: 135.330894
+        stop time: 135.417656
+        stop time: 134.641720
+        stop time: 135.459304
+        stop time: 135.605086
+        stop time: 134.776276
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [135.210579, 134.934831, 135.330894, 135.417656, 134.64172, 135.459304, 135.605086, 134.776276]
+    [exp] Throughput: 739.7979463479036
+[test.py] Finished running 7th optmization experiment: groundtruth->754.2065035752861, slowdown->739.7979463479036, predicted->778.8420857849898, err->3.2664239956722287
+[test.py] Running 8th optmization experiment
+[test.py] Running 8th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '800', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   473.14ms  654.66ms   2.98s    84.05%
+        Req/Sec   148.54    130.16   514.00     77.42%
+        Latency Distribution
+        50%  150.45ms
+        75%  571.03ms
+        90%    1.53s
+        99%    2.65s
+        3304 requests in 3.09s, 1.65MB read
+        Requests/sec:   1070.36
+        Transfer/sec:    548.73KB
+        [run.sh] Speed is 1070.36, duration is 140
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d140s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-589c7df7d9-6c6sr              927m         19Mi
+        checkout-64946b79ff-f2wcs          115m         18Mi
+        currency-574948696f-qjjxh          90m          9Mi
+        email-6dd949cb67-ptpbk             0m           3Mi
+        frontend-78465f775f-lgnkl          530m         87Mi
+        payment-9b9c855-sg9kj              22m          8Mi
+        productcatalog-57cbb74c54-bgd45    152m         9Mi
+        recommendations-64d8b547d9-gww5t   0m           3Mi
+        shipping-fdf5bd577-6vrr5           32m          8Mi
+        ubuntu-client-cb9cd665d-kqgrh      115m         35Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.65s     1.65s    5.02s    76.24%
+        Req/Sec    93.59     62.04   710.00     70.70%
+        Latency Distribution
+        50%    1.69s
+        75%    3.14s
+        90%    3.99s
+        99%    4.51s
+        100001 requests in 2.33m, 62.36MB read
+        Requests/sec:    714.29
+        Transfer/sec:    456.15KB
+        ------------------------------
+        stop time: 135.797847
+        stop time: 135.877135
+        stop time: 135.565494
+        stop time: 135.701425
+        stop time: 135.382376
+        stop time: 135.871139
+        stop time: 135.989765
+        stop time: 136.066746
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [135.797847, 135.877135, 135.565494, 135.701425, 135.382376, 135.871139, 135.989765, 136.066746]
+    [exp] Throughput: 736.4774046564246
+[test.py] Running 8th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '884.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '173.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '45.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '884.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '74.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '442.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   476.77ms  715.30ms   3.00s    81.26%
+        Req/Sec   150.23    121.88   520.00     67.65%
+        Latency Distribution
+        50%  141.38ms
+        75%  643.83ms
+        90%    1.65s
+        99%    2.83s
+        3310 requests in 3.07s, 1.40MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1076.57
+        Transfer/sec:    466.69KB
+        [run.sh] Speed is 1076.57, duration is 139
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d139s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-5xkwt              1005m        20Mi
+        checkout-5cb898f7db-q4r4j          115m         19Mi
+        currency-d554856c-kbcc4            90m          9Mi
+        email-6dd949cb67-r45cf             0m           3Mi
+        frontend-76b7db9fd-c6nf6           334m         84Mi
+        payment-7957d859c8-7cztc           23m          9Mi
+        productcatalog-d6b5996b7-jcgfm     153m         9Mi
+        recommendations-64d8b547d9-fcfqs   0m           3Mi
+        shipping-78d5c8cd5f-fk8mg          35m          8Mi
+        ubuntu-client-cb9cd665d-8dpz9      112m         35Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.61s     1.62s    4.47s    75.24%
+        Req/Sec    95.38     63.25     0.94k    70.36%
+        Latency Distribution
+        50%    1.84s
+        75%    3.14s
+        90%    3.95s
+        99%    4.21s
+        100001 requests in 2.32m, 62.35MB read
+        Requests/sec:    719.43
+        Transfer/sec:    459.35KB
+        ------------------------------
+        stop time: 132.077570
+        stop time: 133.245581
+        stop time: 133.073207
+        stop time: 132.743523
+        stop time: 132.784584
+        stop time: 133.273412
+        stop time: 132.657115
+        stop time: 133.146698
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [132.07757, 133.245581, 133.073207, 132.743523, 132.784584, 133.273412, 132.657115, 133.146698]
+    [exp] Throughput: 752.5858213828429
+[test.py] Finished running 8th optmization experiment: groundtruth->736.4774046564246, slowdown->752.5858213828429, predicted->779.0730346422667, err->5.783698144237502
+[test.py] Running 9th optmization experiment
+[test.py] Running 9th groundtruth exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '900', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   458.95ms  660.22ms   2.99s    83.84%
+        Req/Sec   150.05    129.07   680.00     77.93%
+        Latency Distribution
+        50%   67.87ms
+        75%  777.64ms
+        90%    1.53s
+        99%    2.60s
+        3375 requests in 3.07s, 1.61MB read
+        Socket errors: connect 0, read 0, write 0, timeout 1
+        Requests/sec:   1098.97
+        Transfer/sec:    537.27KB
+        [run.sh] Speed is 1098.97, duration is 136
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d136s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-658bc89c4d-frxhw              835m         19Mi
+        checkout-64946b79ff-k9rbx          129m         17Mi
+        currency-574948696f-g9s5x          72m          8Mi
+        email-6dd949cb67-mgfw7             1m           3Mi
+        frontend-78465f775f-hs575          512m         86Mi
+        payment-9b9c855-bqznk              22m          8Mi
+        productcatalog-57cbb74c54-bhhk8    103m         9Mi
+        recommendations-64d8b547d9-54rnr   0m           3Mi
+        shipping-fdf5bd577-hqqjx           28m          7Mi
+        ubuntu-client-cb9cd665d-22pm9      110m         33Mi
+        Running 2m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.60s     1.60s    4.51s    75.81%
+        Req/Sec    96.21     62.97   740.00     70.59%
+        Latency Distribution
+        50%    1.71s
+        75%    2.98s
+        90%    3.92s
+        99%    4.24s
+        100000 requests in 2.27m, 62.36MB read
+        Requests/sec:    735.29
+        Transfer/sec:    469.54KB
+        ------------------------------
+        stop time: 131.399686
+        stop time: 131.863773
+        stop time: 131.459194
+        stop time: 131.581594
+        stop time: 131.959918
+        stop time: 132.157704
+        stop time: 131.754761
+        stop time: 131.745399
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [131.399686, 131.863773, 131.459194, 131.581594, 131.959918, 132.157704, 131.754761, 131.745399]
+    [exp] Throughput: 759.0694358662087
+[test.py] Running 9th slowdown exp
+    [exp] Running (pre_run: False) workload boutique/mix request with the following configuration: {'SLOWPOKE_TOP': '/home/aframviscagyebi/slowpoke', 'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_PROCESSING_MICROS_CART': '1000', 'SLOWPOKE_PROCESSING_MICROS_CHECKOUT': '0', 'SLOWPOKE_PROCESSING_MICROS_CURRENCY': '0', 'SLOWPOKE_PROCESSING_MICROS_EMAIL': '0', 'SLOWPOKE_PROCESSING_MICROS_FRONTEND': '0', 'SLOWPOKE_PROCESSING_MICROS_PAYMENT': '0', 'SLOWPOKE_PROCESSING_MICROS_PRODUCT_CATALOG': '0', 'SLOWPOKE_PROCESSING_MICROS_RECOMMENDATIONS': '0', 'SLOWPOKE_PROCESSING_MICROS_SHIPPING': '0', 'SLOWPOKE_DELAY_MICROS_CART': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CART': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CART': 'true', 'SLOWPOKE_DELAY_MICROS_CHECKOUT': '442.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CHECKOUT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CHECKOUT': 'false', 'SLOWPOKE_DELAY_MICROS_CURRENCY': '86.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_CURRENCY': '100', 'SLOWPOKE_IS_TARGET_SERVICE_CURRENCY': 'false', 'SLOWPOKE_DELAY_MICROS_EMAIL': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_EMAIL': '100', 'SLOWPOKE_IS_TARGET_SERVICE_EMAIL': 'false', 'SLOWPOKE_DELAY_MICROS_FRONTEND': '22.5', 'SLOWPOKE_POKER_BATCH_THRESHOLD_FRONTEND': '100', 'SLOWPOKE_IS_TARGET_SERVICE_FRONTEND': 'false', 'SLOWPOKE_DELAY_MICROS_PAYMENT': '442.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PAYMENT': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PAYMENT': 'false', 'SLOWPOKE_DELAY_MICROS_PRODUCT_CATALOG': '37.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_PRODUCT_CATALOG': '100', 'SLOWPOKE_IS_TARGET_SERVICE_PRODUCT_CATALOG': 'false', 'SLOWPOKE_DELAY_MICROS_RECOMMENDATIONS': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_RECOMMENDATIONS': '100', 'SLOWPOKE_IS_TARGET_SERVICE_RECOMMENDATIONS': 'false', 'SLOWPOKE_DELAY_MICROS_SHIPPING': '221.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SHIPPING': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SHIPPING': 'false'}
+    [exp] Executing cmd `bash /home/aframviscagyebi/slowpoke/src/run.sh boutique mix 8 1024 100000`:
+        SLOWPOKE_TOP is set to /home/aframviscagyebi/slowpoke
+        [run.sh] Running benchmark boutique with request mix, thread 8, conn 1024, duration 60
+        [run.sh] Deleting all services
+        service "cart" deleted from default namespace
+        deployment.apps "cart" deleted from default namespace
+        service "checkout" deleted from default namespace
+        deployment.apps "checkout" deleted from default namespace
+        service "currency" deleted from default namespace
+        deployment.apps "currency" deleted from default namespace
+        service "email" deleted from default namespace
+        deployment.apps "email" deleted from default namespace
+        service "frontend" deleted from default namespace
+        deployment.apps "frontend" deleted from default namespace
+        service "payment" deleted from default namespace
+        deployment.apps "payment" deleted from default namespace
+        service "productcatalog" deleted from default namespace
+        deployment.apps "productcatalog" deleted from default namespace
+        service "recommendations" deleted from default namespace
+        deployment.apps "recommendations" deleted from default namespace
+        service "shipping" deleted from default namespace
+        deployment.apps "shipping" deleted from default namespace
+        deployment.apps "ubuntu-client" deleted from default namespace
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/cart created
+        deployment.apps/cart created
+        service/checkout created
+        deployment.apps/checkout created
+        service/currency created
+        deployment.apps/currency created
+        service/email created
+        deployment.apps/email created
+        service/frontend created
+        deployment.apps/frontend created
+        service/payment created
+        deployment.apps/payment created
+        service/productcatalog created
+        deployment.apps/productcatalog created
+        service/recommendations created
+        deployment.apps/recommendations created
+        service/shipping created
+        deployment.apps/shipping created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] All pods are running
+        [run.sh] Checking heartbeat for all services
+        [run.sh] All pods can connect to all services
+        [run.sh] No population needed for boutique
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c1024 --timeout 3s -d3s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        Running 3s test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   495.45ms  638.09ms   2.94s    83.83%
+        Req/Sec   148.00    112.27   550.00     69.15%
+        Latency Distribution
+        50%  206.83ms
+        75%  775.61ms
+        90%    1.53s
+        99%    2.63s
+        3074 requests in 3.10s, 1.26MB read
+        Requests/sec:    991.51
+        Transfer/sec:    416.39KB
+        [run.sh] Speed is 991.51, duration is 151
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c1024 -d151s -L -s /wrk/scripts/online-boutique/mix.lua http://frontend:80
+        [run.sh] Checking the resource usage
+        NAME                               CPU(cores)   MEMORY(bytes)
+        cart-77b6cfc8dd-7f28w              1017m        18Mi
+        checkout-56ff5fb749-9sxtw          104m         18Mi
+        currency-7bb7997584-4zhck          90m          9Mi
+        email-6dd949cb67-l28c9             1m           3Mi
+        frontend-7988d65f66-5r5xp          358m         86Mi
+        payment-c675977-bhk8s              23m          7Mi
+        productcatalog-dcbcd77d4-g9tjh     121m         9Mi
+        recommendations-64d8b547d9-5r79p   0m           3Mi
+        shipping-7cd78957d4-vf2k5          38m          7Mi
+        ubuntu-client-cb9cd665d-rkvf2      106m         35Mi
+        Running 3m test @ http://frontend:80
+        8 threads and 1024 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency     1.57s     1.61s    4.75s    74.94%
+        Req/Sec    95.56     60.97   539.00     71.04%
+        Latency Distribution
+        50%    1.72s
+        75%    3.19s
+        90%    3.92s
+        99%    4.26s
+        100000 requests in 2.52m, 62.35MB read
+        Requests/sec:    662.25
+        Transfer/sec:    422.80KB
+        ------------------------------
+        stop time: 132.823825
+        stop time: 132.260123
+        stop time: 132.552964
+        stop time: 132.592437
+        stop time: 133.133006
+        stop time: 132.626038
+        stop time: 133.180139
+        stop time: 133.412949
+        [run.sh] Test finished with status 0
+        > STDERR
+        > No resources found in default namespace.
+    [exp] Times: [132.823825, 132.260123, 132.552964, 132.592437, 133.133006, 132.626038, 133.180139, 133.412949]
+    [exp] Throughput: 752.8834393453917
+[test.py] Finished running 9th optmization experiment: groundtruth->759.0694358662087, slowdown->752.8834393453917, predicted->765.9084068561206, err->0.9009677727450109
+[test.py] Baseline throughput:  746.8442611534281
+[test.py] Groundtruth:  [755.3236471094611, 777.1357326289069, 788.9678320349104, 787.2988795682948, 778.0466815171139, 754.2984195158816, 769.7476007142884, 754.2065035752861, 736.4774046564246, 759.0694358662087]
+[test.py] Slowdown:  [733.0414321422396, 729.285358618454, 751.4151594247583, 753.4312521218978, 755.4751239384564, 735.9528211262013, 725.487297098762, 739.7979463479036, 752.5858213828429, 752.8834393453917]
+[test.py] Predicted:  [878.5012235870685, 856.2259296315356, 869.4740293260359, 855.3242988873058, 841.6487503786751, 802.6685597743776, 776.3775790003962, 778.8420857849898, 779.0730346422667, 765.9084068561206]
+[test.py] Error percentage:  [16.307920048444675, 10.17714070810785, 10.203989823448616, 8.64035515410766, 8.174582627554358, 6.412599974628157, 0.8613184737380746, 3.2664239956722287, 5.783698144237502, 0.9009677727450109]
+[test.py] ++++++++++++++++++++++++++++++++ Summary: 
+[test.py] Result for the experiment 0: 
+    Baseline throughput: 746.8442611534281
+    Groundtruth: [755.3236471094611, 777.1357326289069, 788.9678320349104, 787.2988795682948, 778.0466815171139, 754.2984195158816, 769.7476007142884, 754.2065035752861, 736.4774046564246, 759.0694358662087]
+    Slowdown:    [733.0414321422396, 729.285358618454, 751.4151594247583, 753.4312521218978, 755.4751239384564, 735.9528211262013, 725.487297098762, 739.7979463479036, 752.5858213828429, 752.8834393453917]
+    Predicted:   [878.5012235870685, 856.2259296315356, 869.4740293260359, 855.3242988873058, 841.6487503786751, 802.6685597743776, 776.3775790003962, 778.8420857849898, 779.0730346422667, 765.9084068561206]
+    Error Perc:  [16.307920048444675, 10.17714070810785, 10.203989823448616, 8.64035515410766, 8.174582627554358, 6.412599974628157, 0.8613184737380746, 3.2664239956722287, 5.783698144237502, 0.9009677727450109]

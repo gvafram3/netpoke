@@ -1,0 +1,7 @@
+=== Experiment F (NetPoke) Single-Round Error ===
+
+COMPARISON:
+  Baseline (no I/O): ~9%
+  Exp D (no fix): 14.70%
+  Exp F (tc netem fix): ??? (see above)
+

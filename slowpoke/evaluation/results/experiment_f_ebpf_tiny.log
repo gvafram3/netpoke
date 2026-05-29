@@ -1,0 +1,279 @@
+/tmp/netpoke_residual_io.bt:27:55-56: WARNING: arithmetic on integers of different signs: 'unsigned int64' and 'int64' can lead to undefined behavior
+        @residual_bytes[comm] = @residual_bytes[comm] + args->ret;
+                                                      ~
+Attaching 6 probes...
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+STOP: pid=53790 comm=poker time=4211522
+  RESIDUAL IO: pid=53790 comm=cart bytes=8
+CONT: pid=53790 comm=poker paused=1647 us
+STOP: pid=54093 comm=poker time=4212404
+CONT: pid=54093 comm=poker paused=115 us
+STOP: pid=54361 comm=poker time=4212956
+CONT: pid=54361 comm=poker paused=179 us
+STOP: pid=54466 comm=poker time=4213229
+CONT: pid=54466 comm=poker paused=42 us
+STOP: pid=54549 comm=poker time=4213351
+CONT: pid=54549 comm=poker paused=321 us
+STOP: pid=54555 comm=poker time=4213370
+  RESIDUAL IO: pid=54555 comm=payment bytes=8
+  RESIDUAL IO: pid=54555 comm=payment bytes=5
+CONT: pid=54555 comm=poker paused=2143 us
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+@residual_bytes[cart]: 8
+@residual_bytes[payment]: 13
+Residual receive calls per service:
+@residual_count[cart]: 1
+@residual_count[payment]: 2
+STOP: pid=54671 comm=poker time=4213777
+  RESIDUAL IO: pid=54671 comm=checkout bytes=8
+  RESIDUAL IO: pid=54671 comm=checkout bytes=5
+CONT: pid=54671 comm=poker paused=1421 us
+STOP: pid=54707 comm=poker time=4213848
+  RESIDUAL IO: pid=54707 comm=shipping bytes=8
+  RESIDUAL IO: pid=54707 comm=shipping bytes=5
+CONT: pid=54707 comm=poker paused=1367 us
+STOP: pid=54735 comm=poker time=4213968
+CONT: pid=54735 comm=poker paused=126 us
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+@residual_bytes[checkout]: 13
+@residual_bytes[shipping]: 13
+Residual receive calls per service:
+@residual_count[shipping]: 2
+@residual_count[checkout]: 2
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
+
+=== Residual I/O Summary (last 5s) ===
+Residual bytes per service:
+
+Residual receive calls per service:
+
