@@ -11,35 +11,42 @@ install Kubernetes exactly the way the original authors did.
 
 ## What gets created
 
-| Kubernetes node | VM name              | Size           | Role                              |
-|-----------------|----------------------|----------------|-----------------------------------|
-| control-plane   | netpoke-control      | e2-standard-4  | Kubernetes control plane          |
-| loadgen         | netpoke-loadgen      | e2-standard-4  | runs the `wrk` workload generator |
-| worker1..worker6| netpoke-worker1..6   | e2-standard-2  | run the microservices             |
+The default sizing fits a standard GCP project's **12-vCPU global quota**
+(`CPUS_ALL_REGIONS`):
 
-That is 8 VMs by default (1 + 1 + 6). You can change the counts and sizes in
-`config.env`.
+| Kubernetes node  | VM name            | Size           | vCPU | Role                              |
+|------------------|--------------------|----------------|------|-----------------------------------|
+| control-plane    | netpoke-control    | e2-standard-2  | 2    | Kubernetes control plane          |
+| loadgen          | netpoke-loadgen    | e2-standard-4  | 4    | runs the `wrk` workload generator |
+| worker1..worker3 | netpoke-worker1..3 | e2-standard-2  | 2 ea | run the microservices             |
+
+Total: 5 VMs, 12 vCPU (2 + 4 + 3x2). You can change the counts and sizes in
+`config.env` if you raise your project's quota.
+
+> Because the project quota is 12 vCPU and `slowpoke-vm` already uses 4, you must
+> **stop `slowpoke-vm`** before bringing the cluster up, and run these scripts
+> from **Cloud Shell** (which does not count against the vCPU quota) rather than
+> from `slowpoke-vm`.
 
 ## Budget
 
-- VMs are billed **only while running**. The default 8-VM cluster costs roughly
-  **US$0.67 per hour**, so a 2.5-hour measurement run is about **US$2–3**
+- VMs are billed **only while running**. This 5-VM cluster costs roughly
+  **US$0.40 per hour**, so a 2.5-hour measurement run is about **US$1–2**
   including setup time.
 - **Always run `./03_teardown.sh` when you finish a batch of experiments.** This
   deletes the VMs so they stop costing anything.
-- Do code development, image builds, and quick smoke tests on the existing
-  single `slowpoke-vm` (with Kind) instead of this cluster, and **stop that VM
-  when idle** too: `gcloud compute instances stop slowpoke-vm --zone us-central1-a`.
+- Keep `slowpoke-vm` **stopped** unless you are actively building images or doing
+  code work on it: `gcloud compute instances stop slowpoke-vm --zone us-central1-a`.
 - Set a billing budget alert in the GCP console (Billing -> Budgets & alerts) at,
   say, US$100 so you are warned well before the US$130 ceiling.
 
-## One-time setup
+## One-time setup (in Cloud Shell)
 
-You run these from a machine that has the `gcloud` tool and this repository
-(your `slowpoke-vm` already has both). From `~/netpoke`:
+Open Cloud Shell from the GCP console (the `>_` icon, top-right), then:
 
 ```bash
-cd netpoke/infra/gcp
+git clone https://github.com/gvafram3/netpoke.git
+cd netpoke/netpoke/infra/gcp
 cp config.env.example config.env
 ```
 
@@ -63,7 +70,7 @@ When step 2 finishes it prints `kubectl get nodes`. All nodes should reach the
 
 ## Use the cluster
 
-SSH into the control node and work from there:
+SSH into the control node (use the SSH button on the VM list page, or):
 
 ```bash
 gcloud compute ssh netpoke-control --zone us-central1-a
@@ -71,9 +78,9 @@ gcloud compute ssh netpoke-control --zone us-central1-a
 
 On the control node, clone this repo (or copy the `slowpoke/` folder over),
 build/load the images, deploy a benchmark, and run experiments. The benchmark
-YAMLs pin services to nodes named `worker1`, `worker2`, and so on, which is why
-the service nodes use exactly those names. (A follow-up step will re-map the
-boutique service affinities across `worker1..worker6` and point the client at the
+YAMLs pin services to nodes named `worker1`, `worker2`, and `worker3`, which is
+why the service nodes use exactly those names. (A follow-up step will spread the
+boutique services across `worker1..worker3` and point the client at the
 `loadgen` node; see the project notes.)
 
 ## Tear the cluster down (do this when done)
@@ -86,6 +93,9 @@ It asks for confirmation, then deletes the VMs and the firewall rule.
 
 ## Troubleshooting
 
+- **`Quota 'CPUS_ALL_REGIONS' exceeded`:** something is still using vCPUs. Make
+  sure `slowpoke-vm` is stopped and no leftover `netpoke-*` VMs remain, then
+  retry. The default config is built to fit exactly 12 vCPU.
 - **`gcloud` asks about SSH keys the first time:** accept the defaults; it
   generates a key pair and reuses it afterwards.
 - **A node is stuck `NotReady`:** give it two minutes (the network plugin takes a
