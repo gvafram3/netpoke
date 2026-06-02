@@ -19,12 +19,13 @@ TEST_ONLY=0
 if [[ -f config.env ]]; then
   # shellcheck disable=SC1091
   source config.env
-else
-  GCP_PROJECT="${GCP_PROJECT:-$(gcloud config get-value project 2>/dev/null)}"
-  CLUSTER_PREFIX="${CLUSTER_PREFIX:-netpoke}"
-  NETWORK_TAG="${NETWORK_TAG:-netpoke-cluster}"
-  GCP_REGION="${GCP_REGION:-us-central1}"
 fi
+GCP_PROJECT="${GCP_PROJECT:-$(gcloud config get-value project 2>/dev/null)}"
+CLUSTER_PREFIX="${CLUSTER_PREFIX:-netpoke}"
+NETWORK_TAG="${NETWORK_TAG:-netpoke-cluster}"
+GCP_ZONE="${GCP_ZONE:-us-central1-a}"
+# Region for Cloud NAT (us-central1-a -> us-central1)
+GCP_REGION="${GCP_REGION:-${GCP_ZONE%-*}}"
 
 gcloud config set project "$GCP_PROJECT" >/dev/null
 
@@ -58,8 +59,9 @@ for vm in "${VMS[@]}"; do
   z="$(vm_zone "$vm")"
   [[ -z "$z" ]] && continue
   echo -n "    $vm: "
-  if gcloud_ssh "$vm" 'curl -4 -sS -o /dev/null -w "%{http_code}" --connect-timeout 10 https://www.google.com || echo FAIL'; then
-    :
+  if out="$(gcloud_ssh "$vm" 'curl -4 -sS -o /dev/null -w "%{http_code}" --connect-timeout 15 https://www.google.com 2>/dev/null || echo FAIL')" 2>/dev/null; then
+    echo "$out"
+    [[ "$out" != *200* ]] && FAIL=$((FAIL + 1))
   else
     echo "SSH or curl failed"
     FAIL=$((FAIL + 1))

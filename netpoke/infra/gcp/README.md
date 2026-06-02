@@ -128,7 +128,7 @@ Step 2 (`02_initialize_cluster.sh`) uses **IAP tunnel** SSH to nodes without a p
 
 ## Troubleshooting
 
-- **`Failed to fetch` / `Unable to locate package docker-ce` / `github.com ... timed out` during step 2:** the VMs cannot reach the public internet (common when workers have no public IP, or IPv6 is broken). Run `./fix_network_egress.sh`, wait 30 seconds, then run `./02_initialize_cluster.sh` again. If control was half-installed, SSH to control and run `sudo kubeadm reset -f --cri-socket unix:///var/run/cri-dockerd.sock` first (ignore errors if kubeadm was never installed).
+- **`Failed to fetch` / `Unable to locate package docker-ce` / `github.com ... timed out` during step 2:** the VMs cannot reach the public internet (common when workers have no public IP, or IPv6 is broken). Run `./fix_network_egress.sh` until worker curl tests show `200`, then `./02_initialize_cluster.sh --workers-only` if control is already Ready. If control was half-installed, SSH to control and run `sudo kubeadm reset -f --cri-socket unix:///var/run/cri-dockerd.sock` first (ignore errors if kubeadm was never installed).
 
 - **`Quota 'CPUS_ALL_REGIONS' exceeded`:** something is still using vCPUs. Make
   sure `slowpoke-vm` is stopped and no leftover `netpoke-*` VMs remain, then

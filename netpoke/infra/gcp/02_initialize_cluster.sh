@@ -14,9 +14,16 @@
 # Usage (run AFTER 01_create_cluster.sh and a ~60s boot wait):
 #   cd netpoke/infra/gcp
 #   ./02_initialize_cluster.sh
+#
+# If control is already Ready but workers never joined (no internet earlier):
+#   ./fix_network_egress.sh
+#   ./02_initialize_cluster.sh --workers-only
 
 set -euo pipefail
 cd "$(dirname "$0")"
+
+WORKERS_ONLY=0
+[[ "${1:-}" == "--workers-only" ]] && WORKERS_ONLY=1
 
 if [[ ! -f config.env ]]; then
   echo "ERROR: config.env not found. Run:  cp config.env.example config.env"
@@ -24,6 +31,7 @@ if [[ ! -f config.env ]]; then
 fi
 # shellcheck disable=SC1091
 source config.env
+GCP_REGION="${GCP_REGION:-${GCP_ZONE%-*}}"
 
 REPO_ROOT="$(cd ../../.. && pwd)"
 SETUP_DIR="${REPO_ROOT}/slowpoke/scripts/setup"
@@ -103,9 +111,14 @@ rrun  () {
   gcloud compute ssh "$vm" "${args[@]}" --command "$*"
 }
 
-echo "==> [1/5] Initialising the control plane ($CONTROL). This takes several minutes."
-rcopy "$INIT_CONTROL" "$CONTROL"
-rrun  "$CONTROL" "bash ~/init_control.sh"
+if [[ "$WORKERS_ONLY" -eq 0 ]]; then
+  echo "==> [1/5] Initialising the control plane ($CONTROL). This takes several minutes."
+  rcopy "$INIT_CONTROL" "$CONTROL"
+  rrun  "$CONTROL" "bash ~/init_control.sh"
+else
+  echo "==> [1/5] Skipping control init (--workers-only). Current nodes:"
+  rrun "$CONTROL" "kubectl get nodes -o wide || true"
+fi
 
 echo "==> [2/5] Installing Kubernetes on loadgen and worker nodes (in parallel)."
 for node in "$LOADGEN" "${WORKERS[@]}"; do
