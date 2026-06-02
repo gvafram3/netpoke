@@ -91,14 +91,37 @@ Use `./preflight_cluster.sh` before step 2 and `./preflight_cluster.sh --after-k
 
 ## Monitoring progress (counter dashboard)
 
-`tail -f` on a multi-hour log is hard to read. SlowPoke already prints structured markers in
-`main.py` (`[test.py] Running Nth …`, `Finished running Nth optmization experiment`,
-`[exp] Throughput:`). A second SSH session on **netpoke-control** can turn those into counters:
+`tail -f` on a multi-hour log is hard to read. Experiment scripts redirect output to
+`results/*.log`, so the SSH window stays **silent** unless you add a monitor.
+
+### One SSH session (recommended)
+
+```bash
+cd ~/slowpoke/evaluation
+screen -S slowpoke
+./run_with_monitor.sh
+# or simply (auto-wraps the monitor):
+./run_reproducible.sh
+```
+
+Every ~20s you get counters on **your terminal** (even while output goes to the log file):
+
+- `workloads 7/21` — completed `wrk` runs for the current benchmark
+- `opt points 3/10` — finished optimization sweep points
+- `Suite: 1/4 benchmarks finished` — boutique → hotel → social → movie
+
+Faster updates: `WATCH_INTERVAL=10 ./run_with_monitor.sh`
+
+**Inside one `screen` session**, split panes (still one SSH): `Ctrl+A` then `|` or `S`,
+open a second pane, run `./watch_progress.sh` in the lower pane.
+
+**Optional tmux** (if installed): `SLOWPOKE_TMUX=1 ./run_with_monitor.sh`
+
+### Second SSH session (if you have one)
 
 ```bash
 cd ~/slowpoke/evaluation
 ./watch_progress.sh
-# or: WATCH_INTERVAL=5 ./watch_progress.sh results/boutique_medium.log
 ```
 
 You should see:

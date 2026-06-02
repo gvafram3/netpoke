@@ -1,24 +1,39 @@
 #!/usr/bin/env bash
-# Live SlowPoke progress dashboard (run in a second SSH session on netpoke-control).
+# SlowPoke progress counters (parse main.py logs).
 #
-# Usage:
-#   cd ~/slowpoke/evaluation
-#   ./watch_progress.sh                  # refresh every 10s
-#   WATCH_INTERVAL=5 ./watch_progress.sh results/boutique_medium.log
+# One SSH session — use with run_with_monitor.sh (prints to your terminal).
+# Two sessions — run this alone in the other SSH.
 #
-# Counters are derived from main.py log lines (see sample_output/boutique_medium.log).
+#   ./watch_progress.sh
+#   ./watch_progress.sh --once
+#   ./watch_progress.sh --loop-tty results/
 
 set -u
 
-RESULTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/results"
+EVAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+RESULTS_DIR="${RESULTS_DIR:-$EVAL_DIR/results}"
 LOG_FILE=""
-INTERVAL="${WATCH_INTERVAL:-10}"
+INTERVAL="${WATCH_INTERVAL:-15}"
+MODE="fullscreen"  # fullscreen | once | loop-tty
 
-if [[ $# -ge 1 && -f "$1" ]]; then
-  LOG_FILE="$1"
-elif [[ $# -ge 1 ]]; then
-  RESULTS_DIR="$1"
-fi
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --once) MODE=once; shift ;;
+    --loop-tty) MODE=loop-tty; shift ;;
+    -h|--help)
+      sed -n '2,12p' "$0"
+      exit 0
+      ;;
+    *)
+      if [[ -f "$1" ]]; then
+        LOG_FILE="$1"
+      elif [[ -d "$1" ]]; then
+        RESULTS_DIR="$1"
+      fi
+      shift
+      ;;
+  esac
+done
 
 REPRO_BENCHES=(boutique hotel social movie)
 
@@ -45,155 +60,191 @@ pick_active_log() {
   ls -t "$dir"/*.log 2>/dev/null | head -1
 }
 
+# Sets globals: P_LOG, P_BENCHMARK, P_TARGET, P_NUM_EXP, P_FINISHED_OPT, P_THROUGHPUTS,
+# P_TOTAL_WORKLOADS, P_PCT_WORKLOADS, P_PCT_OPT, P_PHASE, P_LAST_TP, P_LAST_ERR,
+# P_LOG_DONE, P_SIZE, P_LINES, P_MTIME
 parse_log() {
   local log="$1"
+  P_LOG="" P_BENCHMARK="" P_TARGET="" P_LAST_TP="" P_LAST_ERR="" P_PHASE=""
+  P_LOG_DONE=0 P_FINISHED_OPT=0 P_THROUGHPUTS=0 P_NUM_EXP=10
   [[ -f "$log" ]] || return 1
 
-  local num_exp finished throughputs total_workloads pct_workloads pct_opt
-  num_exp=$(grep -m1 '^target_num_exp' "$log" 2>/dev/null | sed -E 's/.*: *//')
-  num_exp=${num_exp:-10}
-  finished=$(grep -c 'Finished running .*th optmization experiment' "$log" 2>/dev/null || true)
-  throughputs=$(grep -c '\[exp\] Throughput:' "$log" 2>/dev/null || true)
-  total_workloads=$((1 + num_exp * 2))
-  if (( total_workloads > 0 )); then
-    pct_workloads=$((throughputs * 100 / total_workloads))
+  P_LOG="$log"
+  P_NUM_EXP=$(grep -m1 '^target_num_exp' "$log" 2>/dev/null | sed -E 's/.*: *//')
+  P_NUM_EXP=${P_NUM_EXP:-10}
+  P_FINISHED_OPT=$(grep -c 'Finished running .*th optmization experiment' "$log" 2>/dev/null || true)
+  P_THROUGHPUTS=$(grep -c '\[exp\] Throughput:' "$log" 2>/dev/null || true)
+  P_TOTAL_WORKLOADS=$((1 + P_NUM_EXP * 2))
+  if (( P_TOTAL_WORKLOADS > 0 )); then
+    P_PCT_WORKLOADS=$((P_THROUGHPUTS * 100 / P_TOTAL_WORKLOADS))
   else
-    pct_workloads=0
+    P_PCT_WORKLOADS=0
   fi
-  if (( num_exp > 0 )); then
-    pct_opt=$((finished * 100 / num_exp))
+  if (( P_NUM_EXP > 0 )); then
+    P_PCT_OPT=$((P_FINISHED_OPT * 100 / P_NUM_EXP))
   else
-    pct_opt=0
+    P_PCT_OPT=0
   fi
 
-  local phase benchmark target
-  phase=$(grep -E '\[test\.py\]|\[run\.sh\] Running |\[run\.sh\] Test finished|\[exp\] Throughput:' "$log" 2>/dev/null | tail -1 | sed 's/^[[:space:]]*//')
-  benchmark=$(grep -m1 '^benchmark' "$log" 2>/dev/null | sed -E 's/.*: *//')
-  target=$(grep -m1 '^target_service' "$log" 2>/dev/null | sed -E 's/.*: *//')
-
-  local last_tp last_err log_done=0
-  last_tp=$(grep '\[exp\] Throughput:' "$log" 2>/dev/null | tail -1 | sed 's/.*Throughput: //')
+  P_PHASE=$(grep -E '\[test\.py\]|\[run\.sh\] Running |\[run\.sh\] Test finished|\[exp\] Throughput:' "$log" 2>/dev/null | tail -1 | sed 's/^[[:space:]]*//')
+  P_BENCHMARK=$(grep -m1 '^benchmark' "$log" 2>/dev/null | sed -E 's/.*: *//')
+  P_TARGET=$(grep -m1 '^target_service' "$log" 2>/dev/null | sed -E 's/.*: *//')
+  P_LAST_TP=$(grep '\[exp\] Throughput:' "$log" 2>/dev/null | tail -1 | sed 's/.*Throughput: //')
   if grep -q 'Error Perc:' "$log" 2>/dev/null; then
-    log_done=1
-    last_err=$(grep 'Error Perc:' "$log" 2>/dev/null | tail -1 | sed 's/.*Error Perc:[[:space:]]*//')
+    P_LOG_DONE=1
+    P_LAST_ERR=$(grep 'Error Perc:' "$log" 2>/dev/null | tail -1 | sed 's/.*Error Perc:[[:space:]]*//')
   fi
-
-  local size lines mtime_human
-  size=$(wc -c <"$log" | tr -d ' ')
-  lines=$(wc -l <"$log" | tr -d ' ')
-  mtime_human=$(date -r "$log" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date -r "$(stat -f %m "$log")" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo '?')
-
-  echo "LOG=$log"
-  echo "BENCHMARK=$benchmark"
-  echo "TARGET=$target"
-  echo "NUM_EXP=$num_exp"
-  echo "FINISHED_OPT=$finished"
-  echo "THROUGHPUTS=$throughputs"
-  echo "TOTAL_WORKLOADS=$total_workloads"
-  echo "PCT_WORKLOADS=$pct_workloads"
-  echo "PCT_OPT=$pct_opt"
-  echo "PHASE=$phase"
-  echo "LAST_TP=$last_tp"
-  echo "LAST_ERR=$last_err"
-  echo "LOG_DONE=$log_done"
-  echo "SIZE=$size"
-  echo "LINES=$lines"
-  echo "MTIME=$mtime_human"
+  P_SIZE=$(wc -c <"$log" | tr -d ' ')
+  P_LINES=$(wc -l <"$log" | tr -d ' ')
+  P_MTIME=$(date -r "$log" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo '?')
+  return 0
 }
 
 repro_summary() {
-  local dir="$1" name f status
+  local dir="$1" name f status done_count=0
   for name in "${REPRO_BENCHES[@]}"; do
     f="$dir/${name}_medium.log"
     if [[ ! -f "$f" ]]; then
       status="pending"
     elif grep -q 'Error Perc:' "$f" 2>/dev/null; then
       status="DONE"
+      done_count=$((done_count + 1))
     else
       local fo
-      fo=$(grep -c 'Finished running .*th optmization experiment' "$f" 2>/dev/null || echo 0)
-      status="running (${fo}/10 points)"
+      fo=$(grep -c 'Finished running .*th optmization experiment' "$f" 2>/dev/null) || fo=0
+      status="running (${fo}/10)"
     fi
     printf "  %-8s %s\n" "$name" "$status"
   done
+  REPRO_DONE_COUNT=$done_count
 }
 
 render_bar() {
-  local pct=$1 width=30
+  local pct=$1 width=20
   local filled=$((pct * width / 100))
   local i
   printf '['
   for ((i=0; i<width; i++)); do
     if (( i < filled )); then printf '#'; else printf '.'; fi
   done
-  printf '] %3d%%' "$pct"
+  printf ']%3d%%' "$pct"
 }
 
-prev_size=0
-stall_count=0
-
-while true; do
-  if [[ -z "$LOG_FILE" ]]; then
+# Compact block for --once / --loop-tty (fits one SSH + screen session).
+# Optional arg: output path (e.g. /dev/tty); default is stdout.
+print_compact() {
+  local out="${1:-}"
+  if [[ -z "${LOG_FILE:-}" ]]; then
     LOG_FILE=$(pick_active_log "$RESULTS_DIR")
   fi
 
+  _pc_emit() {
+    echo "── SlowPoke $(date '+%H:%M:%S') ──"
+    local name done_total=0 f
+    for name in "${REPRO_BENCHES[@]}"; do
+      f="$RESULTS_DIR/${name}_medium.log"
+      if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
+        done_total=$((done_total + 1))
+      fi
+    done
+    echo "Suite: ${done_total}/4 benchmarks finished (boutique→hotel→social→movie)"
+    if [[ -z "${LOG_FILE:-}" || ! -f "$LOG_FILE" ]]; then
+      echo "Active log: (none yet — run starting?)"
+      return
+    fi
+    parse_log "$LOG_FILE"
+    echo "Now:  $(basename "$P_LOG")  ($P_BENCHMARK / $P_TARGET)"
+    if (( P_LOG_DONE )); then
+      echo "      FINISHED — Error Perc: ${P_LAST_ERR:0:80}"
+    else
+      printf "      workloads %s/%s " "$P_THROUGHPUTS" "$P_TOTAL_WORKLOADS"
+      render_bar "$P_PCT_WORKLOADS"
+      echo ""
+      printf "      opt points %s/%s " "$P_FINISHED_OPT" "$P_NUM_EXP"
+      render_bar "$P_PCT_OPT"
+      echo ""
+      echo "      phase: ${P_PHASE:-…}"
+      echo "      last throughput: ${P_LAST_TP:-n/a}"
+    fi
+  }
+
+  if [[ -n "$out" ]]; then
+    _pc_emit >"$out"
+  else
+    _pc_emit
+  fi
+}
+
+print_fullscreen() {
+  if [[ -z "${LOG_FILE:-}" ]]; then
+    LOG_FILE=$(pick_active_log "$RESULTS_DIR")
+  fi
   clear
   echo "SlowPoke progress  ($(date '+%H:%M:%S'))  refresh=${INTERVAL}s"
   echo "================================================================"
   echo "Results dir: $RESULTS_DIR"
   echo ""
-
   echo "Full reproducible (run_reproducible.sh):"
   repro_summary "$RESULTS_DIR"
   echo ""
-
   if [[ -z "${LOG_FILE:-}" || ! -f "$LOG_FILE" ]]; then
-    echo "No active .log yet. Start a run, e.g.:"
-    echo "  ./run_reproducible.sh   # or run-boutique-medium.sh results/boutique_medium.log"
-    sleep "$INTERVAL"
-    continue
+    echo "No active .log yet."
+    return
   fi
-
-  eval "$(parse_log "$LOG_FILE")"
-
-  echo "Active log: $(basename "$LOG")"
-  echo "  benchmark=$BENCHMARK  target=$TARGET  log_mtime=$MTIME"
+  parse_log "$LOG_FILE"
+  echo "Active log: $(basename "$P_LOG")"
+  echo "  benchmark=$P_BENCHMARK  target=$P_TARGET"
   echo ""
-
-  if (( LOG_DONE )); then
-    echo "Status: FINISHED (this benchmark)"
-    echo "  Error Perc: $LAST_ERR"
+  if (( P_LOG_DONE )); then
+    echo "Status: FINISHED"
+    echo "  Error Perc: $P_LAST_ERR"
   else
-    echo "Status: RUNNING"
-    echo "  Phase: ${PHASE:-(deploying or between steps — see kubectl)}"
-    echo "  Last throughput: ${LAST_TP:-n/a}"
+    echo "Status: RUNNING — ${P_PHASE:-}"
+    echo "  Last throughput: ${P_LAST_TP:-n/a}"
   fi
   echo ""
-
-  echo "Workload runs:  $THROUGHPUTS / $TOTAL_WORKLOADS  (baseline + ${NUM_EXP}× groundtruth + ${NUM_EXP}× slowdown)"
-  render_bar "$PCT_WORKLOADS"
+  echo "Workload runs:  $P_THROUGHPUTS / $P_TOTAL_WORKLOADS"
+  render_bar "$P_PCT_WORKLOADS"
   echo ""
-  echo "Opt points done: $FINISHED_OPT / $NUM_EXP"
-  render_bar "$PCT_OPT"
+  echo "Opt points done: $P_FINISHED_OPT / $P_NUM_EXP"
+  render_bar "$P_PCT_OPT"
   echo ""
-  echo "Log size: ${SIZE} bytes, ${LINES} lines"
+  echo "Log: ${P_SIZE} bytes, ${P_LINES} lines"
+}
 
-  if [[ -n "${SIZE:-}" ]]; then
-    if (( SIZE == prev_size )); then
-      stall_count=$((stall_count + 1))
-    else
-      stall_count=0
+prev_size=0
+stall_count=0
+
+if [[ "$MODE" == "once" ]]; then
+  print_compact
+  exit 0
+fi
+
+if [[ "$MODE" == "loop-tty" ]]; then
+  tty_out=/dev/tty
+  [[ -w "$tty_out" ]] 2>/dev/null || tty_out=/dev/stdout
+  echo "[slowpoke] Progress updates every ${INTERVAL}s on your terminal (one SSH is enough)." >"$tty_out"
+  while true; do
+    print_compact "$tty_out"
+    echo "" >"$tty_out"
+    if [[ -n "${LOG_FILE:-}" && -f "$LOG_FILE" ]]; then
+      size=$(wc -c <"$LOG_FILE" | tr -d ' ')
+      if [[ "$size" == "$prev_size" ]]; then
+        stall_count=$((stall_count + 1))
+        if (( stall_count >= 8 )); then
+          echo "  (no log growth ~$((stall_count * INTERVAL))s — normal during long wrk; worry if >15 min)" >"$tty_out"
+        fi
+      else
+        stall_count=0
+      fi
+      prev_size=$size
     fi
-    prev_size=$SIZE
-    if (( stall_count >= 6 )); then
-      echo ""
-      echo "⚠ No log growth for ~$((stall_count * INTERVAL))s."
-      echo "  Normal during long wrk runs (1–3 min). Worry if >15 min with no kubectl activity."
-      echo "  Check: kubectl get pods -A | head"
-    fi
-  fi
+    sleep "$INTERVAL"
+  done
+fi
 
-  echo ""
-  echo "Tip: pass a specific log:  ./watch_progress.sh results/boutique_medium.log"
+# fullscreen loop (second SSH or tmux pane)
+while true; do
+  print_fullscreen
   sleep "$INTERVAL"
 done
