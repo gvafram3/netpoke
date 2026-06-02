@@ -16,9 +16,7 @@ docker_install () {
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-    # Not needed for Ubuntu
-# sudo systemctl start docker
+    sudo systemctl enable --now docker
 }
 
 cri_dockerd_install () {
@@ -31,9 +29,10 @@ cri_dockerd_install () {
     sudo mv cri-docker.socket cri-docker.service /etc/systemd/system/
     sudo sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
 
-sudo systemctl daemon-reload
-    sudo systemctl enable cri-docker.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable cri-docker.socket cri-docker.service
     sudo systemctl enable --now cri-docker.socket
+    sudo systemctl enable --now cri-docker.service
 }
 
 kube_install () {
@@ -49,14 +48,40 @@ kube_install () {
     echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
     sudo apt-get update
     sudo apt-get install -y kubectl kubelet kubeadm
-    sudo systemctl enable --now kubelet
+    sudo systemctl enable kubelet
 }
+
+# Required for kubeadm join preflight (matches control-node networking).
+k8s_node_sysctl () {
+    sudo modprobe overlay || true
+    sudo modprobe br_netfilter || true
+    cat <<'EOF' | sudo tee /etc/sysctl.d/99-kubernetes.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
+    sudo sysctl --system
+}
+
+wait_for_cri () {
+    local i
+    for i in $(seq 1 30); do
+        if [[ -S /var/run/cri-dockerd.sock ]]; then
+            return 0
+        fi
+        sleep 2
+    done
+    echo "ERROR: cri-dockerd socket not ready" >&2
+    sudo systemctl status cri-docker.service --no-pager || true
+    return 1
+}
+
 docker_install
 cri_dockerd_install
 kube_install
-sudo modprobe br_netfilter
-
-# sudo swapoff -a
-# sudo kubeadm reset --force --cri-socket unix:///var/run/cri-dockerd.sock
-
-# sudo systemctl stop firewalld # Add this when the node is not reachable, e.g., when `kubectl logs pod` failed with 'no host to route'
+k8s_node_sysctl
+sudo swapoff -a
+sudo systemctl restart docker
+sudo systemctl restart cri-docker.service
+wait_for_cri
+sudo systemctl restart kubelet || true

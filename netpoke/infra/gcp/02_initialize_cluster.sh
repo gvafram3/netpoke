@@ -23,7 +23,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 WORKERS_ONLY=0
-[[ "${1:-}" == "--workers-only" ]] && WORKERS_ONLY=1
+JOIN_ONLY=0
+for arg in "$@"; do
+  [[ "$arg" == "--workers-only" ]] && WORKERS_ONLY=1
+  [[ "$arg" == "--join-only" ]] && JOIN_ONLY=1 WORKERS_ONLY=1
+done
 
 if [[ ! -f config.env ]]; then
   echo "ERROR: config.env not found. Run:  cp config.env.example config.env"
@@ -120,13 +124,17 @@ else
   rrun "$CONTROL" "kubectl get nodes -o wide || true"
 fi
 
-echo "==> [2/5] Installing Kubernetes on loadgen and worker nodes (in parallel)."
-for node in "$LOADGEN" "${WORKERS[@]}"; do
-  rcopy "$INIT_WORKER" "$node"
-  rrun  "$node" "export DEBIAN_FRONTEND=noninteractive; bash ~/init_worker.sh" &
-done
-wait
-echo "    worker installation complete."
+if [[ "$JOIN_ONLY" -eq 0 ]]; then
+  echo "==> [2/5] Installing Kubernetes on loadgen and worker nodes (in parallel)."
+  for node in "$LOADGEN" "${WORKERS[@]}"; do
+    rcopy "$INIT_WORKER" "$node"
+    rrun  "$node" "export DEBIAN_FRONTEND=noninteractive; bash ~/init_worker.sh" &
+  done
+  wait
+  echo "    worker installation complete."
+else
+  echo "==> [2/5] Skipping package install (--join-only)."
+fi
 
 echo "==> [3/5] Generating the cluster join command."
 JOIN_CMD="$(rrun "$CONTROL" "sudo kubeadm token create --print-join-command" | tr -d '\r')"
@@ -134,8 +142,16 @@ JOIN_SUFFIX="--cri-socket unix:///var/run/cri-dockerd.sock"
 
 join_node () {
   local node="$1" nodename="$2"
-  echo "    joining $node as kubernetes node '$nodename'"
-  rrun "$node" "sudo swapoff -a; sudo ${JOIN_CMD} ${JOIN_SUFFIX} --node-name ${nodename}"
+  echo "    preparing $node (CRI + ip_forward) ..."
+  rrun "$node" "sudo swapoff -a; \
+    sudo sysctl -w net.ipv4.ip_forward=1; \
+    sudo systemctl enable docker cri-docker.socket cri-docker.service; \
+    sudo systemctl restart docker; \
+    sudo systemctl restart cri-docker.service; \
+    sleep 5; \
+    test -S /var/run/cri-dockerd.sock"
+  echo "    joining $node as kubernetes node '${nodename}'"
+  rrun "$node" "sudo ${JOIN_CMD} ${JOIN_SUFFIX} --node-name ${nodename}"
 }
 
 echo "==> [4/5] Joining nodes to the cluster."
