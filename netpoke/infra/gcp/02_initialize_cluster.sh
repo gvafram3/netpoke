@@ -158,30 +158,41 @@ JOIN_SUFFIX="--cri-socket unix:///var/run/cri-dockerd.sock"
 join_node () {
   local node="$1" nodename="$2"
   echo "    preparing $node (CRI + ip_forward) ..."
-  rrun "$node" "sudo swapoff -a; \
+  if ! rrun "$node" "sudo swapoff -a; \
     sudo sysctl -w net.ipv4.ip_forward=1; \
     sudo systemctl enable docker cri-docker.socket cri-docker.service; \
     sudo systemctl restart docker; \
     sudo systemctl restart cri-docker.service; \
-    sleep 5; \
-    test -S /var/run/cri-dockerd.sock"
+    sleep 8; \
+    test -S /var/run/cri-dockerd.sock"; then
+    echo "    ERROR: cri-dockerd not ready on $node"
+    return 1
+  fi
   echo "    joining $node as kubernetes node '${nodename}'"
-  rrun "$node" "sudo ${JOIN_CMD} ${JOIN_SUFFIX} --node-name ${nodename}"
+  if ! rrun "$node" "sudo ${JOIN_CMD} ${JOIN_SUFFIX} --node-name ${nodename}"; then
+    echo "    ERROR: kubeadm join failed on $node"
+    return 1
+  fi
 }
 
-echo "==> [4/5] Joining nodes to the cluster."
+echo "==> [4/5] Joining nodes to the cluster (continues even if one node fails)."
+JOIN_FAIL=0
 if [[ "$ENABLE_LOADGEN" == "1" ]] && vm_is_running "$LOADGEN"; then
-  join_node "$LOADGEN" "loadgen"
+  join_node "$LOADGEN" "loadgen" || JOIN_FAIL=$((JOIN_FAIL + 1))
 fi
 idx=1
 for node in "${WORKERS[@]}"; do
   if vm_is_running "$node"; then
-    join_node "$node" "worker${idx}"
+    join_node "$node" "worker${idx}" || JOIN_FAIL=$((JOIN_FAIL + 1))
   else
     echo "    SKIP $node (not RUNNING)"
+    JOIN_FAIL=$((JOIN_FAIL + 1))
   fi
   idx=$((idx+1))
 done
+if [[ "$JOIN_FAIL" -gt 0 ]]; then
+  echo "    WARNING: $JOIN_FAIL node(s) failed to join. Run: ./repair_worker_join.sh"
+fi
 
 echo "==> [5/5] Labelling nodes and showing cluster state."
 if [[ "$ENABLE_LOADGEN" == "1" ]]; then
