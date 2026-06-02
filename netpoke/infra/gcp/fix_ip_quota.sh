@@ -4,8 +4,8 @@
 # Default layout: only netpoke-control keeps a public IP. Workers and loadgen
 # use internal IPs; gcloud ssh/scp uses IAP (--tunnel-through-iap) in step 2.
 #
-# Usage (Cloud Shell):
-#   cd netpoke/infra/gcp
+# Usage (Cloud Shell, from git clone directory ~/netpoke):
+#   cd netpoke/infra/gcp    # note: inner netpoke/ folder, not infra/gcp alone
 #   cp config.env.example config.env   # if needed
 #   ./fix_ip_quota.sh                  # dry-run: shows plan
 #   ./fix_ip_quota.sh --apply          # remove NAT from non-control VMs
@@ -36,6 +36,28 @@ vm_zone () {
   local vm="$1"
   gcloud compute instances list --filter="name=${vm}" \
     --format="value(zone.basename())" 2>/dev/null | head -1
+}
+
+# GCP uses "external-nat" on newer VMs; older docs say "External NAT".
+access_config_name () {
+  local vm="$1" z="$2" name
+  name="$(gcloud compute instances describe "$vm" --zone "$z" \
+    --format='get(networkInterfaces[0].accessConfigs[0].name)' 2>/dev/null || true)"
+  if [[ -n "$name" ]]; then
+    echo "$name"
+  else
+    echo "external-nat"
+  fi
+}
+
+delete_nat () {
+  local vm="$1" z="$2" cfg
+  cfg="$(access_config_name "$vm" "$z")"
+  echo "    delete-access-config $vm ($z) name=$cfg"
+  gcloud compute instances delete-access-config "$vm" \
+    --zone "$z" \
+    --access-config-name="$cfg" \
+    --quiet
 }
 
 echo "==> External IPs in use (region us-central1, all projects VMs)"
@@ -74,11 +96,7 @@ for vm in "${OTHERS[@]}"; do
   nat="$(gcloud compute instances describe "$vm" --zone "$z" \
     --format='get(networkInterfaces[0].accessConfigs[0].natIP)' 2>/dev/null || true)"
   [[ -z "$nat" ]] && continue
-  echo "    delete-access-config $vm ($z)"
-  gcloud compute instances delete-access-config "$vm" \
-    --zone "$z" \
-    --access-config-name="External NAT" \
-    --quiet
+  delete_nat "$vm" "$z"
 done
 
 echo ""

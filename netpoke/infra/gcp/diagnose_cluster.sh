@@ -1,7 +1,8 @@
 #!/bin/bash
 # Print a full inventory of the NetPoke GCP cluster and flag issues before step 2.
 # Run from Cloud Shell after cloning the repo:
-#   cd netpoke/infra/gcp && cp -n config.env.example config.env && ./diagnose_cluster.sh
+#   cd netpoke/infra/gcp   # from clone root ~/netpoke — see inner netpoke/ dir
+#   cp -n config.env.example config.env && ./diagnose_cluster.sh
 
 set -euo pipefail
 cd "$(dirname "$0")"

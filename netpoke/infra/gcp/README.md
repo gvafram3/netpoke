@@ -1,5 +1,8 @@
 # NetPoke GCP cluster (runbook)
 
+> **Paths:** After `git clone ... netpoke`, scripts live in **`netpoke/infra/gcp`**
+> (there is an inner `netpoke/` directory). From Cloud Shell: `cd ~/netpoke/netpoke/infra/gcp`.
+
 This folder builds a multi-node Kubernetes cluster on Google Cloud that is close
 in spirit to the cluster SlowPoke used in the paper (a dedicated control node, a
 dedicated load-generator node, and several service-worker nodes). It exists
@@ -117,7 +120,7 @@ If **`Quota IN_USE_ADDRESSES exceeded`** when starting `netpoke-worker3`:
 
 ```bash
 gcloud compute instances delete-access-config netpoke-worker3 \
-  --zone=us-central1-a --access-config-name="External NAT" 2>/dev/null || true
+  --zone=us-central1-a --access-config-name="external-nat" 2>/dev/null || true
 gcloud compute instances start netpoke-worker3 --zone=us-central1-a
 ```
 
