@@ -88,3 +88,26 @@ Logs end with `Groundtruth`, `Slowdown`, `Predicted`, `Error Perc` lists.
 ```
 
 Use `./preflight_cluster.sh` before step 2 and `./preflight_cluster.sh --after-k8s` after.
+
+## Monitoring progress (counter dashboard)
+
+`tail -f` on a multi-hour log is hard to read. SlowPoke already prints structured markers in
+`main.py` (`[test.py] Running Nth …`, `Finished running Nth optmization experiment`,
+`[exp] Throughput:`). A second SSH session on **netpoke-control** can turn those into counters:
+
+```bash
+cd ~/slowpoke/evaluation
+./watch_progress.sh
+# or: WATCH_INTERVAL=5 ./watch_progress.sh results/boutique_medium.log
+```
+
+You should see:
+
+| Counter | Meaning |
+|---------|---------|
+| **Workload runs X / 21** | Each medium benchmark does 1 baseline + 10×(groundtruth + slowdown) = **21** `wrk` runs (`num_exp=10`). Increments when `[exp] Throughput:` appears. |
+| **Opt points done Y / 10** | Increments when `Finished running Nth optmization experiment` appears. |
+| **Full reproducible** | `boutique` → `hotel` → `social` → `movie`; each `*_medium.log` shows `DONE` when `Error Perc:` is written. |
+
+If workload count is stuck for **>15 minutes** with no new log bytes, check `kubectl get pods -A`
+(deploy/wrk may be hung). Short pauses (1–3 min) during a single `wrk` run are normal.
