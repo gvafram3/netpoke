@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
         - name: "shipping"
-          image: slowpoke-shipping-netpoke:v1
+          image: yizhengx/mucache:boutique-pokerpp
           env:
             - name: APP_PORT
               value: "3000"
@@ -52,15 +52,15 @@ spec:
             - name: APP_NAMESPACE
               value: "boutique"
             - name: NODE_IDX
-              value: "1"
+              value: "3"
             - name: CM_ENABLED
               value: "false"
             - name: EXPIRATION_TTL
               value: "0"
-            - name: SLOWPOKE_DELAY_MICROS
-              value: "${SLOWPOKE_DELAY_MICROS_SHIPPING}"
             - name: SLOWPOKE_PROCESSING_MICROS
               value: "${SLOWPOKE_PROCESSING_MICROS_SHIPPING}"
+            - name: SLOWPOKE_DELAY_MICROS
+              value: "${SLOWPOKE_DELAY_MICROS_SHIPPING}"
             - name: SLOWPOKE_PRERUN
               value: "${SLOWPOKE_PRERUN}"
             - name: SLOWPOKE_POKER_BATCH_THRESHOLD
@@ -71,30 +71,7 @@ spec:
             - containerPort: 3000
             - containerPort: 5550
             - containerPort: 5551
-          imagePullPolicy: Never
-        
-        - name: "tc-netem-sidecar"
-          image: nicolaka/netshoot:latest
-          command:
-            - /bin/sh
-            - -c
-            - |
-              echo "NetPoke: Starting tc netem (50ms delay on eth0)"
-              sleep 5
-              tc qdisc add dev eth0 root netem delay 50ms
-              echo "NetPoke: tc netem applied successfully"
-              while true; do
-                sleep 60
-                tc qdisc show dev eth0 | grep -q netem && \
-                  echo "NetPoke: tc active" || \
-                  (echo "NetPoke: reapplying tc"; tc qdisc del dev eth0 root 2>/dev/null; tc qdisc add dev eth0 root netem delay 50ms)
-              done
-          securityContext:
-            capabilities:
-              add:
-                - NET_ADMIN
           imagePullPolicy: Always
-
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
