@@ -101,6 +101,28 @@ boutique services across `worker1..worker3` and point the client at the
 
 It asks for confirmation, then deletes the VMs and the firewall rule.
 
+## Quota limits (common on student / trial GCP projects)
+
+| Quota | Typical limit | What we do |
+|-------|----------------|------------|
+| `CPUS_ALL_REGIONS` | 12 | 5 VMs: 2+4+3×2 vCPU; stop `slowpoke-vm` while cluster runs |
+| `IN_USE_ADDRESSES` | **4 per region** | Only **control** gets a public IP; workers + loadgen use `--no-address` |
+| Instances per zone | **4 per zone** | Put **loadgen** in `us-central1-b`, workers + control in `us-central1-a` |
+
+If **`Quota IN_USE_ADDRESSES exceeded`** when starting `netpoke-worker3`:
+
+1. Workers do **not** need an external IP for Kubernetes.
+2. Run `./fix_ip_quota.sh --apply` to remove public IPs from workers and loadgen.
+3. On **stopped** worker3, remove NAT if present, then start:
+
+```bash
+gcloud compute instances delete-access-config netpoke-worker3 \
+  --zone=us-central1-a --access-config-name="External NAT" 2>/dev/null || true
+gcloud compute instances start netpoke-worker3 --zone=us-central1-a
+```
+
+Step 2 (`02_initialize_cluster.sh`) uses **IAP tunnel** SSH to nodes without a public IP. Ensure the `default-allow-iap` firewall rule exists (`fix_ip_quota.sh` creates it).
+
 ## Troubleshooting
 
 - **`Quota 'CPUS_ALL_REGIONS' exceeded`:** something is still using vCPUs. Make

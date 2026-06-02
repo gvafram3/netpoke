@@ -42,28 +42,34 @@ else
   echo "==> Firewall rule $FW_RULE already exists, skipping"
 fi
 
+# Only the control plane needs a public IP for easy SSH from Cloud Shell.
+# Workers/loadgen use internal IPs (saves IN_USE_ADDRESSES quota, default limit 4).
 create_vm () {
-  local name="$1" machine="$2"
-  if gcloud compute instances describe "$name" --zone "$GCP_ZONE" >/dev/null 2>&1; then
+  local name="$1" machine="$2" zone="$3" extra_args="${4:-}"
+  if gcloud compute instances describe "$name" --zone "$zone" >/dev/null 2>&1; then
     echo "    $name already exists, skipping"
     return
   fi
-  echo "    creating $name ($machine)"
+  echo "    creating $name ($machine) in $zone"
+  # shellcheck disable=SC2086
   gcloud compute instances create "$name" \
-    --zone="$GCP_ZONE" \
+    --zone="$zone" \
     --machine-type="$machine" \
     --image-family="$IMAGE_FAMILY" \
     --image-project="$IMAGE_PROJECT" \
     --boot-disk-size="$DISK_SIZE" \
     --boot-disk-type="$DISK_TYPE" \
     --tags="$NETWORK_TAG" \
+    $extra_args \
     --quiet
 }
 
-create_vm "${CLUSTER_PREFIX}-control" "$CONTROL_MACHINE"
-create_vm "${CLUSTER_PREFIX}-loadgen" "$LOADGEN_MACHINE"
+LOADGEN_ZONE="${LOADGEN_ZONE:-$GCP_ZONE}"
+
+create_vm "${CLUSTER_PREFIX}-control" "$CONTROL_MACHINE" "$GCP_ZONE"
+create_vm "${CLUSTER_PREFIX}-loadgen" "$LOADGEN_MACHINE" "$LOADGEN_ZONE" "--no-address"
 for i in $(seq 1 "$NUM_WORKERS"); do
-  create_vm "${CLUSTER_PREFIX}-worker${i}" "$WORKER_MACHINE"
+  create_vm "${CLUSTER_PREFIX}-worker${i}" "$WORKER_MACHINE" "$GCP_ZONE" "--no-address"
 done
 
 echo ""

@@ -66,12 +66,35 @@ vm_zone () {
   fi
 }
 
-# Helper wrappers around gcloud ssh/scp so the rest of the script stays readable.
-rcopy () { gcloud compute scp --zone "$(vm_zone "$2")" --quiet "$1" "$2:~/" ; }
+vm_has_external_ip () {
+  local vm="$1" z ip
+  z="$(vm_zone "$vm")"
+  ip="$(gcloud compute instances describe "$vm" --zone "$z" \
+    --format='get(networkInterfaces[0].accessConfigs[0].natIP)' 2>/dev/null || true)"
+  [[ -n "$ip" ]]
+}
+
+# Build gcloud ssh/scp args; use IAP when the VM has no public IP (common on
+# free-tier projects with IN_USE_ADDRESSES quota of 4).
+gcloud_remote_args () {
+  local -n _out=$1
+  local vm=$2
+  _out=(--zone "$(vm_zone "$vm")" --quiet)
+  if ! vm_has_external_ip "$vm"; then
+    _out+=(--tunnel-through-iap)
+  fi
+}
+
+rcopy () {
+  local src=$1 vm=$2 args=()
+  gcloud_remote_args args "$vm"
+  gcloud compute scp "${args[@]}" "$src" "$vm:~/"
+}
 rrun  () {
-  local vm="$1"
+  local vm=$1 args=()
   shift
-  gcloud compute ssh "$vm" --zone "$(vm_zone "$vm")" --quiet --command "$*"
+  gcloud_remote_args args "$vm"
+  gcloud compute ssh "$vm" "${args[@]}" --command "$*"
 }
 
 echo "==> [1/5] Initialising the control plane ($CONTROL). This takes several minutes."

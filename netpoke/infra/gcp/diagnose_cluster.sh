@@ -94,6 +94,28 @@ if [[ -n "$LOADGEN_ZONE_ACTUAL" && "$LOADGEN_ZONE_ACTUAL" != "$GCP_ZONE" ]]; the
 fi
 
 echo ""
+echo "==> External IPs in region us-central1 (quota IN_USE_ADDRESSES is often 4)"
+EXT_COUNT=0
+while IFS= read -r _; do
+  EXT_COUNT=$((EXT_COUNT + 1))
+done < <(gcloud compute instances list \
+  --filter="status=RUNNING AND -networkInterfaces.accessConfigs.natIP:*" \
+  --format="value(networkInterfaces[0].accessConfigs[0].natIP)" 2>/dev/null | grep -v '^$' || true)
+echo "  RUNNING VMs with a public NAT IP (all zones in project): $EXT_COUNT"
+gcloud compute instances list \
+  --filter="tags.items=${NETWORK_TAG}" \
+  --format="table(name,zone.basename(),status,networkInterfaces[0].accessConfigs[0].natIP:label=EXTERNAL_IP)"
+if [[ "$EXT_COUNT" -ge 4 ]]; then
+  echo "  !! At or above typical quota of 4 — run ./fix_ip_quota.sh before starting more VMs"
+  ISSUES=$((ISSUES + 1))
+fi
+
+echo ""
+echo "==> Instances per zone (GCP default limit is often 4 per zone)"
+gcloud compute instances list --filter="tags.items=${NETWORK_TAG}" \
+  --format="csv[no-heading](zone.basename(),name)" | sort | awk -F, '{a[$1]++} END {for (z in a) print "  " z ": " a[z] " netpoke VMs"}'
+
+echo ""
 echo "==> vCPU in use (RUNNING instances, this project)"
 gcloud compute instances list --filter="status=RUNNING" \
   --format="csv[no-heading](name,machineType.basename())" | while IFS=, read -r n mt; do
