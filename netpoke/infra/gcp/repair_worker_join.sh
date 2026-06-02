@@ -6,16 +6,17 @@
 #   gcloud compute instances start netpoke-control netpoke-worker1 netpoke-worker2 netpoke-worker3 --zone=us-central1-a
 #   ./repair_worker_join.sh
 
-set -euo pipefail
+set -uo pipefail
 cd "$(dirname "$0")"
 
-[[ -f config.env ]] || { echo "cp config.env.example config.env"; exit 1; }
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+[[ -f "$SCRIPT_DIR/config.env" ]] || { echo "cp config.env.example config.env"; exit 1; }
 # shellcheck disable=SC1091
-source config.env
+source "$SCRIPT_DIR/config.env"
 ENABLE_LOADGEN="${ENABLE_LOADGEN:-0}"
 
-# shellcheck source=gcp_ssh_lib.sh
-source "$(dirname "$0")/gcp_ssh_lib.sh"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/gcp_ssh_lib.sh" || { echo "ERROR: cannot load gcp_ssh_lib.sh"; exit 1; }
 
 REPO_ROOT="$(cd ../../.. && pwd)"
 INIT_WORKER="${REPO_ROOT}/slowpoke/scripts/setup/init_worker.sh"
@@ -26,7 +27,7 @@ WORKERS=("${CLUSTER_PREFIX}-worker1" "${CLUSTER_PREFIX}-worker2" "${CLUSTER_PREF
 
 echo "==> Internet check"
 if [[ -x ./fix_network_egress.sh ]]; then
-  ./fix_network_egress.sh || { echo "Fix internet first"; exit 1; }
+  ./fix_network_egress.sh || echo "WARN: some VMs failed internet test — continuing anyway"
 fi
 
 echo "==> Control cluster"

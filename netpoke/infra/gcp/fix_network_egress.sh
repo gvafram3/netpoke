@@ -1,7 +1,7 @@
 #!/bin/bash
 # Give every cluster VM outbound internet (Cloud NAT + apt IPv4).
 # Exit 0 only when all VMs return HTTP 200 from inside the VM.
-set -euo pipefail
+set -uo pipefail
 cd "$(dirname "$0")"
 
 if [[ -f config.env ]]; then
@@ -73,7 +73,7 @@ for vm in "${VMS[@]}"; do
   [[ -z "$(vm_zone "$vm")" ]] && continue
   code="$(run_on_vm "$vm" \
     'curl -4 -sS -o /dev/null -w "%{http_code}" --connect-timeout 20 https://www.google.com' \
-    | tr -d '\r\n' | tail -1)"
+    | tr -d '\r\n' | tail -1 || echo FAIL)"
   if [[ "$code" == "200" ]]; then
     echo "    $vm  PASS"
   else
