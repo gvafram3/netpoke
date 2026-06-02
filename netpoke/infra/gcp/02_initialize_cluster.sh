@@ -36,6 +36,12 @@ done
 
 gcloud config set project "$GCP_PROJECT" >/dev/null
 
+# VMs must reach the internet to apt-install Docker/kubeadm. See fix_network_egress.sh.
+if [[ "${SKIP_NETWORK_FIX:-0}" != "1" ]] && [[ -x "./fix_network_egress.sh" ]]; then
+  echo "==> Checking outbound internet (Cloud NAT + apt IPv4) ..."
+  ./fix_network_egress.sh
+fi
+
 CONTROL="${CLUSTER_PREFIX}-control"
 LOADGEN="${CLUSTER_PREFIX}-loadgen"
 WORKERS=()
