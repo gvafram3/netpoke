@@ -46,12 +46,22 @@ Open Cloud Shell from the GCP console (the `>_` icon, top-right), then:
 
 ```bash
 git clone https://github.com/gvafram3/netpoke.git
-cd netpoke/netpoke/infra/gcp
+cd netpoke/infra/gcp
 cp config.env.example config.env
+./diagnose_cluster.sh
 ```
 
 The defaults in `config.env` already match your project and zone. Edit only if
 you want a different size or worker count.
+
+## Check cluster state (after step 1 or manual VM changes)
+
+```bash
+./diagnose_cluster.sh
+```
+
+This lists every VM, zones, RUNNING/TERMINATED status, firewall rule, and SSH
+reachability. Fix anything flagged before step 2.
 
 ## Bring the cluster up
 

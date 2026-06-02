@@ -41,9 +41,38 @@ LOADGEN="${CLUSTER_PREFIX}-loadgen"
 WORKERS=()
 for i in $(seq 1 "$NUM_WORKERS"); do WORKERS+=("${CLUSTER_PREFIX}-worker${i}"); done
 
+# Resolve zone per VM (config override, else GCP_ZONE, else discover from GCP).
+vm_zone () {
+  local vm="$1"
+  local var override=""
+  case "$vm" in
+    "${CLUSTER_PREFIX}-control") override="${CONTROL_ZONE:-}" ;;
+    "${CLUSTER_PREFIX}-loadgen") override="${LOADGEN_ZONE:-}" ;;
+    "${CLUSTER_PREFIX}-worker1") override="${WORKER1_ZONE:-}" ;;
+    "${CLUSTER_PREFIX}-worker2") override="${WORKER2_ZONE:-}" ;;
+    "${CLUSTER_PREFIX}-worker3") override="${WORKER3_ZONE:-}" ;;
+    "${CLUSTER_PREFIX}-worker4") override="${WORKER4_ZONE:-}" ;;
+  esac
+  if [[ -n "$override" ]]; then
+    echo "$override"
+    return
+  fi
+  local z
+  z="$(gcloud compute instances list --filter="name=${vm}" --format="value(zone.basename())" 2>/dev/null | head -1)"
+  if [[ -n "$z" ]]; then
+    echo "$z"
+  else
+    echo "$GCP_ZONE"
+  fi
+}
+
 # Helper wrappers around gcloud ssh/scp so the rest of the script stays readable.
-rcopy () { gcloud compute scp --zone "$GCP_ZONE" --quiet "$1" "$2:~/" ; }
-rrun  () { gcloud compute ssh "$1" --zone "$GCP_ZONE" --quiet --command "$2" ; }
+rcopy () { gcloud compute scp --zone "$(vm_zone "$2")" --quiet "$1" "$2:~/" ; }
+rrun  () {
+  local vm="$1"
+  shift
+  gcloud compute ssh "$vm" --zone "$(vm_zone "$vm")" --quiet --command "$*"
+}
 
 echo "==> [1/5] Initialising the control plane ($CONTROL). This takes several minutes."
 rcopy "$INIT_CONTROL" "$CONTROL"
@@ -89,7 +118,7 @@ rrun "$CONTROL" "kubectl get nodes -o wide"
 
 echo ""
 echo "Done. To work on the cluster, SSH into the control node:"
-echo "    gcloud compute ssh ${CONTROL} --zone ${GCP_ZONE}"
+echo "    gcloud compute ssh ${CONTROL} --zone $(vm_zone ${CONTROL})"
 echo ""
 echo "When finished with this batch of experiments, delete everything with:"
 echo "    ./03_teardown.sh"

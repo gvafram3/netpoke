@@ -23,12 +23,22 @@ gcloud config set project "$GCP_PROJECT" >/dev/null
 NAMES=("${CLUSTER_PREFIX}-control" "${CLUSTER_PREFIX}-loadgen")
 for i in $(seq 1 "$NUM_WORKERS"); do NAMES+=("${CLUSTER_PREFIX}-worker${i}"); done
 
-echo "About to DELETE these VMs in $GCP_ZONE:"
-printf '   %s\n' "${NAMES[@]}"
+echo "About to DELETE these VMs (any zone):"
+for vm in "${NAMES[@]}"; do
+  z="$(gcloud compute instances list --filter="name=${vm}" --format="value(zone.basename())" 2>/dev/null | head -1)"
+  if [[ -n "$z" ]]; then
+    echo "   $vm  ($z)"
+  else
+    echo "   $vm  (not found)"
+  fi
+done
 read -r -p "Type 'yes' to confirm: " ans
 [[ "$ans" == "yes" ]] || { echo "Aborted."; exit 1; }
 
-gcloud compute instances delete "${NAMES[@]}" --zone "$GCP_ZONE" --quiet || true
+for vm in "${NAMES[@]}"; do
+  z="$(gcloud compute instances list --filter="name=${vm}" --format="value(zone.basename())" 2>/dev/null | head -1)"
+  [[ -n "$z" ]] && gcloud compute instances delete "$vm" --zone "$z" --quiet || true
+done
 
 FW_RULE="${NETWORK_TAG}-allow-internal"
 if gcloud compute firewall-rules describe "$FW_RULE" >/dev/null 2>&1; then
