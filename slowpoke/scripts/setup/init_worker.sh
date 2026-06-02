@@ -39,10 +39,12 @@ sudo systemctl daemon-reload
 kube_install () {
     sudo apt-get update
     # apt-transport-https may be a dummy package; if so, you can skip that package
-    sudo apt-get install -y apt-transport-https ca-certificates curl
-    # If the folder `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
-    # sudo mkdir -p -m 755 /etc/apt/keyrings
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+    sudo install -m 0755 -d /etc/apt/keyrings
+    # Non-interactive key install (gcloud ssh has no TTY; "sudo gpg" fails with /dev/tty errors)
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key \
+      | gpg --dearmor --yes 2>/dev/null \
+      | sudo tee /etc/apt/keyrings/kubernetes-apt-keyring.gpg > /dev/null
     # This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
     echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
     sudo apt-get update

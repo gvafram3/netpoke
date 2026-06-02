@@ -123,7 +123,7 @@ fi
 echo "==> [2/5] Installing Kubernetes on loadgen and worker nodes (in parallel)."
 for node in "$LOADGEN" "${WORKERS[@]}"; do
   rcopy "$INIT_WORKER" "$node"
-  rrun  "$node" "bash ~/init_worker.sh" &
+  rrun  "$node" "export DEBIAN_FRONTEND=noninteractive; bash ~/init_worker.sh" &
 done
 wait
 echo "    worker installation complete."
