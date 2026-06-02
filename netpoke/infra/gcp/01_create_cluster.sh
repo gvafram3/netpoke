@@ -23,7 +23,12 @@ fi
 source config.env
 
 echo "==> Project: $GCP_PROJECT   Zone: $GCP_ZONE"
-echo "==> Creating 1 control + 1 loadgen + $NUM_WORKERS workers"
+ENABLE_LOADGEN="${ENABLE_LOADGEN:-1}"
+if [[ "$ENABLE_LOADGEN" == "1" ]]; then
+  echo "==> Creating 1 control + 1 loadgen + $NUM_WORKERS workers"
+else
+  echo "==> Creating 1 control + $NUM_WORKERS workers (loadgen disabled)"
+fi
 
 gcloud config set project "$GCP_PROJECT" >/dev/null
 
@@ -67,7 +72,9 @@ create_vm () {
 LOADGEN_ZONE="${LOADGEN_ZONE:-$GCP_ZONE}"
 
 create_vm "${CLUSTER_PREFIX}-control" "$CONTROL_MACHINE" "$GCP_ZONE"
-create_vm "${CLUSTER_PREFIX}-loadgen" "$LOADGEN_MACHINE" "$LOADGEN_ZONE" "--no-address"
+if [[ "$ENABLE_LOADGEN" == "1" ]]; then
+  create_vm "${CLUSTER_PREFIX}-loadgen" "$LOADGEN_MACHINE" "$LOADGEN_ZONE" "--no-address"
+fi
 for i in $(seq 1 "$NUM_WORKERS"); do
   create_vm "${CLUSTER_PREFIX}-worker${i}" "$WORKER_MACHINE" "$GCP_ZONE" "--no-address"
 done

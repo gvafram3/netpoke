@@ -56,8 +56,16 @@ fi
 
 CONTROL="${CLUSTER_PREFIX}-control"
 LOADGEN="${CLUSTER_PREFIX}-loadgen"
+ENABLE_LOADGEN="${ENABLE_LOADGEN:-1}"
 WORKERS=()
 for i in $(seq 1 "$NUM_WORKERS"); do WORKERS+=("${CLUSTER_PREFIX}-worker${i}"); done
+
+vm_is_running () {
+  local st
+  st="$(gcloud compute instances describe "$1" --zone "$(vm_zone "$1")" \
+    --format='get(status)' 2>/dev/null || echo MISSING)"
+  [[ "$st" == "RUNNING" ]]
+}
 
 # Resolve zone per VM (config override, else GCP_ZONE, else discover from GCP).
 vm_zone () {
@@ -124,9 +132,16 @@ else
   rrun "$CONTROL" "kubectl get nodes -o wide || true"
 fi
 
+JOIN_NODES=("${WORKERS[@]}")
+if [[ "$ENABLE_LOADGEN" == "1" ]] && vm_is_running "$LOADGEN"; then
+  JOIN_NODES=("$LOADGEN" "${WORKERS[@]}")
+elif [[ "$ENABLE_LOADGEN" == "1" ]]; then
+  echo "==> loadgen VM not RUNNING — skipping (set ENABLE_LOADGEN=0 in config.env to hide this)"
+fi
+
 if [[ "$JOIN_ONLY" -eq 0 ]]; then
-  echo "==> [2/5] Installing Kubernetes on loadgen and worker nodes (in parallel)."
-  for node in "$LOADGEN" "${WORKERS[@]}"; do
+  echo "==> [2/5] Installing Kubernetes on worker nodes (in parallel)."
+  for node in "${JOIN_NODES[@]}"; do
     rcopy "$INIT_WORKER" "$node"
     rrun  "$node" "export DEBIAN_FRONTEND=noninteractive; bash ~/init_worker.sh" &
   done
@@ -155,15 +170,23 @@ join_node () {
 }
 
 echo "==> [4/5] Joining nodes to the cluster."
-join_node "$LOADGEN" "loadgen"
+if [[ "$ENABLE_LOADGEN" == "1" ]] && vm_is_running "$LOADGEN"; then
+  join_node "$LOADGEN" "loadgen"
+fi
 idx=1
 for node in "${WORKERS[@]}"; do
-  join_node "$node" "worker${idx}"
+  if vm_is_running "$node"; then
+    join_node "$node" "worker${idx}"
+  else
+    echo "    SKIP $node (not RUNNING)"
+  fi
   idx=$((idx+1))
 done
 
 echo "==> [5/5] Labelling nodes and showing cluster state."
-rrun "$CONTROL" "kubectl label node loadgen netpoke-role=loadgen --overwrite || true"
+if [[ "$ENABLE_LOADGEN" == "1" ]]; then
+  rrun "$CONTROL" "kubectl label node loadgen netpoke-role=loadgen --overwrite || true"
+fi
 idx=1
 for _ in "${WORKERS[@]}"; do
   rrun "$CONTROL" "kubectl label node worker${idx} netpoke-role=worker --overwrite || true"
