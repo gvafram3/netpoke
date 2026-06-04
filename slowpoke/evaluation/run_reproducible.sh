@@ -8,8 +8,7 @@ fi
 
 export SLOWPOKE_TOP=${SLOWPOKE_TOP:-$(cd "${BASH_SOURCE%/*}/.." && pwd -P)}
 
-kubectl delete deployments --all
-kubectl delete services --all
+bash "$(dirname $0)/safe_delete_workloads.sh"
 
 cd $(dirname $0)
 mkdir -p results
