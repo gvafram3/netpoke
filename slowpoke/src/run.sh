@@ -119,13 +119,21 @@ start_rust_proxy() {
         "pkill -f '/mucache/proxy/target/release/proxy' 2>/dev/null || true; \
          nohup /mucache/proxy/target/release/proxy ${benchmark} \
            >/tmp/proxy-${benchmark}.log 2>&1 </dev/null &"
-    sleep 3
-    if kubectl exec "$ubuntu_client" -- curl -sf --max-time 2 http://localhost:3000/heartbeat 2>/dev/null \
-        | grep -q Heartbeat; then
-        echo "[run.sh] Proxy listening on localhost:3000"
+    local i ready=0
+    for i in $(seq 1 30); do
+        if kubectl exec "$ubuntu_client" -- curl -sf --max-time 2 http://localhost:3000/heartbeat 2>/dev/null \
+            | grep -q Heartbeat; then
+            ready=1
+            break
+        fi
+        sleep 1
+    done
+    if (( ready )); then
+        echo "[run.sh] Proxy listening on localhost:3000 (after ${i}s)"
     else
-        echo "[run.sh] WARNING: proxy heartbeat on :3000 not ready yet (see /tmp/proxy-${benchmark}.log in client pod)"
-        kubectl exec "$ubuntu_client" -- tail -15 "/tmp/proxy-${benchmark}.log" 2>/dev/null || true
+        echo "[run.sh] ERROR: proxy not ready on :3000 (see /tmp/proxy-${benchmark}.log)"
+        kubectl exec "$ubuntu_client" -- tail -25 "/tmp/proxy-${benchmark}.log" 2>/dev/null || true
+        return 1
     fi
 }
 
@@ -134,7 +142,7 @@ run_test() {
     local ubuntu_client=$(kubectl get pod | grep ubuntu-client- | cut -f 1 -d " ") 
 
     if [[ $benchmark != "boutique" && $benchmark != "synthetic" ]]; then
-        start_rust_proxy $benchmark $ubuntu_client
+        start_rust_proxy $benchmark $ubuntu_client || return 1
     fi
 
     echo "[run.sh] Running warmup test" 
@@ -153,6 +161,11 @@ run_test() {
 
     # get the speed of the warmup test and estimate the duration
     speed=$(echo "$output" | grep "Requests/sec:" | awk '{print $2}')
+    if [[ -z "$speed" || "$speed" == "0" ]]; then
+        echo "[run.sh] ERROR: warmup produced no throughput (wrk/proxy failed)"
+        echo "$output"
+        return 1
+    fi
     duration=$(awk -v r="$TOTAL_REQ" -v s="$speed" 'BEGIN{print (1.5*r/s < 200) ? int(1.5*r/s) : 200}')
     echo "[run.sh] Speed is $speed, duration is $duration"
 

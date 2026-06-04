@@ -62,10 +62,15 @@ else
     kubectl exec "$CLIENT" -- test -x /mucache/proxy/target/release/proxy \
       && echo "OK: proxy binary present" \
       || echo "FAIL: /mucache/proxy/target/release/proxy missing"
+    AF="$SLOWPOKE_TOP/evaluation/$BENCH/data/analysis.txt"
+    if [[ -f "$AF" ]]; then
+      kubectl cp "$AF" "$CLIENT:/analysis.txt"
+      echo "OK: copied analysis.txt to client for proxy test"
+    fi
     kubectl exec "$CLIENT" -- bash -c \
       "pkill -f '/mucache/proxy/target/release/proxy' 2>/dev/null || true; \
        nohup /mucache/proxy/target/release/proxy $BENCH >/tmp/proxy-test.log 2>&1 </dev/null &"
-    sleep 3
+    sleep 5
     if kubectl exec "$CLIENT" -- curl -sf --max-time 3 http://localhost:3000/heartbeat 2>/dev/null | grep -q Heartbeat; then
       echo "OK: proxy responds on localhost:3000/heartbeat"
     else
