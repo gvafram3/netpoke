@@ -66,6 +66,17 @@ fi
 
 mkdir -p "$RESULTS_DIR"
 export WATCH_INTERVAL="$INTERVAL"
+export PYTHONUNBUFFERED=1
+
+# Pin the log file the monitor parses (avoids sticking on a finished boutique log).
+case " $* " in
+  *run_functional*) export SLOWPOKE_ACTIVE_LOG="$RESULTS_DIR/boutique_tiny.log" ;;
+  *boutique_medium*) export SLOWPOKE_ACTIVE_LOG="$RESULTS_DIR/boutique_medium.log" ;;
+  *hotel_medium*) export SLOWPOKE_ACTIVE_LOG="$RESULTS_DIR/hotel_medium.log" ;;
+  *social_medium*) export SLOWPOKE_ACTIVE_LOG="$RESULTS_DIR/social_medium.log" ;;
+  *movie_medium*) export SLOWPOKE_ACTIVE_LOG="$RESULTS_DIR/movie_medium.log" ;;
+  *) export SLOWPOKE_ACTIVE_LOG="" ;;
+esac
 
 "${EVAL_DIR}/watch_progress.sh" --loop-tty "$RESULTS_DIR" &
 wpid=$!
@@ -77,6 +88,7 @@ trap cleanup EXIT INT TERM
 cd "$EVAL_DIR"
 echo "Starting: $*"
 echo "Logs: $RESULTS_DIR/*.log  |  counters every ${INTERVAL}s below"
+echo "Monitor log: ${SLOWPOKE_ACTIVE_LOG:-auto (first incomplete *_medium.log)}"
 echo ""
 
 "$@"

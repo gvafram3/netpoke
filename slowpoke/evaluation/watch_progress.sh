@@ -38,25 +38,18 @@ done
 REPRO_BENCHES=(boutique hotel social movie)
 
 pick_active_log() {
-  local dir="$1"
-  local f best="" best_mtime=0 mtime
-  shopt -s nullglob
-  for f in "$dir"/*.log; do
-    [[ -f "$f" ]] || continue
-    if grep -q 'Error Perc:' "$f" 2>/dev/null; then
-      continue
-    fi
-    mtime=$(stat -c %Y "$f" 2>/dev/null || stat -f %m "$f" 2>/dev/null || echo 0)
-    if (( mtime > best_mtime )); then
-      best_mtime=$mtime
-      best="$f"
-    fi
-  done
-  shopt -u nullglob
-  if [[ -n "$best" ]]; then
-    echo "$best"
+  local dir="$1" name f
+  if [[ -n "${SLOWPOKE_ACTIVE_LOG:-}" && -f "${SLOWPOKE_ACTIVE_LOG}" ]]; then
+    echo "$SLOWPOKE_ACTIVE_LOG"
     return
   fi
+  for name in "${REPRO_BENCHES[@]}"; do
+    f="$dir/${name}_medium.log"
+    if [[ -f "$f" ]] && ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
+      echo "$f"
+      return
+    fi
+  done
   ls -t "$dir"/*.log 2>/dev/null | head -1
 }
 

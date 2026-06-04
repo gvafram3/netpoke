@@ -348,6 +348,69 @@ Four lines = full run succeeded. Each `*_medium.log` should be ~100KB+, not 5KB.
 
 ---
 
+## Check boutique results only (without re-running)
+
+On **netpoke-control** after boutique finished in a full run:
+
+```bash
+LOG=~/slowpoke/evaluation/results/boutique_medium.log
+ls -lh "$LOG"
+grep -E 'Error Perc:|Baseline throughput:|Test finished' "$LOG"
+```
+
+**Complete** boutique medium log: file ~100KB+, one `Error Perc:` line with 10 numbers, and `[run.sh] Test finished with status 0` many times inside the log.
+
+Optional plot (on control, if matplotlib installed):
+
+```bash
+python3 ~/slowpoke/evaluation/draw.py ~/slowpoke/evaluation/results/boutique_medium.log
+```
+
+---
+
+## Hotel / social / movie stuck after boutique
+
+**Symptom:** `boutique_medium.log` has `Error Perc:` but `hotel_medium.log` stops right after `Reading analysis data from /analysis.txt` with no `Running warmup test`. Monitor shows boutique FINISHED for hours.
+
+**Cause:** `run.sh` started the Rust proxy with `kubectl exec ... proxy &`. The exec session stayed open on the proxy’s stdout, so `run_test` never reached warmup (same failure mode on single-VM and multi-node).
+
+**Fix on netpoke-control** — update `~/slowpoke/src/run.sh` from this repo (proxy uses `nohup` + log redirect + `pkill` before start). Quick check:
+
+```bash
+grep -A2 'start_rust_proxy' ~/slowpoke/src/run.sh
+```
+
+You should see `nohup` and `/tmp/proxy-`.
+
+**Systematic preflight** (before hotel-only run):
+
+```bash
+chmod +x ~/slowpoke/evaluation/diagnose_benchmark.sh
+export SLOWPOKE_TOP=~/slowpoke
+~/slowpoke/evaluation/diagnose_benchmark.sh hotel
+```
+
+**Hotel-only medium run** (~40 min; do not restart boutique if it already passed):
+
+```bash
+export SLOWPOKE_TOP=~/slowpoke
+export PYTHONUNBUFFERED=1
+cd ~/slowpoke/evaluation
+pkill -f 'slowpoke/src/main.py' 2>/dev/null || true
+bash safe_delete_workloads.sh
+mv -f results/hotel_medium.log results/hotel_medium.log.bak-$(date +%Y%m%d-%H%M) 2>/dev/null || true
+
+screen -S slowpoke-hotel
+# inside screen:
+WATCH_INTERVAL=10 ./run_with_monitor.sh bash hotel/run-hotel-medium.sh results/hotel_medium.log
+```
+
+**Pass:** log grows past proxy line, shows `Running warmup test`, reaches `Error Perc:` at the end; monitor shows `Suite: 1/4` then hotel workloads advancing.
+
+After hotel passes, run social and movie the same way, or resume full `run_reproducible.sh` from hotel (boutique will run again unless you edit the script).
+
+---
+
 ## Quick reference
 
 | Goal | Command |

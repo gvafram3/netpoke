@@ -108,14 +108,33 @@ warmup_and_speed() {
     echo $output
 }
 
+start_rust_proxy() {
+    local benchmark=$1
+    local ubuntu_client=$2
+    echo "[run.sh] Starting the rust proxy first for $benchmark"
+    # kubectl exec blocks until the remote process exits. A background proxy still
+    # holds stdout/stderr open on the exec session, which hung hotel/social/movie
+    # after boutique in multi-node runs. nohup + redirect detaches I/O.
+    kubectl exec "$ubuntu_client" -- bash -c \
+        "pkill -f '/mucache/proxy/target/release/proxy' 2>/dev/null || true; \
+         nohup /mucache/proxy/target/release/proxy ${benchmark} \
+           >/tmp/proxy-${benchmark}.log 2>&1 </dev/null &"
+    sleep 3
+    if kubectl exec "$ubuntu_client" -- curl -sf --max-time 2 http://localhost:3000/heartbeat 2>/dev/null \
+        | grep -q Heartbeat; then
+        echo "[run.sh] Proxy listening on localhost:3000"
+    else
+        echo "[run.sh] WARNING: proxy heartbeat on :3000 not ready yet (see /tmp/proxy-${benchmark}.log in client pod)"
+        kubectl exec "$ubuntu_client" -- tail -15 "/tmp/proxy-${benchmark}.log" 2>/dev/null || true
+    fi
+}
+
 run_test() {
     local benchmark=$1
     local ubuntu_client=$(kubectl get pod | grep ubuntu-client- | cut -f 1 -d " ") 
 
     if [[ $benchmark != "boutique" && $benchmark != "synthetic" ]]; then
-        echo "[run.sh] Starting the rust proxy first for $benchmark"
-        kubectl exec $ubuntu_client -- bash -c "/mucache/proxy/target/release/proxy ${benchmark} &"
-        sleep 3
+        start_rust_proxy $benchmark $ubuntu_client
     fi
 
     echo "[run.sh] Running warmup test" 

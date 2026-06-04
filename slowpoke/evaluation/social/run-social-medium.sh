@@ -17,6 +17,5 @@ DIR=social/04-09-pokerpp-rm-deadlock
 FILE=mix-$target-t$thread-c$conn-r$repetitions-req$num_req-n$num_exp-poker_batch_req$poker_batch_req.log
 mkdir -p $DIR
 
-kubectl delete deployments --all
-kubectl delete services --all
-python3 $SLOWPOKE_TOP/src/main.py -b social -r mix -x $target --num_exp $num_exp -t $thread -c $conn --poker_batch_req $poker_batch_req --repetition $repetitions --num_req $num_req >$outfile
+bash "$SLOWPOKE_TOP/evaluation/safe_delete_workloads.sh"
+python3 -u $SLOWPOKE_TOP/src/main.py -b social -r mix -x $target --num_exp $num_exp -t $thread -c $conn --poker_batch_req $poker_batch_req --repetitions $repetitions --num_req $num_req >$outfile
