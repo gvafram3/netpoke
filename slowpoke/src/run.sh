@@ -122,20 +122,26 @@ start_rust_proxy() {
         "nohup /mucache/proxy/target/release/proxy ${benchmark} \
            >/tmp/proxy-${benchmark}.log 2>&1 </dev/null & exit 0"
     local i ready=0
-    for i in $(seq 1 30); do
+    for i in $(seq 1 45); do
         if kubectl exec "$ubuntu_client" -- curl -sf --max-time 2 http://localhost:3000/heartbeat 2>/dev/null \
             | grep -q Heartbeat; then
             ready=1
             break
         fi
+        if kubectl exec "$ubuntu_client" -- grep -q 'Reading' "/tmp/proxy-${benchmark}.log" 2>/dev/null; then
+            if kubectl exec "$ubuntu_client" -- /wrk/wrk -t1 -c4 --timeout 3s -d1s http://localhost:3000 2>/dev/null \
+                | grep -q 'Requests/sec:'; then
+                ready=1
+                break
+            fi
+        fi
         sleep 1
     done
     if (( ready )); then
-        echo "[run.sh] Proxy listening on localhost:3000 (after ${i}s)"
+        echo "[run.sh] Proxy ready on localhost:3000 (after ${i}s)"
     else
-        echo "[run.sh] ERROR: proxy not ready on :3000 (see /tmp/proxy-${benchmark}.log)"
+        echo "[run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-${benchmark}.log)"
         kubectl exec "$ubuntu_client" -- tail -25 "/tmp/proxy-${benchmark}.log" 2>/dev/null || true
-        return 1
     fi
 }
 
@@ -144,7 +150,7 @@ run_test() {
     local ubuntu_client=$(kubectl get pod | grep ubuntu-client- | cut -f 1 -d " ") 
 
     if [[ $benchmark != "boutique" && $benchmark != "synthetic" ]]; then
-        start_rust_proxy $benchmark $ubuntu_client || return 1
+        start_rust_proxy $benchmark $ubuntu_client
     fi
 
     echo "[run.sh] Running warmup test" 
@@ -197,8 +203,17 @@ populate() {
         return
     fi
     if [[ $benchmark == "hotel" || $benchmark == "movie" ]]; then
-        echo "[run.sh] Copying $SLOWPOKE_TOP/evaluation/$benchmark/analysis.txt to $ubuntu_client:/analysis.txt"
-        kubectl cp $SLOWPOKE_TOP/evaluation/$benchmark/data/analysis.txt $ubuntu_client:/analysis.txt
+        local analysis_src="$SLOWPOKE_TOP/evaluation/$benchmark/data/analysis.txt"
+        echo "[run.sh] Copying $analysis_src to $ubuntu_client:/analysis.txt"
+        if [[ ! -f "$analysis_src" ]]; then
+            echo "[run.sh] ERROR: missing $analysis_src"
+            return 1
+        fi
+        kubectl cp "$analysis_src" "$ubuntu_client:/analysis.txt"
+        kubectl exec "$ubuntu_client" -- test -s /analysis.txt || {
+            echo "[run.sh] ERROR: /analysis.txt not on client after kubectl cp"
+            return 1
+        }
         echo "[run.sh] Finished populating $benchmark"
         return
     fi

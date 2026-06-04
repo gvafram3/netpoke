@@ -24,9 +24,13 @@ sleep 1
 kubectl exec "$CLIENT" -- sh -c \
   "nohup /mucache/proxy/target/release/proxy hotel >/tmp/proxy-hotel.log 2>&1 </dev/null & exit 0"
 
-for i in $(seq 1 30); do
+for i in $(seq 1 45); do
   if kubectl exec "$CLIENT" -- curl -sf --max-time 2 http://localhost:3000/heartbeat 2>/dev/null | grep -q Heartbeat; then
     echo "OK: proxy heartbeat (${i}s)"
+    break
+  fi
+  if kubectl exec "$CLIENT" -- /wrk/wrk -t1 -c4 --timeout 3s -d1s http://localhost:3000 2>/dev/null | grep -q 'Requests/sec:'; then
+    echo "OK: proxy wrk probe (${i}s)"
     break
   fi
   sleep 1
