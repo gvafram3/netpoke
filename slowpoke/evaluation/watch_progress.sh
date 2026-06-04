@@ -38,10 +38,19 @@ done
 REPRO_BENCHES=(boutique hotel social movie)
 
 pick_active_log() {
-  local dir="$1" name f
+  local dir="$1" name f bench
   if [[ -n "${SLOWPOKE_ACTIVE_LOG:-}" && -f "${SLOWPOKE_ACTIVE_LOG}" ]]; then
     echo "$SLOWPOKE_ACTIVE_LOG"
     return
+  fi
+  # Match the benchmark main.py is actually running (best for run_reproducible_remaining).
+  bench=$(ps aux 2>/dev/null | grep -E '[p]ython3.*main\.py -b ' | sed -n 's/.*-b \([a-z]*\).*/\1/p' | head -1)
+  if [[ -n "$bench" ]]; then
+    f="$dir/${bench}_medium.log"
+    if [[ -f "$f" ]]; then
+      echo "$f"
+      return
+    fi
   fi
   for name in "${REPRO_BENCHES[@]}"; do
     f="$dir/${name}_medium.log"
@@ -145,7 +154,9 @@ print_compact() {
       echo "Active log: (none yet — run starting?)"
       return
     fi
-    parse_log "$LOG_FILE"
+    parse_log "$LOG_FILE" || true
+    [[ -z "$P_BENCHMARK" ]] && P_BENCHMARK=$(basename "$P_LOG" _medium.log)
+    [[ -z "$P_TARGET" ]] && P_TARGET=$(grep -m1 '^target_service' "$LOG_FILE" 2>/dev/null | sed -E 's/.*: *//' || echo "…")
     echo "Now:  $(basename "$P_LOG")  ($P_BENCHMARK / $P_TARGET)"
     if (( P_LOG_DONE )); then
       echo "      FINISHED — Error Perc: ${P_LAST_ERR:0:80}"
