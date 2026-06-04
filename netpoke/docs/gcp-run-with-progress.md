@@ -360,10 +360,21 @@ grep -E 'Error Perc:|Baseline throughput:|Test finished' "$LOG"
 
 **Complete** boutique medium log: file ~100KB+, one `Error Perc:` line with 10 numbers, and `[run.sh] Test finished with status 0` many times inside the log.
 
-Optional plot (on control, if matplotlib installed):
+Full summary table + RMSE (authors’ numbers: Groundtruth, Slowdown, Predicted, Error %):
 
 ```bash
-python3 ~/slowpoke/evaluation/draw.py ~/slowpoke/evaluation/results/boutique_medium.log
+# All five lines are at the end of the log under "Summary:"
+grep -A6 'Summary:' ~/slowpoke/evaluation/results/boutique_medium.log | tail -7
+
+# Or formatted table + RMSE:
+python3 ~/slowpoke/evaluation/summarize_results.py \
+  ~/slowpoke/evaluation/results/boutique_medium.log
+```
+
+Optional plot (needs matplotlib + `/var/www/html` for `draw.py` URLs):
+
+```bash
+python3 ~/slowpoke/evaluation/draw.py ~/slowpoke/evaluation/results
 ```
 
 ---
