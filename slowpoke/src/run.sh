@@ -224,17 +224,13 @@ check_connectivity_all
 if [[ $benchmark != "synthetic" ]]; then
     populate $benchmark
 fi
-echo "[run.sh] Deleting all services and deployments"
-kubectl delete deployments --all -n default 2>/dev/null
-kubectl delete services --all -n default 2>/dev/null
-kubectl delete pods --all -n default 2>/dev/null
-# wait for all pods to be deleted
-echo "[run.sh] Waiting for all pods to be deleted"
-while [[ $(kubectl get pods -n default 2>/dev/null | grep -v NAME | wc -l) -gt 0 ]]; do
-    sleep 1
-done
 
-# sleep 0.9*duration
+sleep 5
+
+run_test $benchmark &
+pid=$!
+
+# sleep while wrk runs (artifact timing)
 sleep $(echo "$duration*0.8" | bc -l)
 echo "[run.sh] Checking the resource usage"
 kubectl top pods
