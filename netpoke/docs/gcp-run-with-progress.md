@@ -418,7 +418,59 @@ WATCH_INTERVAL=10 ./run_with_monitor.sh bash hotel/run-hotel-medium.sh results/h
 
 **Pass:** log grows past proxy line, shows `Running warmup test`, reaches `Error Perc:` at the end; monitor shows `Suite: 1/4` then hotel workloads advancing.
 
-After hotel passes, run social and movie the same way, or resume full `run_reproducible.sh` from hotel (boutique will run again unless you edit the script).
+After hotel passes, run social and movie the same way, or use **`run_reproducible_remaining.sh`** (hotel → social → movie only).
+
+---
+
+## Run remaining benchmarks (boutique already done)
+
+**1. Install / verify fixes on netpoke-control:**
+
+```bash
+export SLOWPOKE_TOP=~/slowpoke
+cd ~/slowpoke/evaluation
+chmod +x install_netpoke_fixes.sh diagnose_benchmark.sh run_reproducible_remaining.sh
+bash install_netpoke_fixes.sh
+```
+
+If `run.sh` fails the check, update it from the repo (must contain `start_rust_proxy` and `nohup`):
+
+```bash
+# From Cloud Shell on your laptop (repo checkout):
+gcloud compute scp --zone=us-central1-a \
+  slowpoke/src/run.sh netpoke-control:~/slowpoke/src/run.sh
+# Repeat for evaluation/*.sh if needed
+```
+
+**2. Stop stuck runs and clean cluster:**
+
+```bash
+pkill -f 'slowpoke/src/main.py' 2>/dev/null || true
+bash ~/slowpoke/evaluation/safe_delete_workloads.sh
+kubectl get pods -n default   # should be empty
+```
+
+**3. Run hotel → social → movie in screen (~2 h):**
+
+```bash
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+cd ~/slowpoke/evaluation
+screen -S slowpoke-rest
+WATCH_INTERVAL=10 ./run_reproducible_remaining.sh
+```
+
+**4. After each benchmark finishes:**
+
+```bash
+grep -A6 'Summary:' ~/slowpoke/evaluation/results/hotel_medium.log | tail -7
+python3 ~/slowpoke/evaluation/summarize_results.py ~/slowpoke/evaluation/results/hotel_medium.log
+```
+
+**5. Plots (skips incomplete logs):**
+
+```bash
+python3 ~/slowpoke/evaluation/draw.py ~/slowpoke/evaluation/results
+```
 
 ---
 
@@ -428,5 +480,7 @@ After hotel passes, run social and movie the same way, or resume full `run_repro
 |------|---------|
 | SSH | GCP → **netpoke-control** → SSH |
 | Run with monitor | `WATCH_INTERVAL=10 ./run_with_monitor.sh` |
+| Remaining only (hotel+) | `WATCH_INTERVAL=10 ./run_reproducible_remaining.sh` |
+| Verify fixes | `bash install_netpoke_fixes.sh` |
 | Detach screen | Ctrl+A, D |
 | One-shot status | `~/slowpoke/evaluation/watch_progress.sh --once ~/slowpoke/evaluation/results` |

@@ -40,9 +40,23 @@ def parse_results(filename):
             data[key] = float(s)
     return data
 
+def is_complete_medium_log(path: Path) -> bool:
+    if not path.name.endswith("_medium.log"):
+        return False
+    text = path.read_text(errors="replace")
+    return "Error Perc:" in text and "Groundtruth:" in text
+
+
 if __name__ == "__main__":
     result_dir = Path(sys.argv[1])
-    for logfile in result_dir.glob("*.log"):
+    if result_dir.is_file():
+        candidates = [result_dir]
+    else:
+        candidates = sorted(result_dir.glob("*_medium.log"))
+    for logfile in candidates:
+        if not is_complete_medium_log(logfile):
+            print(f"Skip {logfile.name} (incomplete or not *_medium.log)")
+            continue
         data = parse_results(logfile)
 
         groundtruth = data['groundtruth']

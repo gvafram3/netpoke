@@ -227,7 +227,7 @@ def parse():
                         help="the request type to run the experiment on",
                         type=str,
                         default="mix")
-    parser.add_argument("--repetitions",
+    parser.add_argument("--repetitions", "--repetition",
                         help="the number of repetitions to run the experiment on",
                         type=int,
                         default=3)
