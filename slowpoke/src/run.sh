@@ -115,10 +115,12 @@ start_rust_proxy() {
     # kubectl exec blocks until the remote process exits. A background proxy still
     # holds stdout/stderr open on the exec session, which hung hotel/social/movie
     # after boutique in multi-node runs. nohup + redirect detaches I/O.
-    kubectl exec "$ubuntu_client" -- bash -c \
-        "pkill -f '/mucache/proxy/target/release/proxy' 2>/dev/null || true; \
-         nohup /mucache/proxy/target/release/proxy ${benchmark} \
-           >/tmp/proxy-${benchmark}.log 2>&1 </dev/null &"
+    # Do not use pkill -f: it matches the kubectl exec shell and exits 143.
+    kubectl exec "$ubuntu_client" -- pkill -x proxy 2>/dev/null || true
+    sleep 1
+    kubectl exec "$ubuntu_client" -- sh -c \
+        "nohup /mucache/proxy/target/release/proxy ${benchmark} \
+           >/tmp/proxy-${benchmark}.log 2>&1 </dev/null & exit 0"
     local i ready=0
     for i in $(seq 1 30); do
         if kubectl exec "$ubuntu_client" -- curl -sf --max-time 2 http://localhost:3000/heartbeat 2>/dev/null \

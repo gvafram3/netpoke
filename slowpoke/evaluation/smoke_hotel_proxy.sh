@@ -19,9 +19,10 @@ CLIENT=$(kubectl get pod -l app=ubuntu-client -o jsonpath='{.items[0].metadata.n
 echo "Client: $CLIENT"
 
 kubectl cp "$SLOWPOKE_TOP/evaluation/hotel/data/analysis.txt" "$CLIENT:/analysis.txt"
-kubectl exec "$CLIENT" -- bash -c \
-  "pkill -f '/mucache/proxy/target/release/proxy' 2>/dev/null || true; \
-   nohup /mucache/proxy/target/release/proxy hotel >/tmp/proxy-hotel.log 2>&1 </dev/null &"
+kubectl exec "$CLIENT" -- pkill -x proxy 2>/dev/null || true
+sleep 1
+kubectl exec "$CLIENT" -- sh -c \
+  "nohup /mucache/proxy/target/release/proxy hotel >/tmp/proxy-hotel.log 2>&1 </dev/null & exit 0"
 
 for i in $(seq 1 30); do
   if kubectl exec "$CLIENT" -- curl -sf --max-time 2 http://localhost:3000/heartbeat 2>/dev/null | grep -q Heartbeat; then

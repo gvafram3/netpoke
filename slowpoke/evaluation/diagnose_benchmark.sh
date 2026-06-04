@@ -67,9 +67,10 @@ else
       kubectl cp "$AF" "$CLIENT:/analysis.txt"
       echo "OK: copied analysis.txt to client for proxy test"
     fi
-    kubectl exec "$CLIENT" -- bash -c \
-      "pkill -f '/mucache/proxy/target/release/proxy' 2>/dev/null || true; \
-       nohup /mucache/proxy/target/release/proxy $BENCH >/tmp/proxy-test.log 2>&1 </dev/null &"
+    kubectl exec "$CLIENT" -- pkill -x proxy 2>/dev/null || true
+    sleep 1
+    kubectl exec "$CLIENT" -- sh -c \
+      "nohup /mucache/proxy/target/release/proxy $BENCH >/tmp/proxy-test.log 2>&1 </dev/null & exit 0"
     sleep 5
     if kubectl exec "$CLIENT" -- curl -sf --max-time 3 http://localhost:3000/heartbeat 2>/dev/null | grep -q Heartbeat; then
       echo "OK: proxy responds on localhost:3000/heartbeat"
@@ -77,7 +78,7 @@ else
       echo "FAIL: no heartbeat on :3000"
       kubectl exec "$CLIENT" -- tail -20 /tmp/proxy-test.log 2>/dev/null || true
     fi
-    kubectl exec "$CLIENT" -- pkill -f '/mucache/proxy/target/release/proxy' 2>/dev/null || true
+    kubectl exec "$CLIENT" -- pkill -x proxy 2>/dev/null || true
   fi
 fi
 echo ""
