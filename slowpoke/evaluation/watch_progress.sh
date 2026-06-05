@@ -46,11 +46,8 @@ pick_active_log() {
   # Match the benchmark main.py is actually running (best for run_reproducible_remaining).
   bench=$(ps aux 2>/dev/null | grep -E '[p]ython3.*main\.py -b ' | sed -n 's/.*-b \([a-z]*\).*/\1/p' | head -1)
   if [[ -n "$bench" ]]; then
-    f="$dir/${bench}_medium.log"
-    if [[ -f "$f" ]]; then
-      echo "$f"
-      return
-    fi
+    echo "$dir/${bench}_medium.log"
+    return
   fi
   for name in "${REPRO_BENCHES[@]}"; do
     f="$dir/${name}_medium.log"
@@ -59,7 +56,11 @@ pick_active_log() {
       return
     fi
   done
-  ls -t "$dir"/*.log 2>/dev/null | head -1
+  # Never fall back to a completed *_medium.log (was showing boutique FINISHED during hotel).
+  for f in $(ls -t "$dir"/*_medium.log 2>/dev/null); do
+    [[ -f "$f" ]] && ! grep -q 'Error Perc:' "$f" 2>/dev/null && { echo "$f"; return; }
+  done
+  echo ""
 }
 
 # Sets globals: P_LOG, P_BENCHMARK, P_TARGET, P_NUM_EXP, P_FINISHED_OPT, P_THROUGHPUTS,
@@ -150,8 +151,14 @@ print_compact() {
       fi
     done
     echo "Suite: ${done_total}/4 benchmarks finished (boutique→hotel→social→movie)"
-    if [[ -z "${LOG_FILE:-}" || ! -f "$LOG_FILE" ]]; then
-      echo "Active log: (none yet — run starting?)"
+    if [[ -z "${LOG_FILE:-}" ]]; then
+      echo "Active log: (none — waiting for hotel/social/movie to start)"
+      return
+    fi
+    if [[ ! -f "$LOG_FILE" ]]; then
+      P_BENCHMARK=$(basename "$LOG_FILE" _medium.log)
+      echo "Now:  $(basename "$LOG_FILE")  ($P_BENCHMARK / …)"
+      echo "      log file not created yet (run just started)"
       return
     fi
     parse_log "$LOG_FILE" || true
