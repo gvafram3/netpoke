@@ -148,6 +148,15 @@ if __name__ == "__main__":
 
     # Process each log file
     for idx, (file_name, bench_name) in enumerate(zip(log_files, benchmark_names)):
+        if not file_name.is_file():
+            print(f"Skip {file_name.name} (not found)")
+            axs[idx].set_visible(False)
+            continue
+        text = file_name.read_text(errors='replace')
+        if 'Error Perc:' not in text:
+            print(f"Skip {file_name.name} (incomplete)")
+            axs[idx].set_visible(False)
+            continue
         experiments, err = parse_result_file(file_name)
 
         # grep baselines
@@ -233,9 +242,13 @@ if __name__ == "__main__":
 
     plt.subplots_adjust(bottom=0.25, top=0.85, wspace=0.18)  # Adjusted spacing
     fig_file_name = os.path.basename(__file__).replace('.py', '.pdf')
-    os.makedirs("plot", exist_ok=True)
-    # plt.savefig(f"plot/{fig_file_name}", bbox_inches='tight', dpi=300)
-    plt.savefig(f'/var/www/html/{fig_file_name}', bbox_inches='tight', dpi=300)
-    print(f'Result for {fig_file_name} is available at')
-    print(f'http://{IP}/{fig_file_name}')
+    out_paths = [result_dir / fig_file_name]
+    www = Path('/var/www/html')
+    if www.is_dir() and os.access(www, os.W_OK):
+        out_paths.append(www / fig_file_name)
+    for out_path in out_paths:
+        plt.savefig(out_path, bbox_inches='tight', dpi=300)
+        print(f'Wrote {out_path}')
+        if IP and out_path.parent == www:
+            print(f'  Browser: http://{IP}/{fig_file_name}')
     plt.close()
