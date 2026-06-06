@@ -57,6 +57,22 @@ set_active_log() {
   echo "$log" >"$ACTIVE_STAMP"
 }
 
+archive_target_switch_logs() {
+  local arch="$SAVED/io_gap_target_switch"
+  local moved=0 f
+  shopt -s nullglob
+  for f in "$RESULTS"/*_io_L{1,2}_medium.log; do
+    mkdir -p "$arch"
+    echo "[io_gap_all] Archive prior log -> $arch/$(basename "$f")"
+    mv -f "$f" "$arch/"
+    moved=$((moved + 1))
+  done
+  shopt -u nullglob
+  if (( moved > 0 )); then
+    echo "[io_gap_all] Archived $moved log(s) to $arch (thesis-aligned re-run uses same names)"
+  fi
+}
+
 preflight_or_exit() {
   if [[ ! -f "$SLOWPOKE_TOP/src/main.py" ]]; then
     echo "[io_gap_all] FATAL: SLOWPOKE_TOP=$SLOWPOKE_TOP invalid"
@@ -68,7 +84,7 @@ preflight_or_exit() {
     exit 1
   fi
   rm -f "$SLOWPOKE_TOP/evaluation/boutique/yamls/shipping_io_l2.yaml"
-  bash "$IO_GAP/disable_boutique_l2_io.sh" || true
+  bash "$IO_GAP/restore_io_injection.sh" || true
   bash "$IO_GAP/preflight_io_gap.sh" "$RESULTS"
 }
 
@@ -120,13 +136,13 @@ run_one() {
 
   if ! time bash "$script" "$log"; then
     echo "[io_gap_all] FATAL: $bench $level failed (exit $?)"
-    bash "$IO_GAP/disable_boutique_l2_io.sh" || true
+    bash "$IO_GAP/restore_io_injection.sh" || true
     exit 1
   fi
 
   if ! log_complete "$log"; then
     echo "[io_gap_all] FATAL: $bench $level ended without Error Perc:"
-    bash "$IO_GAP/disable_boutique_l2_io.sh" || true
+    bash "$IO_GAP/restore_io_injection.sh" || true
     exit 1
   fi
 
@@ -151,6 +167,7 @@ run_index() {
 
 echo "[io_gap_all] SLOWPOKE_TOP=$SLOWPOKE_TOP"
 preflight_or_exit
+archive_target_switch_logs
 
 if ! grep -q 'Waiting for all pod containers to be ready' "$SLOWPOKE_TOP/src/run.sh" 2>/dev/null; then
   echo "[io_gap_all] WARN: run.sh may not accept 2/2 pods (boutique L2). Patch from latest io_gap branch."

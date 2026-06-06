@@ -15,25 +15,37 @@ from summarize_results import parse_summary, rmse  # noqa: E402
 BENCHMARKS = ("boutique", "hotel", "social", "movie")
 LEVELS = ("L0", "L1", "L2")
 
-# Must match io_levels.conf
-L0_TARGETS = {
+# Fixed -x targets (match io_levels.conf)
+TARGETS = {
     "boutique": "cart",
     "hotel": "profile",
     "social": "hometimeline",
     "movie": "moviereviews",
 }
-L1_TARGETS = {
-    "boutique": "checkout",
-    "hotel": "search",
-    "social": "poststorage",
-    "movie": "reviewstorage",
+
+# Path I/O injection via netem sidecars (L1/L2 only)
+INJECT = {
+    "L1": {
+        "boutique": "shipping:30ms",
+        "hotel": "rate:30ms",
+        "social": "poststorage:30ms",
+        "movie": "reviewstorage:30ms",
+    },
+    "L2": {
+        "boutique": "shipping:50ms",
+        "hotel": "rate:50ms,user:30ms",
+        "social": "poststorage:50ms,socialgraph:30ms",
+        "movie": "reviewstorage:50ms,movieinfo:30ms",
+    },
 }
-L2_TARGETS = {
-    "boutique": "checkout+netem",
-    "hotel": "reservation",
-    "social": "socialgraph",
-    "movie": "movieinfo",
-}
+
+
+def level_label(bench: str, level: str) -> str:
+    base = TARGETS[bench]
+    if level == "L0":
+        return base
+    inj = INJECT[level][bench]
+    return f"{base} (+netem {inj})"
 
 
 def log_path(results: Path, bench: str, level: str) -> Path:
@@ -78,19 +90,19 @@ def main() -> None:
     if not results.is_dir():
         results = EVAL_DIR / args.results_dir
 
-    targets = {"L0": L0_TARGETS, "L1": L1_TARGETS, "L2": L2_TARGETS}
     rows: list[tuple[str, str, str, str, str, str]] = []
 
     print("RMSE vs I/O level (4 benchmarks × L0/L1/L2)")
+    print("L0/L1/L2 share the same -x target; L1/L2 add path netem injection.")
     print(f"results: {results.resolve()}")
     print()
-    hdr = f"{'App':<10} {'Level':<4} {'Target':<18} {'Baseline':>12} {'RMSE %':>8} {'Mean|err|':>10}  Log"
+    hdr = f"{'App':<10} {'Level':<4} {'Target / injection':<32} {'Baseline':>12} {'RMSE %':>8} {'Mean|err|':>10}  Log"
     print(hdr)
     print("-" * len(hdr))
 
     for bench in BENCHMARKS:
         for level in LEVELS:
-            tgt = targets[level][bench]
+            tgt = level_label(bench, level)
             row = load_row(results, bench, level)
             if row is None:
                 baseline_s = rmse_s = mean_s = "—"
@@ -104,7 +116,7 @@ def main() -> None:
                 mean_s = f"{row['mean_abs']:.2f}"
                 log_s = row["path"].name
             print(
-                f"{bench:<10} {level:<4} {tgt:<18} {baseline_s:>12} {rmse_s:>8} {mean_s:>10}  {log_s}"
+                f"{bench:<10} {level:<4} {tgt:<32} {baseline_s:>12} {rmse_s:>8} {mean_s:>10}  {log_s}"
             )
             rows.append((bench, level, tgt, baseline_s, rmse_s, mean_s))
 
@@ -112,12 +124,11 @@ def main() -> None:
         out = Path(args.output)
         out.parent.mkdir(parents=True, exist_ok=True)
         with out.open("w") as f:
-            f.write("app,level,target,baseline_req_s,rmse_pct,mean_abs_err_pct\n")
+            f.write("app,level,target_injection,baseline_req_s,rmse_pct,mean_abs_err_pct\n")
             for r in rows:
                 f.write(",".join(r) + "\n")
         print(f"\nWrote {out}")
 
-    # Quick delta summary when L0 and L2 both present
     print("\n--- L2 vs L0 RMSE delta (thesis headline) ---")
     for bench in BENCHMARKS:
         l0 = load_row(results, bench, "L0")

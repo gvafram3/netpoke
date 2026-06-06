@@ -368,19 +368,19 @@ bash plot_fig8_png.sh results/
 | Level | Name | Description |
 |-------|------|-------------|
 | **L0** | Baseline | Standard `run-*-medium.sh` (Phase 1) — **complete on cluster** |
-| **L1** | Moderate I/O | Target downstream I/O-heavy service (e.g. boutique `checkout`) |
-| **L2** | Heavy I/O | Deeper I/O target + amplification (boutique: checkout + shipping netem) |
+| **L1** | Moderate I/O | Same `-x` as L0 + netem on one downstream path service (30 ms) |
+| **L2** | Heavy I/O | Same `-x` as L0 + heavier netem (50 ms) on primary path service + 30 ms on a second |
 
 ### Per-benchmark plan
 
 Create one log per (app, level), e.g. `results/<app>_io_L1_medium.log`.
 
-| App | L0 target (done) | I/O injection strategy (L1 / L2) | Notes |
-|-----|-----------------|----------------------------------|-------|
-| **Boutique** | `cart` | L1: `checkout`; L2: `checkout` + shipping netem 50 ms | Paper: frontend ~8–9%, checkout ~25–58% RMSE |
-| **Hotel** | `profile` | L1: `search`; L2: `reservation` | Mongo/Redis on search and booking paths |
-| **Social** | `hometimeline` | L1: `poststorage`; L2: `socialgraph` | State-store I/O on timeline path |
-| **Movie** | `moviereviews` | L1: `reviewstorage`; L2: `movieinfo` | Review bulk reads / catalog I/O |
+| App | L0/L1/L2 `-x` target | L1 path I/O (netem) | L2 path I/O (netem) |
+|-----|---------------------|---------------------|---------------------|
+| **Boutique** | `cart` | shipping 30 ms | shipping 50 ms |
+| **Hotel** | `profile` | rate 30 ms | rate 50 ms + user 30 ms |
+| **Social** | `hometimeline` | poststorage 30 ms | poststorage 50 ms + socialgraph 30 ms |
+| **Movie** | `moviereviews` | reviewstorage 30 ms | reviewstorage 50 ms + movieinfo 30 ms |
 
 ### Implementation (in repo — sync to VM before running)
 
@@ -388,14 +388,15 @@ Create one log per (app, level), e.g. `results/<app>_io_L1_medium.log`.
 |-----------|------|
 | I/O level matrix | [`slowpoke/evaluation/io_gap/io_levels.conf`](../../slowpoke/evaluation/io_gap/io_levels.conf) |
 | Generic runner | [`slowpoke/evaluation/io_gap/run_io_medium.sh`](../../slowpoke/evaluation/io_gap/run_io_medium.sh) |
+| Netem apply / restore | [`apply_io_injection.sh`](../../slowpoke/evaluation/io_gap/apply_io_injection.sh), [`restore_io_injection.sh`](../../slowpoke/evaluation/io_gap/restore_io_injection.sh) |
 | Per-app wrappers | `evaluation/<app>/run-<app>-medium-io-L1.sh`, `…-L2.sh` |
-| Boutique L2 netem yaml | [`boutique/yamls/shipping_io_l2.yaml`](../../slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml) |
+| Chained 8-run suite | [`io_gap/run_io_gap_all.sh`](../../slowpoke/evaluation/io_gap/run_io_gap_all.sh) |
 | RMSE matrix table | [`io_gap/summarize_io_gap_matrix.py`](../../slowpoke/evaluation/io_gap/summarize_io_gap_matrix.py) |
 | Runbook | [`io_gap/README.md`](../../slowpoke/evaluation/io_gap/README.md) |
 
 - [x] `run-<app>-medium-io-L1.sh` and `run-<app>-medium-io-L2.sh` for all four apps  
 - [x] Same wrk parameters as medium scripts (`io_levels.conf`)  
-- [x] Boutique L2: shipping netem sidecar via `enable_boutique_l2_io.sh`  
+- [x] Fixed `-x` target across L0/L1/L2; path I/O via netem sidecars  
 - [ ] Run on cluster in `screen` + second SSH watch (same as Phase 1)  
 
 ### Locked L0 baselines (GCP cluster — use for L2 comparison)

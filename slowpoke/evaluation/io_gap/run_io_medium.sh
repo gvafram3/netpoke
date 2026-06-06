@@ -80,22 +80,24 @@ export SLOWPOKE_IO_GAP_LEVEL="$LEVEL"
 export SLOWPOKE_IO_GAP_BENCHMARK="$BENCH"
 export SLOWPOKE_IO_GAP_TARGET="$TARGET"
 
-# Boutique L2: enable extra shipping latency (netem sidecar yaml) before deploy.
-RESTORE_BOUTIQUE_L2=0
-if [[ "$BENCH" == "boutique" && "$LEVEL" == "L2" ]]; then
-  bash "$IO_GAP_DIR/enable_boutique_l2_io.sh"
-  RESTORE_BOUTIQUE_L2=1
+var_inject="IO_${BENCH^^}_${LEVEL}_INJECT"
+INJECT="${!var_inject:-}"
+
+RESTORE_IO=0
+if [[ -n "$INJECT" ]]; then
+  bash "$IO_GAP_DIR/apply_io_injection.sh" "$BENCH" "$LEVEL"
+  RESTORE_IO=1
 fi
 
 cleanup() {
-  if (( RESTORE_BOUTIQUE_L2 )); then
-    bash "$IO_GAP_DIR/disable_boutique_l2_io.sh" || true
+  if (( RESTORE_IO )); then
+    bash "$IO_GAP_DIR/restore_io_injection.sh" || true
   fi
 }
 trap cleanup EXIT
 
 {
-  echo "# io_gap run: benchmark=$BENCH level=$LEVEL target=$TARGET"
+  echo "# io_gap run: benchmark=$BENCH level=$LEVEL target=$TARGET inject=${INJECT:-none}"
   echo "# started: $(date -Is)"
   echo "# SLOWPOKE_TOP=$SLOWPOKE_TOP"
 } >"$OUTFILE"

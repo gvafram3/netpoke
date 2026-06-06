@@ -24,7 +24,9 @@ need() {
 }
 
 echo "--- scripts ---"
-for s in io_gap/run_io_medium.sh io_gap/io_levels.conf io_gap/summarize_io_gap_matrix.py \
+for s in io_gap/run_io_medium.sh io_gap/io_levels.conf io_gap/apply_io_injection.sh \
+         io_gap/restore_io_injection.sh io_gap/patch_netem_yaml.py \
+         io_gap/run_io_gap_all.sh io_gap/summarize_io_gap_matrix.py \
          safe_delete_workloads.sh run_with_monitor.sh watch_progress.sh; do
   need "$EVAL/$s"
 done

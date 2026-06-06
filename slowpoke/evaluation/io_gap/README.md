@@ -3,53 +3,63 @@
 Show that prediction RMSE **rises** when the slowed service sits on an I/O-heavy path
 (SIGSTOP-only), relative to Phase 1 L0 baselines.
 
+**Thesis-aligned design:** L0, L1, and L2 use the **same `-x` target** as Phase 1.
+L1/L2 add controlled synchronous I/O on downstream path services via **tc netem sidecars**
+(patched into service yamls before deploy, restored after each run).
+
 ## I/O levels
 
-| Level | Script | Target service(s) |
-|-------|--------|-------------------|
-| **L0** | `run-*-medium.sh` | cart, profile, hometimeline, moviereviews |
-| **L1** | `run-*-medium-io-L1.sh` | checkout, search, poststorage, reviewstorage |
-| **L2** | `run-*-medium-io-L2.sh` | checkout+shipping netem, reservation, socialgraph, movieinfo |
+| Level | Script | `-x` target | Path I/O injection |
+|-------|--------|-------------|-------------------|
+| **L0** | `run-*-medium.sh` | cart / profile / hometimeline / moviereviews | none |
+| **L1** | `run-*-medium-io-L1.sh` | same as L0 | moderate netem (30 ms) |
+| **L2** | `run-*-medium-io-L2.sh` | same as L0 | heavier netem (50 ms + extra services) |
 
-Matrix is defined in [`io_levels.conf`](io_levels.conf).
+Per-benchmark injection matrix is in [`io_levels.conf`](io_levels.conf).
 
 ## Sync to netpoke-control
 
-`~/slowpoke` on the VM is not a git checkout. From Cloud Shell:
+`~/slowpoke` on the VM is not a git checkout. From Cloud Shell (after `git pull`):
 
 ```bash
-cd ~/netpoke && git fetch origin cursor/phase3-io-gap-eab9
-gcloud compute scp --recurse --zone=us-central1-a \
-  slowpoke/evaluation/io_gap slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml \
-  slowpoke/evaluation/*/run-*-medium-io-*.sh \
-  aframviscagyebi@netpoke-control:~/slowpoke/evaluation/
-# Fix paths if scp flattened directories — prefer rsync or tar:
-tar czf /tmp/io_gap.tgz -C ~/netpoke slowpoke/evaluation/io_gap \
+cd ~/netpoke && git pull origin cursor/phase3-io-gap-eab9
+tar czf ~/io_gap_phase3.tgz \
+  -C ~/netpoke slowpoke/evaluation/io_gap \
   $(find slowpoke/evaluation -name 'run-*-medium-io-*.sh')
-gcloud compute scp --zone=us-central1-a /tmp/io_gap.tgz \
+gcloud compute scp --zone=us-central1-a ~/io_gap_phase3.tgz \
   aframviscagyebi@netpoke-control:~/
-# On netpoke-control: tar xzf ~/io_gap.tgz -C ~/slowpoke --strip-components=1
 ```
 
-Or copy the whole `evaluation/` tree after `git pull` on `netpoke26-thesis`.
+On **netpoke-control**:
+
+```bash
+cd ~ && tar xzf ~/io_gap_phase3.tgz
+chmod +x ~/slowpoke/evaluation/io_gap/*.sh ~/slowpoke/evaluation/*/run-*-medium-io-*.sh
+rm -f ~/slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml
+bash ~/slowpoke/evaluation/io_gap/restore_io_injection.sh
+```
+
+## Stop old run and archive target-switch logs
+
+If a prior (wrong-design) suite is running or partial logs exist:
+
+```bash
+pkill -f 'python3.*main.py' || true
+screen -S slowpoke-io-gap -X quit 2>/dev/null || true
+export SLOWPOKE_TOP=~/slowpoke
+bash ~/slowpoke/evaluation/io_gap/restore_io_injection.sh
+bash ~/slowpoke/evaluation/safe_delete_workloads.sh
+mkdir -p ~/slowpoke/evaluation/results/saved/io_gap_target_switch
+mv ~/slowpoke/evaluation/results/*_io_L*_medium.log \
+   ~/slowpoke/evaluation/results/saved/io_gap_target_switch/ 2>/dev/null || true
+```
+
+`run_io_gap_all.sh` also archives any remaining `*_io_L*_medium.log` files on start.
 
 ## Run all 8 automatically (recommended)
 
 Chained script: boutique L1 → L2 → hotel → social → movie (8 runs). Monitor on
 SSH 1; SSH 2 auto-follows the active log.
-
-### Stop stuck partial runs first
-
-```bash
-pkill -f 'python3.*main.py' || true
-screen -S slowpoke-boutique-io-L1 -X quit 2>/dev/null || true
-screen -S slowpoke-io-gap -X quit 2>/dev/null || true
-rm -f ~/slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml
-bash ~/slowpoke/evaluation/io_gap/disable_boutique_l2_io.sh
-export SLOWPOKE_TOP=~/slowpoke
-cd ~/slowpoke/evaluation && bash safe_delete_workloads.sh
-mv results/boutique_io_L1_medium.log results/boutique_io_L1_medium.log.bak-$(date +%Y%m%d-%H%M%S) 2>/dev/null || true
-```
 
 ### SSH 1 — screen + full suite
 
@@ -81,22 +91,23 @@ python3 io_gap/summarize_io_gap_matrix.py results/ \
 bash io_gap/verify_io_gap_results.sh results/
 ```
 
-## Boutique L2 note
+## I/O injection mechanics
 
-L2 enables a **50 ms netem sidecar** on the shipping pod (`enable_boutique_l2_io.sh`
-swaps `yamls/shipping.yaml` from `io_gap/shipping_io_l2.yaml`). The script restores
-the standard yaml on exit. If a run is killed abruptly, run
-`bash io_gap/disable_boutique_l2_io.sh` manually.
+- `apply_io_injection.sh` backs up each service yaml, inserts a netem sidecar via
+  `patch_netem_yaml.py`, and records backups in `.io_injection_active`.
+- `restore_io_injection.sh` restores all patched yamls (also handles legacy boutique L2 stamp).
+- `run_io_medium.sh` applies injection before deploy and restores on exit (including on failure).
 
-**Important:** `shipping_io_l2.yaml` must **not** live under `boutique/yamls/`.
+**Important:** Do not place standalone `shipping_io_l2.yaml` under `boutique/yamls/`.
 `run.sh` applies every `*.yaml` there; a stray copy deploys a 2/2 shipping pod and
 older `run.sh` waited forever for `1/1` only.
 
-## Sync extract (correct)
+## Gate checks before starting
 
 ```bash
-cd ~ && tar xzf ~/io_gap_phase3.tgz
-chmod +x ~/slowpoke/evaluation/io_gap/*.sh ~/slowpoke/evaluation/*/run-*-medium-io-*.sh
-# Remove stray copy if present:
-rm -f ~/slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml
+export SLOWPOKE_TOP=~/slowpoke
+ls ~/slowpoke/evaluation/io_gap/run_io_gap_all.sh
+grep io_gap_summary_line ~/slowpoke/evaluation/watch_progress.sh
+grep 'Waiting for all pod containers to be ready' ~/slowpoke/src/run.sh
+bash ~/slowpoke/evaluation/io_gap/preflight_io_gap.sh results/
 ```
