@@ -23,6 +23,9 @@ same window in which its process is paused (mechanism "A", the perfect pause).
   POKER (the core contribution).
 - `infra/gcp/` — scripts and runbook to build the multi-node measurement cluster
   on Google Cloud, reusing SlowPoke's own setup scripts.
+- `docs/thesis-evaluation-roadmap.md` — **master plan**: SlowPoke baseline (4
+  apps), I/O-gap characterization (all benchmarks), eBPF, NetPoke eval, figures/
+  tables checklist, movie runbook, download instructions.
 
 ## Current decisions (canonical)
 

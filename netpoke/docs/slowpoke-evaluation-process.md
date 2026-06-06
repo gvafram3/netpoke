@@ -4,6 +4,9 @@ This document tracks **what the NSDI 2026 artifact actually does**, as stated in
 `slowpoke/INSTRUCTIONS.md` and the code under `slowpoke/`. Your NetPoke thesis
 extends step 4 (the slowdown mechanism).
 
+**Master evaluation roadmap (baseline → I/O gap → eBPF → NetPoke, all four apps):**
+[`thesis-evaluation-roadmap.md`](thesis-evaluation-roadmap.md)
+
 ## Paper vs artifact vs your GCP cluster
 
 | Aspect | Paper / AWS artifact | Your `netpoke-*` GCP cluster |

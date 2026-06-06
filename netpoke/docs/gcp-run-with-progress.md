@@ -2,6 +2,9 @@
 
 One place to follow from a clean start. All experiment commands run on **netpoke-control**, not Cloud Shell.
 
+**Full thesis roadmap (all phases, figures, I/O gap on all 4 benchmarks):**  
+[`thesis-evaluation-roadmap.md`](thesis-evaluation-roadmap.md)
+
 ---
 
 ## Before you start
