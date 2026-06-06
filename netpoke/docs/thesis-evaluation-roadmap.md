@@ -184,7 +184,7 @@ See [`netpoke/INSTRUCTIONS.md`](../INSTRUCTIONS.md) §3.
 | Boutique | **Complete** | 1820.0 | 9.19% | `results/boutique_medium.log` |
 | Hotel | **Complete** | 563.2 | 10.23% | `results/hotel_medium.log` |
 | Social | **Complete** | 930.0 | 10.34% | `results/saved/social_medium.log` |
-| Movie | **Incomplete** | — | — | partial log ~161 KB, no `Error Perc:` |
+| Movie | **Complete** | 611.2 | 13.97% | `results/movie_medium.log` |
 
 **Infrastructure:** cluster Ready; proxy fix; monitoring scripts installed.
 
@@ -195,14 +195,14 @@ See [`netpoke/INSTRUCTIONS.md`](../INSTRUCTIONS.md) §3.
 | Phase | Description | Est. weight (thesis experiments) | Status |
 |-------|-------------|----------------------------------|--------|
 | **0** | Cluster + tooling | 10% | ~95% |
-| **1** | SlowPoke baseline (4 apps, standard medium) | 15% | ~75% (movie pending) |
-| **2** | Package baseline tables/plots | 5% | ~60% (3/4 apps) |
-| **3** | I/O gap — all 4 benchmarks × I/O levels | 25% | Not started |
+| **1** | SlowPoke baseline (4 apps, standard medium) | 15% | **100%** |
+| **2** | Package baseline tables/plots | 5% | ~80% (run verify + plot on cluster) |
+| **3** | I/O gap — all 4 benchmarks × I/O levels | 25% | Scripts ready — **runs next** |
 | **4** | eBPF residual I/O | 15% | ~10% (tiny logs only) |
 | **5** | NetPoke implementation | 15% | Design doc |
 | **6** | NetPoke eval — all 4 benchmarks | 15% | Not started |
 
-**Overall thesis research program:** ~**35–45%** complete (writing chapters separate).
+**Overall thesis research program:** ~**40–50%** complete (writing chapters separate).
 
 ---
 
@@ -353,7 +353,7 @@ bash plot_fig8_png.sh results/
 | Boutique | cart | 1820.0 | 9.19 | 7.44 |
 | Hotel | profile | 563.2 | 10.23 | 8.83 |
 | Social | hometimeline | 930.0 | 10.34 | 6.94 |
-| Movie | moviereviews | *TBD* | *TBD* | *TBD* |
+| Movie | moviereviews | 611.2 | 13.97 | 12.08 |
 
 ---
 
@@ -367,9 +367,9 @@ bash plot_fig8_png.sh results/
 
 | Level | Name | Description |
 |-------|------|-------------|
-| **L0** | Baseline | Standard `run-*-medium.sh` (Phase 1) — already done for 3/4 |
-| **L1** | Moderate I/O | Add controlled sync delay / extra downstream RPC in target path |
-| **L2** | Heavy I/O | Stronger sync I/O (paper boutique example: checkout + DB → ~25–58% error) |
+| **L0** | Baseline | Standard `run-*-medium.sh` (Phase 1) — **complete on cluster** |
+| **L1** | Moderate I/O | Target downstream I/O-heavy service (e.g. boutique `checkout`) |
+| **L2** | Heavy I/O | Deeper I/O target + amplification (boutique: checkout + shipping netem) |
 
 ### Per-benchmark plan
 
@@ -377,17 +377,62 @@ Create one log per (app, level), e.g. `results/<app>_io_L1_medium.log`.
 
 | App | L0 target (done) | I/O injection strategy (L1 / L2) | Notes |
 |-----|-----------------|----------------------------------|-------|
-| **Boutique** | `cart` (L0 complete) | L1: `checkout` or cart+DB sleep; L2: heavy `checkout` / `SLOWPOKE_PROCESSING` + blocking downstream | Paper: frontend ~8–9%, checkout ~25–58% RMSE |
-| **Hotel** | `profile` | L1/L2: add sync delay on `search` / `reservation` / Mongo paths | Hotel is naturally DB-heavy |
-| **Social** | `hometimeline` | L1/L2: amplify sync calls to `post-storage` / `social-graph` / Redis | DeathStarBench social network I/O |
-| **Movie** | `moviereviews` | L1/L2: amplify `review-storage` / `movie-info` sync RPC | Media microservices DB/RPC |
+| **Boutique** | `cart` | L1: `checkout`; L2: `checkout` + shipping netem 50 ms | Paper: frontend ~8–9%, checkout ~25–58% RMSE |
+| **Hotel** | `profile` | L1: `search`; L2: `reservation` | Mongo/Redis on search and booking paths |
+| **Social** | `hometimeline` | L1: `poststorage`; L2: `socialgraph` | State-store I/O on timeline path |
+| **Movie** | `moviereviews` | L1: `reviewstorage`; L2: `movieinfo` | Review bulk reads / catalog I/O |
 
-### Implementation tasks (before running)
+### Implementation (in repo — sync to VM before running)
 
-- [ ] For each app, add `run-<app>-medium-io-L1.sh` and `run-<app>-medium-io-L2.sh` (or env flag `SLOWPOKE_IO_LEVEL=1|2`)  
-- [ ] Document exact code/YAML change per level in `evaluation/<app>/README-io-levels.md`  
-- [ ] Reuse same wrk parameters as medium scripts for comparability  
-- [ ] Run in `screen` + second SSH watch (same as Phase 1)  
+| Component | Path |
+|-----------|------|
+| I/O level matrix | [`slowpoke/evaluation/io_gap/io_levels.conf`](../../slowpoke/evaluation/io_gap/io_levels.conf) |
+| Generic runner | [`slowpoke/evaluation/io_gap/run_io_medium.sh`](../../slowpoke/evaluation/io_gap/run_io_medium.sh) |
+| Per-app wrappers | `evaluation/<app>/run-<app>-medium-io-L1.sh`, `…-L2.sh` |
+| Boutique L2 netem yaml | [`boutique/yamls/shipping_io_l2.yaml`](../../slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml) |
+| RMSE matrix table | [`io_gap/summarize_io_gap_matrix.py`](../../slowpoke/evaluation/io_gap/summarize_io_gap_matrix.py) |
+| Runbook | [`io_gap/README.md`](../../slowpoke/evaluation/io_gap/README.md) |
+
+- [x] `run-<app>-medium-io-L1.sh` and `run-<app>-medium-io-L2.sh` for all four apps  
+- [x] Same wrk parameters as medium scripts (`io_levels.conf`)  
+- [x] Boutique L2: shipping netem sidecar via `enable_boutique_l2_io.sh`  
+- [ ] Run on cluster in `screen` + second SSH watch (same as Phase 1)  
+
+### Locked L0 baselines (GCP cluster — use for L2 comparison)
+
+| App | Target | Baseline (req/s) | RMSE |
+|-----|--------|------------------|------|
+| Boutique | cart | 1820.0 | 9.19% |
+| Hotel | profile | 563.2 | 10.23% |
+| Social | hometimeline | 930.0 | 10.34% |
+| Movie | moviereviews | 611.2 | 13.97% |
+
+### Run order (Phase 3 on netpoke-control)
+
+```bash
+cd ~/slowpoke/evaluation
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+bash io_gap/preflight_io_gap.sh results/
+```
+
+Run **one at a time** in screen (boutique L1 → L2 → hotel → social → movie). Full command table: [`io_gap/README.md`](../../slowpoke/evaluation/io_gap/README.md).
+
+Example (boutique L1):
+
+```bash
+screen -S slowpoke-boutique-io-L1
+WATCH_INTERVAL=10 ./run_with_monitor.sh bash boutique/run-boutique-medium-io-L1.sh results/boutique_io_L1_medium.log
+# Ctrl+A D
+```
+
+Second SSH: `SLOWPOKE_ACTIVE_LOG=~/slowpoke/evaluation/results/boutique_io_L1_medium.log ./watch_progress.sh --loop-tty`
+
+After all eight logs:
+
+```bash
+python3 io_gap/summarize_io_gap_matrix.py results/ -o results/final_package/io_gap_matrix.csv
+bash io_gap/verify_io_gap_results.sh results/
+```
 
 ### Run template (each app × level)
 
@@ -417,8 +462,9 @@ SLOWPOKE_ACTIVE_LOG=~/slowpoke/evaluation/results/<app>_io_L1_medium.log \
 ### Analysis
 
 ```bash
-python3 summarize_results.py results/boutique_io_L1_medium.log  # etc.
-# Build combined CSV for thesis tables
+python3 io_gap/summarize_io_gap_matrix.py results/ \
+  -o results/final_package/io_gap_matrix.csv
+python3 summarize_results.py results/boutique_io_L1_medium.log  # per-log detail
 ```
 
 ---
