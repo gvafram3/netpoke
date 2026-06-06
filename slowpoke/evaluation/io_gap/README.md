@@ -25,7 +25,6 @@ gcloud compute scp --recurse --zone=us-central1-a \
   aframviscagyebi@netpoke-control:~/slowpoke/evaluation/
 # Fix paths if scp flattened directories — prefer rsync or tar:
 tar czf /tmp/io_gap.tgz -C ~/netpoke slowpoke/evaluation/io_gap \
-  slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml \
   $(find slowpoke/evaluation -name 'run-*-medium-io-*.sh')
 gcloud compute scp --zone=us-central1-a /tmp/io_gap.tgz \
   aframviscagyebi@netpoke-control:~/
@@ -76,5 +75,19 @@ bash io_gap/verify_io_gap_results.sh results/
 ## Boutique L2 note
 
 L2 enables a **50 ms netem sidecar** on the shipping pod (`enable_boutique_l2_io.sh`
-swaps `yamls/shipping.yaml`). The script restores the standard yaml on exit. If a run
-is killed abruptly, run `bash io_gap/disable_boutique_l2_io.sh` manually.
+swaps `yamls/shipping.yaml` from `io_gap/shipping_io_l2.yaml`). The script restores
+the standard yaml on exit. If a run is killed abruptly, run
+`bash io_gap/disable_boutique_l2_io.sh` manually.
+
+**Important:** `shipping_io_l2.yaml` must **not** live under `boutique/yamls/`.
+`run.sh` applies every `*.yaml` there; a stray copy deploys a 2/2 shipping pod and
+older `run.sh` waited forever for `1/1` only.
+
+## Sync extract (correct)
+
+```bash
+cd ~ && tar xzf ~/io_gap_phase3.tgz
+chmod +x ~/slowpoke/evaluation/io_gap/*.sh ~/slowpoke/evaluation/*/run-*-medium-io-*.sh
+# Remove stray copy if present:
+rm -f ~/slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml
+```

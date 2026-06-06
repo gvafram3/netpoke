@@ -261,7 +261,10 @@ echo "[run.sh] Waiting for all pods to be running"
 while [[ $(kubectl get pods | grep -v -E 'Running|Completed|STATUS' | wc -l) -ne 0 ]]; do
   sleep 1
 done
-while [[ $(kubectl get pods | grep -v -E '1/1|STATUS' | wc -l) -ne 0 ]]; do
+# Accept 1/1, 2/2, … (boutique L2 shipping netem sidecar is 2/2).
+echo "[run.sh] Waiting for all pod containers to be ready"
+while kubectl get pods --no-headers 2>/dev/null \
+    | grep -vqE '^[^ ]+ +([0-9]+)/\1 +(Running|Completed) '; do
   sleep 1
 done
 echo "[run.sh] All pods are running"
