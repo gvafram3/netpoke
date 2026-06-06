@@ -75,7 +75,7 @@ case " $* " in
   *hotel_medium*) export SLOWPOKE_ACTIVE_LOG="$RESULTS_DIR/hotel_medium.log" ;;
   *social_medium*) export SLOWPOKE_ACTIVE_LOG="$RESULTS_DIR/social_medium.log" ;;
   *movie_medium*) export SLOWPOKE_ACTIVE_LOG="$RESULTS_DIR/movie_medium.log" ;;
-  *run_reproducible_remaining*) export SLOWPOKE_ACTIVE_LOG="" ;;
+  *run_reproducible_remaining*|*run_social_movie*) export SLOWPOKE_ACTIVE_LOG="" ;;  # pick via main.py -b
   *) export SLOWPOKE_ACTIVE_LOG="" ;;
 esac
 

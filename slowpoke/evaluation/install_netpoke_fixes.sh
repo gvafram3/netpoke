@@ -41,6 +41,9 @@ done
 [[ -f "$EVAL/run_reproducible_remaining.sh" ]] && ok "run_reproducible_remaining.sh" \
   || warn "run_reproducible_remaining.sh not installed"
 
+[[ -f "$EVAL/run_social_movie.sh" ]] && ok "run_social_movie.sh" \
+  || warn "run_social_movie.sh not installed"
+
 for data in hotel/data/analysis.txt movie/data/analysis.txt social/data/analysis.txt; do
   [[ -f "$SLOWPOKE_TOP/evaluation/${data#$SLOWPOKE_TOP/evaluation/}" ]] && ok "$data" || bad "missing $data"
 done
@@ -67,3 +70,8 @@ echo "Run remaining benchmarks:"
 echo "  cd $EVAL && screen -S slowpoke-rest"
 echo "  export SLOWPOKE_TOP=$SLOWPOKE_TOP PYTHONUNBUFFERED=1"
 echo "  WATCH_INTERVAL=10 ./run_reproducible_remaining.sh"
+echo ""
+echo "Or social → movie only (saves to results/saved/ on each finish):"
+echo "  cd $EVAL && screen -S slowpoke-social-movie"
+echo "  export SLOWPOKE_TOP=$SLOWPOKE_TOP PYTHONUNBUFFERED=1"
+echo "  WATCH_INTERVAL=10 ./run_social_movie.sh"
