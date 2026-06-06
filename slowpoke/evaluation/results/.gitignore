@@ -1,0 +1,5 @@
+# Experiment logs are produced on netpoke-control — do not commit run output.
+# Reference outputs live in ../sample_output/
+*
+!.gitignore
+!README.md

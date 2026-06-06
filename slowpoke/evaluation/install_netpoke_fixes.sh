@@ -19,8 +19,8 @@ if grep -q 'start_rust_proxy' "$RUN_SH" && grep -q 'nohup.*proxy' "$RUN_SH"; the
   ok "run.sh proxy fix (nohup + start_rust_proxy)"
 else
   bad "run.sh still uses blocking kubectl exec for proxy"
-  echo "       Update from repo branch cursor/cluster-diagnose-multi-zone-eab9:"
-  echo "       git -C ~/slowpoke pull   # or scp slowpoke/src/run.sh from your laptop"
+  echo "       Update slowpoke/src/run.sh from the netpoke repo (branch netpoke26-thesis):"
+  echo "       git -C ~/netpoke pull && rsync -a ~/netpoke/slowpoke/src/run.sh ~/slowpoke/src/"
 fi
 
 [[ -x "$EVAL/safe_delete_workloads.sh" ]] && ok "safe_delete_workloads.sh" \

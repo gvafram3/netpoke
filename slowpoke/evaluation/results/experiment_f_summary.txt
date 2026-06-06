@@ -1,4 +1,0 @@
-=== Experiment F Error Summary ===
-No explicit RMSE in log (will calculate manually)
-
-=== Final Summary ===

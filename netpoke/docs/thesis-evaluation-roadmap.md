@@ -4,6 +4,8 @@
 **Base system:** SlowPoke (NSDI 2026)  
 **Cluster:** GCP `netpoke-control` + `worker1–3`  
 **Last updated:** June 2026  
+**Reproducibility branch:** `netpoke26-thesis` (submit this branch for defense)  
+**Naming:** branches use `netpoke/…` or `netpoke26-…` only — no tool-generated branch names.
 
 This document is the **master plan** for experiments, deliverables, and thesis chapters. It extends the SlowPoke artifact evaluation (paper §5.1) with the NetPoke research program (I/O gap → eBPF → network-aware pause → accuracy restoration) across **all four** DeathStarBench applications.
 
@@ -142,9 +144,28 @@ Error Perc:  [...]
 
 ### Optional (not required for thesis core)
 
-| Paper | Artifact | Time |
-|-------|----------|------|
-| Fig. 9 synthetic microbenchmarks | `evaluation/synthetic/*/run.sh` | 2–3 days |
+### Synthetic microbenchmarks — Fig. 9 (optional, high value for defense)
+
+SlowPoke validates the model on **108 synthetic graphs** in
+[`slowpoke/evaluation/synthetic/`](../../slowpoke/evaluation/synthetic/) (chain, DAG,
+sync/async, gRPC/HTTP). Full suite: **2–3 days**. Artifact marks this **optional**.
+
+| Question | Answer |
+|----------|--------|
+| **Required for thesis minimum?** | No — four real-world apps (Fig. 8) + I/O-gap matrix are required |
+| **Worth doing?** | Yes for defense: shows full artifact reproduction; isolates topology from DeathStarBench noise |
+| **Minimum synthetic set** | 1–3 configs, e.g. `chain-d2-grpc-async`, `dag-relay-http-sync` |
+| **NetPoke tie-in** | Optional appendix: one synthetic I/O-heavy config before/after NetPoke |
+
+```bash
+cd ~/slowpoke
+./evaluation/synthetic/chain-d2-grpc-async/run.sh
+python3 evaluation/draw.py evaluation/results
+```
+
+**Pass (artifact):** three logs per config; errors mostly 0–6%, within ~15%.
+
+See [`netpoke/INSTRUCTIONS.md`](../INSTRUCTIONS.md) §3.
 
 ### Authors’ presentation style (replicate in thesis)
 
@@ -553,7 +574,8 @@ cloudshell download ~/slowpoke_full_results_YYYYMMDD.tar.gz
 cloudshell download ~/netpoke/netpoke/docs/thesis-evaluation-roadmap.md
 ```
 
-Or clone/pull repo branch `cursor/social-movie-chain-eab9` (or `main` after merge).
+Clone the reproducibility branch: `git checkout netpoke26-thesis`  
+(See [`netpoke/INSTRUCTIONS.md`](../INSTRUCTIONS.md).)
 
 ---
 
