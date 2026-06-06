@@ -33,36 +33,45 @@ gcloud compute scp --zone=us-central1-a /tmp/io_gap.tgz \
 
 Or copy the whole `evaluation/` tree after `git pull` on `netpoke26-thesis`.
 
-## Run order (recommended)
+## Run all 8 automatically (recommended)
 
-One benchmark at a time in **screen**; second SSH for `watch_progress.sh`.
+Chained script: boutique L1 → L2 → hotel → social → movie (8 runs). Monitor on
+SSH 1; SSH 2 auto-follows the active log.
+
+### Stop stuck partial runs first
 
 ```bash
-cd ~/slowpoke/evaluation
+pkill -f 'python3.*main.py' || true
+screen -S slowpoke-boutique-io-L1 -X quit 2>/dev/null || true
+screen -S slowpoke-io-gap -X quit 2>/dev/null || true
+rm -f ~/slowpoke/evaluation/boutique/yamls/shipping_io_l2.yaml
+bash ~/slowpoke/evaluation/io_gap/disable_boutique_l2_io.sh
+export SLOWPOKE_TOP=~/slowpoke
+cd ~/slowpoke/evaluation && bash safe_delete_workloads.sh
+mv results/boutique_io_L1_medium.log results/boutique_io_L1_medium.log.bak-$(date +%Y%m%d-%H%M%S) 2>/dev/null || true
+```
+
+### SSH 1 — screen + full suite
+
+```bash
+screen -S slowpoke-io-gap
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
-bash io_gap/preflight_io_gap.sh results/
+cd ~/slowpoke/evaluation
+WATCH_INTERVAL=10 ./io_gap/run_io_gap_all.sh
 ```
 
-| Step | screen name | Command | Watch log |
-|------|-------------|---------|-----------|
-| 1 | `slowpoke-boutique-io-L1` | `WATCH_INTERVAL=10 ./run_with_monitor.sh bash boutique/run-boutique-medium-io-L1.sh results/boutique_io_L1_medium.log` | `boutique_io_L1_medium.log` |
-| 2 | `slowpoke-boutique-io-L2` | `… run-boutique-medium-io-L2.sh results/boutique_io_L2_medium.log` | `boutique_io_L2_medium.log` |
-| 3 | hotel L1 | `hotel/run-hotel-medium-io-L1.sh` | `hotel_io_L1_medium.log` |
-| 4 | hotel L2 | `hotel/run-hotel-medium-io-L2.sh` | `hotel_io_L2_medium.log` |
-| 5 | social L1 | `social/run-social-medium-io-L1.sh` | `social_io_L1_medium.log` |
-| 6 | social L2 | `social/run-social-medium-io-L2.sh` | `social_io_L2_medium.log` |
-| 7 | movie L1 | `movie/run-movie-medium-io-L1.sh` | `movie_io_L1_medium.log` |
-| 8 | movie L2 | `movie/run-movie-medium-io-L2.sh` | `movie_io_L2_medium.log` |
+Detach: `Ctrl+A`, `D`
 
-Second SSH (each run):
+### SSH 2 — live monitor (auto log switch)
 
 ```bash
 cd ~/slowpoke/evaluation
-SLOWPOKE_ACTIVE_LOG=~/slowpoke/evaluation/results/<app>_io_L<n>_medium.log \
-  WATCH_INTERVAL=10 ./watch_progress.sh --loop-tty
+WATCH_INTERVAL=10 ./watch_progress.sh --loop-tty
 ```
 
-After each complete log: `cp -a results/<log> results/saved/`.
+Shows `I/O-gap: X/8 runs complete` and switches log each run automatically.
+
+Completed logs are saved to `results/saved/` after each run.
 
 ## Analysis
 
