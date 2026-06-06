@@ -50,7 +50,9 @@ pick_active_log() {
   stamp="$dir/.slowpoke_active_log"
   if [[ -f "$stamp" ]]; then
     f=$(tr -d '\n' <"$stamp")
-    if [[ -f "$f" ]]; then
+    if [[ -n "$f" ]] && { [[ ! -f "$f" ]] \
+        || ! grep -q 'Error Perc:' "$f" 2>/dev/null \
+        || pgrep -f '[p]ython3.*main\.py' >/dev/null; }; then
       echo "$f"
       return
     fi
@@ -59,7 +61,7 @@ pick_active_log() {
   for name in "${REPRO_BENCHES[@]}"; do
     for level in "${IO_GAP_LEVELS[@]}"; do
       f="$dir/${name}_io_${level}_medium.log"
-      if [[ -f "$f" ]] && ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
+      if [[ ! -f "$f" ]] || ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
         echo "$f"
         return
       fi
@@ -70,7 +72,7 @@ pick_active_log() {
   if [[ -n "$bench" ]]; then
     for level in "${IO_GAP_LEVELS[@]}"; do
       f="$dir/${bench}_io_${level}_medium.log"
-      if [[ -f "$f" ]] && ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
+      if [[ ! -f "$f" ]] || ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
         echo "$f"
         return
       fi
