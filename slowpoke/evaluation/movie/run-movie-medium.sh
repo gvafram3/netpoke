@@ -1,4 +1,9 @@
 #!/bin/bash
+export SLOWPOKE_TOP="${SLOWPOKE_TOP:-$HOME/slowpoke}"
+if [[ ! -f "$SLOWPOKE_TOP/src/main.py" ]]; then
+  echo "ERROR: SLOWPOKE_TOP=$SLOWPOKE_TOP is invalid (no src/main.py)" >&2
+  exit 1
+fi
 
 outfile=$1
 outdir=$(realpath $(dirname $outfile))

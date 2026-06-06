@@ -3,6 +3,7 @@
 #
 # Usage (on netpoke-control, in screen):
 #   cd ~/slowpoke/evaluation
+#   bash preflight_social_movie.sh
 #   export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
 #   WATCH_INTERVAL=10 ./run_social_movie.sh
 #
@@ -13,7 +14,7 @@ fi
 
 set -euo pipefail
 
-export SLOWPOKE_TOP=${SLOWPOKE_TOP:-$(cd "${BASH_SOURCE%/*}/.." && pwd -P)}
+export SLOWPOKE_TOP="${SLOWPOKE_TOP:-$HOME/slowpoke}"
 export PYTHONUNBUFFERED=1
 
 EVAL_DIR="$(cd "${BASH_SOURCE%/*}" && pwd)"
@@ -24,6 +25,27 @@ BENCHES=(social movie)
 log_complete() {
   local f="$1"
   [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null
+}
+
+preflight_or_exit() {
+  if [[ ! -f "$SLOWPOKE_TOP/src/main.py" ]]; then
+    echo "[run_social_movie] FATAL: SLOWPOKE_TOP=$SLOWPOKE_TOP invalid (no src/main.py)"
+    exit 1
+  fi
+  if pgrep -f '[p]ython3.*main\.py' >/dev/null; then
+    echo "[run_social_movie] FATAL: main.py already running"
+    exit 1
+  fi
+  if ! kubectl cluster-info >/dev/null 2>&1; then
+    echo "[run_social_movie] FATAL: kubectl cluster not reachable"
+    exit 1
+  fi
+  for prereq in boutique hotel; do
+    if ! log_complete "$RESULTS/${prereq}_medium.log"; then
+      echo "[run_social_movie] FATAL: ${prereq}_medium.log not complete"
+      exit 1
+    fi
+  done
 }
 
 save_completed_log() {
@@ -56,32 +78,41 @@ run_benchmark() {
   fi
 
   if [[ -f "$log" ]]; then
-    local bak="${log}.bak-$(date +%Y%m%d-%H%M%S)"
-    echo "[run_social_movie] Archiving incomplete $log -> $bak"
-    mv "$log" "$bak"
+    if [[ ! -s "$log" ]]; then
+      echo "[run_social_movie] Removing empty $log"
+      rm -f "$log"
+    else
+      local bak="${log}.bak-$(date +%Y%m%d-%H%M%S)"
+      echo "[run_social_movie] Archiving incomplete $log -> $bak"
+      mv "$log" "$bak"
+    fi
   fi
 
   echo "[run_social_movie] Starting $bench ($(date -Is))"
-  time bash "$script" "$log"
+  export SLOWPOKE_TOP
+  if ! time bash "$script" "$log"; then
+    echo "[run_social_movie] FATAL: $bench script failed (exit $?)"
+    exit 1
+  fi
+  if ! log_complete "$log"; then
+    echo "[run_social_movie] FATAL: $bench finished but log has no Error Perc"
+    exit 1
+  fi
   save_completed_log "$bench"
   echo "[run_social_movie] Finished $bench ($(date -Is))"
 }
 
 echo "[run_social_movie] SLOWPOKE_TOP=$SLOWPOKE_TOP"
+preflight_or_exit
 
 if ! grep -q 'start_rust_proxy' "$SLOWPOKE_TOP/src/run.sh" 2>/dev/null; then
-  echo "[run_social_movie] ERROR: missing proxy fix in $SLOWPOKE_TOP/src/run.sh"
+  echo "[run_social_movie] FATAL: missing proxy fix in $SLOWPOKE_TOP/src/run.sh"
   echo "  Run: bash $EVAL_DIR/install_netpoke_fixes.sh"
   exit 1
 fi
 
 for prereq in boutique hotel; do
-  pf="$RESULTS/${prereq}_medium.log"
-  if ! log_complete "$pf"; then
-    echo "[run_social_movie] WARN: $pf missing or incomplete (expected before social/movie)"
-  else
-    echo "[run_social_movie] OK: $prereq already complete"
-  fi
+  echo "[run_social_movie] OK: $prereq already complete"
 done
 
 bash "$EVAL_DIR/safe_delete_workloads.sh"
@@ -91,9 +122,13 @@ mkdir -p results "$SAVED"
 for bench in "${BENCHES[@]}"; do
   f="$RESULTS/${bench}_medium.log"
   if [[ -f "$f" ]] && ! log_complete "$f"; then
-    bak="${f}.bak-$(date +%Y%m%d-%H%M%S)"
-    echo "[run_social_movie] Archiving incomplete $f -> $bak"
-    mv "$f" "$bak"
+    if [[ ! -s "$f" ]]; then
+      rm -f "$f"
+    else
+      bak="${f}.bak-$(date +%Y%m%d-%H%M%S)"
+      echo "[run_social_movie] Archiving incomplete $f -> $bak"
+      mv "$f" "$bak"
+    fi
   fi
 done
 
@@ -108,11 +143,5 @@ echo "  results/social_medium.log"
 echo "  results/movie_medium.log"
 echo "  results/saved/   (canonical + timestamped backups)"
 echo ""
-if [[ -f "$EVAL_DIR/summarize_results.py" ]]; then
-  python3 "$EVAL_DIR/summarize_results.py" \
-    "$RESULTS/boutique_medium.log" \
-    "$RESULTS/hotel_medium.log" \
-    "$RESULTS/social_medium.log" \
-    "$RESULTS/movie_medium.log" || true
-fi
+bash "$EVAL_DIR/verify_benchmark_results.sh" "$RESULTS"
 echo "Plots: bash $EVAL_DIR/plot_fig8_png.sh $RESULTS"
