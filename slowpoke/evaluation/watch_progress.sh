@@ -36,16 +36,45 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPRO_BENCHES=(boutique hotel social movie)
+IO_GAP_LEVELS=(L1 L2)
 
 pick_active_log() {
-  local dir="$1" name f bench
+  local dir="$1" name f bench level stamp
   if [[ -n "${SLOWPOKE_ACTIVE_LOG:-}" && -f "${SLOWPOKE_ACTIVE_LOG}" ]]; then
-    echo "$SLOWPOKE_ACTIVE_LOG"
-    return
+    if ! grep -q 'Error Perc:' "${SLOWPOKE_ACTIVE_LOG}" 2>/dev/null \
+        || pgrep -f '[p]ython3.*main\.py' >/dev/null; then
+      echo "$SLOWPOKE_ACTIVE_LOG"
+      return
+    fi
   fi
-  # Match the benchmark main.py is actually running (best for run_reproducible_remaining).
+  stamp="$dir/.slowpoke_active_log"
+  if [[ -f "$stamp" ]]; then
+    f=$(tr -d '\n' <"$stamp")
+    if [[ -f "$f" ]]; then
+      echo "$f"
+      return
+    fi
+  fi
+  # Phase 3 I/O-gap suite: first incomplete log in fixed order.
+  for name in "${REPRO_BENCHES[@]}"; do
+    for level in "${IO_GAP_LEVELS[@]}"; do
+      f="$dir/${name}_io_${level}_medium.log"
+      if [[ -f "$f" ]] && ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
+        echo "$f"
+        return
+      fi
+    done
+  done
+  # Match the benchmark main.py is actually running.
   bench=$(ps aux 2>/dev/null | grep -E '[p]ython3.*main\.py -b ' | sed -n 's/.*-b \([a-z]*\).*/\1/p' | head -1)
   if [[ -n "$bench" ]]; then
+    for level in "${IO_GAP_LEVELS[@]}"; do
+      f="$dir/${bench}_io_${level}_medium.log"
+      if [[ -f "$f" ]] && ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
+        echo "$f"
+        return
+      fi
+    done
     echo "$dir/${bench}_medium.log"
     return
   fi
@@ -56,11 +85,27 @@ pick_active_log() {
       return
     fi
   done
-  # Never fall back to a completed *_medium.log (was showing boutique FINISHED during hotel).
   for f in $(ls -t "$dir"/*_medium.log 2>/dev/null); do
     [[ -f "$f" ]] && ! grep -q 'Error Perc:' "$f" 2>/dev/null && { echo "$f"; return; }
   done
   echo ""
+}
+
+io_gap_summary_line() {
+  local dir="$1" done=0 entry bench level f
+  local -a order=(
+    boutique:L1 boutique:L2 hotel:L1 hotel:L2
+    social:L1 social:L2 movie:L1 movie:L2
+  )
+  for entry in "${order[@]}"; do
+    bench="${entry%%:*}"
+    level="${entry##*:}"
+    f="$dir/${bench}_io_${level}_medium.log"
+    if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
+      done=$((done + 1))
+    fi
+  done
+  echo "I/O-gap: ${done}/8 runs complete (boutique L1→L2 → hotel → social → movie)"
 }
 
 # Sets globals: P_LOG, P_BENCHMARK, P_TARGET, P_NUM_EXP, P_FINISHED_OPT, P_THROUGHPUTS,
@@ -143,14 +188,20 @@ print_compact() {
 
   _pc_emit() {
     echo "── SlowPoke $(date '+%H:%M:%S') ──"
-    local name done_total=0 f
+    local name done_total=0 f show_io=0
     for name in "${REPRO_BENCHES[@]}"; do
+      f="$RESULTS_DIR/${name}_io_L1_medium.log"
+      [[ -f "$f" ]] && show_io=1
       f="$RESULTS_DIR/${name}_medium.log"
       if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
         done_total=$((done_total + 1))
       fi
     done
-    echo "Suite: ${done_total}/4 benchmarks finished (boutique→hotel→social→movie)"
+    if (( show_io )) || [[ -n "${SLOWPOKE_IO_GAP_SUITE:-}" ]]; then
+      io_gap_summary_line "$RESULTS_DIR"
+    else
+      echo "Suite: ${done_total}/4 benchmarks finished (boutique→hotel→social→movie)"
+    fi
     if [[ -z "${LOG_FILE:-}" ]]; then
       echo "Active log: (none — waiting for hotel/social/movie to start)"
       return
