@@ -197,12 +197,12 @@ See [`netpoke/INSTRUCTIONS.md`](../INSTRUCTIONS.md) §3.
 | **0** | Cluster + tooling | 10% | ~95% |
 | **1** | SlowPoke baseline (4 apps, standard medium) | 15% | **100%** |
 | **2** | Package baseline tables/plots | 5% | ~80% (run verify + plot on cluster) |
-| **3** | I/O gap — all 4 benchmarks × I/O levels | 25% | **~62%** (5/8 runs complete — Jun 2026) |
+| **3** | I/O gap — all 4 benchmarks × I/O levels | 25% | **100%** (8/8 complete — Jun 2026) |
 | **4** | eBPF residual I/O | 15% | ~10% (tiny logs only) |
 | **5** | NetPoke implementation | 15% | Design doc |
 | **6** | NetPoke eval — all 4 benchmarks | 15% | Not started |
 
-**Overall thesis research program:** ~**50–55%** complete (Phase 3 in progress; writing chapters separate).
+**Overall thesis research program:** ~**55–60%** complete (Phase 3 done; Phase 4 next).
 
 ---
 
@@ -397,31 +397,23 @@ Create one log per (app, level), e.g. `results/<app>_io_L1_medium.log`.
 - [x] `run-<app>-medium-io-L1.sh` and `run-<app>-medium-io-L2.sh` for all four apps  
 - [x] Same wrk parameters as medium scripts (`io_levels.conf`)  
 - [x] Fixed `-x` target across L0/L1/L2; path I/O via netem sidecars  
-- [x] Cluster suite via `run_io_gap_all.sh` (Jun 2026) — **5/8 complete**  
-- [ ] Finish social L2, movie L1, movie L2  
+- [x] Cluster suite via `run_io_gap_all.sh` (Jun 2026) — **8/8 complete**, verify passed  
+- [x] CSV: `results/final_package/io_gap_matrix.csv`  
 
-**Live results snapshot:** [`slowpoke/evaluation/io_gap/PHASE3_RESULTS.md`](../../slowpoke/evaluation/io_gap/PHASE3_RESULTS.md)
+**Final results:** [`slowpoke/evaluation/io_gap/PHASE3_RESULTS.md`](../../slowpoke/evaluation/io_gap/PHASE3_RESULTS.md)
 
-### Phase 3 results (GCP cluster — thesis-aligned, Jun 2026)
+### Phase 3 results (GCP cluster — final, 2026-06-07)
 
-**Progress:** 5/8 io_gap logs complete in `results/` (boutique L1–L2, hotel L1–L2, social L1). Social L2 in progress; movie L1/L2 pending.
+**Verification:** all eight `*_io_L*_medium.log` files complete (21 throughput lines each).
 
-| App | Level | Injection | Baseline (req/s) | RMSE % | Δ vs L0 |
-|-----|-------|-----------|------------------|--------|---------|
-| Boutique | L0 | — | 1820.0 | 9.19% | — |
-| Boutique | L1 | shipping 30 ms | 2067.0 | 11.53% | +2.34 pp |
-| Boutique | L2 | shipping 50 ms | 2096.9 | 3.07% | **−6.12 pp** |
-| Hotel | L0 | — | 563.2 | 10.23% | — |
-| Hotel | L1 | rate 30 ms | 593.2 | 13.90% | +3.67 pp |
-| Hotel | L2 | rate 50 ms + user 30 ms | 675.5 | 16.28% | **+6.05 pp** |
-| Social | L0 | — | 930.0 | 10.34% | — |
-| Social | L1 | poststorage 30 ms | 820.9 | 26.04% | **+15.70 pp** |
-| Social | L2 | poststorage 50 ms + socialgraph 30 ms | *TBD* | *TBD* | *TBD* |
-| Movie | L0 | — | 611.2 | 13.97% | — |
-| Movie | L1 | reviewstorage 30 ms | *TBD* | *TBD* | *TBD* |
-| Movie | L2 | reviewstorage 50 ms + movieinfo 30 ms | *TBD* | *TBD* | *TBD* |
+| App | L0 RMSE | L1 RMSE | L2 RMSE | L2 − L0 |
+|-----|---------|---------|---------|---------|
+| Boutique | 9.19% | 11.53% | 3.07% | **−6.12 pp** |
+| Hotel | 10.23% | 13.90% | 16.28% | **+6.05 pp** |
+| Social | 10.34% | 26.04% | 24.64% | **+14.30 pp** |
+| Movie | 13.97% | 19.18% | 16.72% | **+2.75 pp** |
 
-**Early findings:** Hotel and social show the expected I/O gap (RMSE rises with path netem at fixed target). Boutique is non-monotonic (L2 RMSE below L0) — likely injection off the `cart` causal path. Movie `IO_NUM_REQ_MOVIE=20000` (not 100k) after zero-throughput retry loop on first slowdown experiment.
+**RQ1:** Supported for hotel, social, movie (L2 > L0). Boutique outlier (shipping off `cart` path). Social L1 peaks above L2 — report L2−L0 as headline and note non-monotonic L1→L2 in discussion.
 
 ### Locked L0 baselines (GCP cluster — use for L2 comparison)
 
@@ -550,9 +542,9 @@ python3 summarize_results.py results/boutique_io_L1_medium.log  # per-log detail
 | Hotel | L0 | 10.23% | *TBD* | *TBD* | *TBD* |
 | Hotel | L2 (SIGSTOP) | 16.28% | *TBD* | ↓ toward L0 | *TBD* |
 | Social | L0 | 10.34% | *TBD* | *TBD* | *TBD* |
-| Social | L2 (SIGSTOP) | *TBD* | *TBD* | ↓ toward L0 | *TBD* |
+| Social | L2 (SIGSTOP) | 24.64% | *TBD* | ↓ toward L0 | *TBD* |
 | Movie | L0 | 13.97% | *TBD* | *TBD* | *TBD* |
-| Movie | L2 (SIGSTOP) | *TBD* | *TBD* | ↓ toward L0 | *TBD* |
+| Movie | L2 (SIGSTOP) | 16.72% | *TBD* | ↓ toward L0 | *TBD* |
 
 **Success:** On L2, NetPoke RMSE moves **toward** Phase 1 L0 baseline; L0 RMSE unchanged (no regression on compute-bound path).
 
@@ -588,11 +580,11 @@ Use this as a **completion checklist**. Mark when files exist on disk.
 
 ### I/O gap (thesis Ch. 3)
 
-- [ ] **Table I1:** RMSE vs I/O level — 4 apps × L0/L1/L2 (5/12 rows complete in `results/`)
+- [x] **Table I1:** RMSE vs I/O level — 4 apps × L0/L1/L2 (`io_gap_matrix.csv`)
 - [ ] **Fig I1:** RMSE vs I/O intensity (all benchmarks)
 - [ ] **Fig I2:** Example error% curve under L2 (optional per app)
 
-Partial cluster values (Jun 2026): hotel L2 +6.05 pp vs L0; social L1 +15.70 pp; boutique non-monotonic — see [`PHASE3_RESULTS.md`](../../slowpoke/evaluation/io_gap/PHASE3_RESULTS.md).
+Final values: social +14.30 pp, hotel +6.05 pp, movie +2.75 pp L2 vs L0; boutique −6.12 pp — [`PHASE3_RESULTS.md`](../../slowpoke/evaluation/io_gap/PHASE3_RESULTS.md).
 
 ### eBPF (thesis Ch. 4)
 
