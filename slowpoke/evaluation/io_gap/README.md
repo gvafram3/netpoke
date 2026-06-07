@@ -17,6 +17,8 @@ L1/L2 add controlled synchronous I/O on downstream path services via **tc netem 
 
 Per-benchmark injection matrix is in [`io_levels.conf`](io_levels.conf).
 
+**Latest cluster results:** [`PHASE3_RESULTS.md`](PHASE3_RESULTS.md) (regenerate with `summarize_io_gap_matrix.py`).
+
 ## Sync to netpoke-control
 
 `~/slowpoke` on the VM is not a git checkout. From Cloud Shell (after `git pull`):
