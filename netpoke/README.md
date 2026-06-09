@@ -19,10 +19,25 @@ same window in which its process is paused (mechanism "A", the perfect pause).
 - `thesis/chapter1.md` — Chapter 1 (Introduction), rewritten, APA, British
   spelling, consistent with mechanism A. Four objectives, four research
   questions.
+- `docs/PROJECT_STATUS_REPORT.md` — **full project report** (motivation → progress
+  → deviations → way forward; updated after Phase 3).
+- `docs/thesis-evaluation-roadmap.md` — master experiment plan (Phases 0–6).
 - `design/poker-io-pause.md` — design for the synchronised network pause inside
   POKER (the core contribution).
 - `infra/gcp/` — scripts and runbook to build the multi-node measurement cluster
   on Google Cloud, reusing SlowPoke's own setup scripts.
+- `slowpoke/evaluation/io_gap/PHASE3_RESULTS.md` — final Phase 3 RMSE matrix (8/8).
+
+## Current status (Jun 2026)
+
+| Phase | Status |
+|-------|--------|
+| 1 — L0 baselines (4 apps) | **Complete** |
+| 3 — I/O gap (8 runs) | **Complete** — social +14.3 pp, hotel +6.1 pp, movie +2.8 pp L2 vs L0 |
+| 4 — eBPF | Next |
+| 5–6 — NetPoke build + eval | Not started |
+
+See [`docs/PROJECT_STATUS_REPORT.md`](docs/PROJECT_STATUS_REPORT.md) for the full narrative.
 - `INSTRUCTIONS.md` — **thesis artifact reproduction** (like SlowPoke `INSTRUCTIONS.md`)
 - `docs/thesis-evaluation-roadmap.md` — master plan: baseline, I/O gap (all 4 apps),
   eBPF, NetPoke, Fig. 8/9, synthetic benchmarks, download instructions
