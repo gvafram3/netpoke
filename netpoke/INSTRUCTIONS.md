@@ -103,7 +103,7 @@ bash io_gap/run_boutique_io_rerun.sh
 
 # 4. Phase 4 — eBPF (next, all benchmarks L2)
 
-See [`slowpoke/evaluation/phase4_ebpf/README.md`](../slowpoke/evaluation/phase4_ebpf/README.md).
+See [`netpoke/evaluation/phase4_ebpf/README.md`](evaluation/phase4_ebpf/README.md).
 
 ---
 
