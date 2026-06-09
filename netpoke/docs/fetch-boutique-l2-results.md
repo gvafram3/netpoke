@@ -1,6 +1,8 @@
 # Fetch boutique L2 results and update the repo
 
-Run on **netpoke-control** after `boutique_io_L2_medium.log` completes.
+**Status (2026-06-09):** Boutique L1+L2 complete on netpoke-control. Final matrix in `netpoke/results/cluster/io_gap/tables/TABLE_IO_GAP_MATRIX.md`.
+
+Run on **netpoke-control** to pack logs for git sync.
 
 ## 1. Verify L2 complete
 

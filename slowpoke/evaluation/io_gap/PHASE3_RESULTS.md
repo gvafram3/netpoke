@@ -1,8 +1,7 @@
 # Phase 3 I/O-gap results (thesis-aligned design)
 
 **Design:** L0/L1/L2 share the same `-x` target; L1/L2 add path netem on downstream services.  
-**Cluster:** netpoke-control · **Completed:** 2026-06-07  
-**Suite progress:** **8 / 8** complete · verification **PASSED**
+**Cluster:** netpoke-control · **Suite:** **8/8** + boutique product_catalog re-run (2026-06-09)
 
 Regenerate on cluster:
 
@@ -10,17 +9,16 @@ Regenerate on cluster:
 cd ~/slowpoke/evaluation
 python3 io_gap/summarize_io_gap_matrix.py results/ -o results/final_package/io_gap_matrix.csv
 bash io_gap/verify_io_gap_results.sh results/
+python3 io_gap/plot_io_gap_rmse.py results/
 ```
-
-**Archive:** `slowpoke_phase3_20260607.tar.gz` (logs + CSV on netpoke-control).
 
 ## RMSE vs I/O level (GCP cluster — final)
 
 | App | Level | Target / injection | Baseline (req/s) | RMSE % | Mean \|err\| % |
 |-----|-------|-------------------|------------------|--------|---------------|
 | Boutique | L0 | cart | 1820.0 | 9.19 | 7.44 |
-| Boutique | L1 | cart (+netem shipping:30ms) | 2067.0 | 11.53 | 6.75 |
-| Boutique | L2 | cart (+netem shipping:50ms) | 2096.9 | 3.07 | 2.37 |
+| Boutique | L1 | cart (+netem productcatalog:30ms) | 1715.6 | 6.93 | 6.05 |
+| Boutique | L2 | cart (+netem productcatalog:50ms,currency:30ms) | 1739.0 | 5.61 | 4.39 |
 | Hotel | L0 | profile | 563.2 | 10.23 | 8.83 |
 | Hotel | L1 | profile (+netem rate:30ms) | 593.2 | 13.90 | 11.16 |
 | Hotel | L2 | profile (+netem rate:50ms,user:30ms) | 675.5 | 16.28 | 14.94 |
@@ -35,33 +33,19 @@ bash io_gap/verify_io_gap_results.sh results/
 
 | App | L0 RMSE | L2 RMSE | Δ (pp) | Monotonic L0→L1→L2? | Supports RQ1? |
 |-----|---------|---------|--------|---------------------|---------------|
-| **Social** | 10.34% | 24.64% | **+14.30** | L1 peak (26.04); L2 slight dip | **Yes** (large gap) |
+| **Social** | 10.34% | 24.64% | **+14.30** | L1 peak (26.04) | **Yes** |
 | **Hotel** | 10.23% | 16.28% | **+6.05** | Yes | **Yes** |
-| **Movie** | 13.97% | 16.72% | **+2.75** | L1 peak (19.18) | **Yes** (modest) |
-| **Boutique** | 9.19% | 3.07% | **−6.12** | No | **No** (outlier) |
+| **Movie** | 13.97% | 16.72% | **+2.75** | L1 peak (19.18) | **Yes** |
+| **Boutique** | 9.19% | 5.61% | **−3.59** | No (decreasing) | **No** |
 
 ## Chapter 3 conclusion (draft)
 
-SIGSTOP-only prediction error **rises with path I/O intensity** for **three of four** benchmarks when netem is placed on services on the causal dependency chain (**hotel**, **social**, **movie**). **Boutique** (`cart` + shipping netem) is a negative result: RMSE falls at L2, consistent with shipping being weakly on the `cart` path.
+SIGSTOP-only prediction error **rises with path netem injection** for **three of four** benchmarks (**hotel**, **social**, **movie**). **Boutique** (`cart` target) remains an outlier after moving injection from shipping to **product_catalog** (+ currency on L2): RMSE **decreases** at L1/L2 vs L0.
 
-**Strongest evidence:** social (+14.3 pp L2 vs L0), hotel (+6.1 pp, monotonic).
+**Strongest evidence:** social (+14.3 pp), hotel (+6.1 pp, monotonic).
 
-## Run completion
-
-All eight logs in `results/` contain `Error Perc:` and 21 throughput lines each.
-
-| Run | Log |
-|-----|-----|
-| boutique L1/L2 | `boutique_io_L1_medium.log`, `boutique_io_L2_medium.log` |
-| hotel L1/L2 | `hotel_io_L1_medium.log`, `hotel_io_L2_medium.log` |
-| social L1/L2 | `social_io_L1_medium.log`, `social_io_L2_medium.log` |
-| movie L1/L2 | `movie_io_L1_medium.log`, `movie_io_L2_medium.log` |
-
-## Operational notes
-
-- **Movie `num_req`:** `IO_NUM_REQ_MOVIE=20000` (matches `run-movie-medium.sh`).
-- **Boutique:** discuss injection placement in Ch. 3; do not use as primary I/O-gap figure.
+**Boutique:** Case study — correct path placement does not guarantee monotonic RMSE growth; cart workload may remain CPU-limited relative to storage-heavy apps.
 
 ## Next: Phase 4 (eBPF)
 
-Priority L2 configs for residual-I/O measurement: **social L2**, **hotel L2**, **movie L2**. Boutique L2 optional (weak/negative gap).
+Priority L2: **social**, **hotel**, **movie**, then **boutique** (optional — check residual I/O even if RMSE flat).
