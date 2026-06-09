@@ -26,13 +26,13 @@ TARGETS = {
 # Path I/O injection via netem sidecars (L1/L2 only)
 INJECT = {
     "L1": {
-        "boutique": "shipping:30ms",
+        "boutique": "productcatalog:30ms",
         "hotel": "rate:30ms",
         "social": "poststorage:30ms",
         "movie": "reviewstorage:30ms",
     },
     "L2": {
-        "boutique": "shipping:50ms",
+        "boutique": "productcatalog:50ms,currency:30ms",
         "hotel": "rate:50ms,user:30ms",
         "social": "poststorage:50ms,socialgraph:30ms",
         "movie": "reviewstorage:50ms,movieinfo:30ms",

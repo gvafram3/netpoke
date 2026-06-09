@@ -1,41 +1,46 @@
-# NetPoke thesis artifact — reproduction instructions
+# NetPoke artifact — reproduction instructions
 
-This repository extends **SlowPoke** (Xie et al., NSDI 2026) with **NetPoke**:
-I/O-aware causal profiling for microservice throughput prediction.
+Extends **SlowPoke** (Xie et al., NSDI 2026) with I/O-gap measurement and **NetPoke**
+(network-synchronised pause). Follow the same workflow as
+[`slowpoke/INSTRUCTIONS.md`](../slowpoke/INSTRUCTIONS.md): functional smoke test →
+reproducible benchmarks → plots → thesis extensions.
 
-For evaluation, follow the same discipline as the SlowPoke artifact
-([`slowpoke/INSTRUCTIONS.md`](../slowpoke/INSTRUCTIONS.md)): functional smoke test,
-then reproducible benchmarks, then plots.
-
-## Reproducibility branch (submit for defense)
+## Branches
 
 | Branch | Purpose |
 |--------|---------|
-| **`netpoke26-thesis`** | Frozen thesis artifact — scripts, docs, sample outputs (like SlowPoke `nsdi26-ae`) |
-| `main` | Integration branch |
+| **`netpoke/experiments`** | Active evaluation work, results layout, scripts |
+| **`netpoke/thesis-material`** | Chapter drafts and writeups (separate from experiment branch) |
+| `netpoke26-thesis` | Integration / defense snapshot |
 
 ```bash
 git clone https://github.com/gvafram3/netpoke.git
 cd netpoke
-git checkout netpoke26-thesis
+git checkout netpoke/experiments
 ```
 
-**Naming rule:** branches use `netpoke/…` or `netpoke26-…` only — no tool-generated names.
+## Where experiments run
 
-## Cluster
+| Location | Role |
+|----------|------|
+| **netpoke-control** (GCP VM) | All benchmarks, logs, plots |
+| **Cloud Shell** | `git pull`, `gcloud compute scp`, download tarballs |
+| **This repo** | Scripts, reference figures, synced results under `netpoke/results/` |
 
-- **Control:** `netpoke-control` (GCP, `us-central1-a`)
-- **Workers:** `worker1`, `worker2`, `worker3`
-- **SlowPoke tree on control:** `~/slowpoke` (this repo’s `slowpoke/` directory)
+**Do not** run `draw.py` from Cloud Shell unless logs are copied there first.  
+`~/slowpoke` exists only on **netpoke-control**, not Cloud Shell.
 
-Full runbook: [`netpoke/docs/gcp-run-with-progress.md`](docs/gcp-run-with-progress.md)  
-Master roadmap: [`netpoke/docs/thesis-evaluation-roadmap.md`](docs/thesis-evaluation-roadmap.md)
+```bash
+# Correct — on netpoke-control
+export SLOWPOKE_TOP=~/slowpoke
+cd ~/slowpoke/evaluation
+python3 summarize_results.py results/boutique_medium.log
+bash plot_fig8_png.sh results/
+```
 
 ---
 
-# 1. Artifact functional (~5 minutes)
-
-On **netpoke-control**:
+# 1. Artifact functional (~5 min)
 
 ```bash
 export SLOWPOKE_TOP=~/slowpoke
@@ -44,122 +49,78 @@ bash install_netpoke_fixes.sh
 ./run_functional.sh
 ```
 
-**Pass:** `results/boutique_tiny.log` exists (accuracy not required for tiny run).
+**Pass:** `results/boutique_tiny.log` exists (accuracy not required).
 
 ---
 
-# 2. SlowPoke baseline — §5.1 / Fig. 8 ( ~2.5 h per full suite )
-
-Reproduces SlowPoke prediction accuracy on **four real-world applications**
-(boutique, hotel, social, movie). This establishes **baseline RMSE** before
-I/O-gap and NetPoke experiments.
+# 2. SlowPoke baseline — §5.1 / Fig. 8 (~2.5 h all four apps)
 
 ```bash
-cd ~/slowpoke/evaluation
 screen -S slowpoke-repro
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+cd ~/slowpoke/evaluation
 WATCH_INTERVAL=10 ./run_with_monitor.sh ./run_reproducible.sh
 ```
 
-Or run individually (recommended after partial completion):
+**Pass per app:** `Error Perc:` in log; 21 `[exp] Throughput:` lines.
+
+**Tables + figures (paper format):**
 
 ```bash
-WATCH_INTERVAL=10 ./run_with_monitor.sh bash movie/run-movie-medium.sh results/movie_medium.log
-```
-
-**Second SSH — live progress:**
-
-```bash
-SLOWPOKE_ACTIVE_LOG=~/slowpoke/evaluation/results/movie_medium.log \
-  WATCH_INTERVAL=10 ./watch_progress.sh --loop-tty
-```
-
-**Pass (each app):**
-
-- `results/<app>_medium.log` ends with `Error Perc:`
-- 21 `[exp] Throughput:` lines
-- `python3 summarize_results.py results/<app>_medium.log` prints RMSE
-
-**Plots (Fig. 8 panels + macro PDF):**
-
-```bash
+python3 summarize_results.py results/*_medium.log
 bash plot_fig8_png.sh results/
-# → boutique_medium.png … movie_medium.png, plot_macro.pdf
 ```
 
-Reference appearance: [`slowpoke/evaluation/sample_output/`](../slowpoke/evaluation/sample_output/)
-
----
-
-# 3. Synthetic microbenchmarks — Fig. 9 (optional, 2–3 days full suite)
-
-SlowPoke validates the performance model on **108 synthetic service graphs**
-under [`slowpoke/evaluation/synthetic/`](../slowpoke/evaluation/synthetic/).
-Paper **Figure 9** uses these; the artifact marks them **optional**.
-
-## Relevance for NetPoke
-
-| Use | Priority |
-|-----|----------|
-| Show you reproduced the **full SlowPoke artifact scope** | High for defense Q&A |
-| Isolate topology effects (chain/DAG, sync/async, gRPC/HTTP) separate from DeathStarBench noise | Medium |
-| Test NetPoke on **controlled I/O** without modifying boutique/hotel/social/movie | Medium (Phase 3 supplement) |
-
-**Thesis minimum:** four real-world apps (Fig. 8) + your I/O-gap matrix (all four apps).  
-**Thesis plus:** 1–3 representative synthetic configs (e.g. `chain-d2-grpc-async`) in an appendix.
-
-## Run one synthetic benchmark
+**Pack for repo / download:**
 
 ```bash
-cd ~/slowpoke
-./evaluation/synthetic/chain-d2-grpc-async/run.sh
-python3 evaluation/draw.py evaluation/results
+bash scripts/pack_results_for_repo.sh
+gcloud compute scp --zone=us-central1-a \
+  aframviscagyebi@netpoke-control:~/netpoke_results_pack_*.tar.gz .
 ```
 
-**Pass (artifact):** three output logs per config; errors mostly 0–6%, within ~15%.
+Reference appearance: [`netpoke/results/reference/figures/`](../netpoke/results/reference/figures/)
 
 ---
 
-# 4. NetPoke thesis experiments (after baseline completes)
-
-See [`docs/thesis-evaluation-roadmap.md`](docs/thesis-evaluation-roadmap.md):
-
-| Phase | Content |
-|-------|---------|
-| 3 | I/O gap — all four benchmarks × I/O levels L0/L1/L2 |
-| 4 | eBPF residual I/O during SIGSTOP |
-| 5 | NetPoke (`sch_plug` in POKER) — [`design/poker-io-pause.md`](design/poker-io-pause.md) |
-| 6 | Re-run I/O configs with NetPoke; compare RMSE to Phase 2 baseline |
-
----
-
-# 5. Figures and tables to produce
-
-Aligned with SlowPoke paper + thesis chapters:
-
-| ID | SlowPoke paper | NetPoke output | Script |
-|----|----------------|----------------|--------|
-| Fig. 8 panels | Per-app Predicted vs Groundtruth | `results/*_medium.png` | `draw.py` |
-| Fig. 8 macro | Combined RMSE figure | `results/plot_macro.pdf` | `plot_macro.py` |
-| Table | RMSE / per-point errors | `summarize_results.py` | stdout → thesis table |
-| Fig. 9 | Synthetic accuracy | optional `synthetic/*/run.sh` | `draw.py` |
-| Thesis I/O | — | RMSE vs I/O level (4 apps) | Phase 3 analysis |
-| Thesis NetPoke | — | RMSE before/after NetPoke | Phase 6 analysis |
-
-Sample I/O-gap boutique logs (reference only):  
-[`slowpoke/evaluation/sample_output/io_gap/`](../slowpoke/evaluation/sample_output/io_gap/)
-
----
-
-# 6. Download results
-
-Logs are **not** committed (see `slowpoke/evaluation/results/.gitignore`).
-Archive on the control node, then `gcloud compute scp` from Cloud Shell.
+# 3. Phase 3 — I/O gap (8 runs, complete)
 
 ```bash
 cd ~/slowpoke/evaluation
-tar czf ~/netpoke_results_$(date +%Y%m%d).tar.gz results/saved results/*.png results/plot_macro.pdf results/*_medium.log
+WATCH_INTERVAL=10 ./io_gap/run_io_gap_all.sh
+python3 io_gap/summarize_io_gap_matrix.py results/ -o results/final_package/io_gap_matrix.csv
+python3 io_gap/plot_io_gap_rmse.py results/
+bash io_gap/verify_io_gap_results.sh results/
 ```
+
+**Boutique re-run** (product_catalog path — replaces shipping injection):
+
+```bash
+bash io_gap/run_boutique_io_rerun.sh
+```
+
+---
+
+# 4. Phase 4 — eBPF (next, all benchmarks L2)
+
+See [`slowpoke/evaluation/phase4_ebpf/README.md`](../slowpoke/evaluation/phase4_ebpf/README.md).
+
+---
+
+# 5. Phase 5–6 — NetPoke
+
+Design: [`design/poker-io-pause.md`](design/poker-io-pause.md)  
+Re-run L2 matrix with NetPoke enabled; compare RMSE to Phase 3.
+
+---
+
+# 6. Results in this repository
+
+| Path | Content |
+|------|---------|
+| [`netpoke/results/README.md`](../netpoke/results/README.md) | Layout |
+| `netpoke/results/reference/` | Paper-format examples (authors' sample) |
+| `netpoke/results/cluster/` | Your cluster logs, figures, tables |
 
 ---
 
@@ -167,9 +128,13 @@ tar czf ~/netpoke_results_$(date +%Y%m%d).tar.gz results/saved results/*.png res
 
 | Script | Purpose |
 |--------|---------|
-| `install_netpoke_fixes.sh` | Preflight cluster + script fixes |
-| `run_reproducible.sh` | All four medium benchmarks |
-| `run_social_movie.sh` | Social → movie chain with auto-save |
-| `verify_benchmark_results.sh` | Check all four logs complete |
-| `summarize_results.py` | RMSE tables |
-| `plot_fig8_png.sh` | All plots |
+| `slowpoke/evaluation/summarize_results.py` | Per-point table + RMSE (paper) |
+| `slowpoke/evaluation/draw.py` | Fig. 8 panels |
+| `slowpoke/evaluation/plot_macro.py` | Fig. 8 macro PDF |
+| `slowpoke/evaluation/io_gap/summarize_io_gap_matrix.py` | Table I1 |
+| `slowpoke/evaluation/io_gap/plot_io_gap_rmse.py` | I/O-gap RMSE figure |
+| `slowpoke/evaluation/scripts/pack_results_for_repo.sh` | Tarball for scp |
+| `slowpoke/evaluation/io_gap/run_boutique_io_rerun.sh` | Boutique L1/L2 only |
+
+Master roadmap: [`docs/thesis-evaluation-roadmap.md`](docs/thesis-evaluation-roadmap.md)  
+GCP runbook: [`docs/gcp-run-with-progress.md`](docs/gcp-run-with-progress.md)

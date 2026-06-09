@@ -24,6 +24,8 @@ resolve_yaml_file() {
   local bench="$1" svc="$2"
   case "$bench:$svc" in
     boutique:shipping) echo shipping.yaml ;;
+    boutique:productcatalog) echo product_catalog.yaml ;;
+    boutique:currency) echo currency.yaml ;;
     hotel:rate) echo rate.yaml ;;
     hotel:user) echo user.yaml ;;
     social:poststorage) echo post_storage.yaml ;;
