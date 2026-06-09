@@ -137,4 +137,5 @@ Re-run L2 matrix with NetPoke enabled; compare RMSE to Phase 3.
 | `slowpoke/evaluation/io_gap/run_boutique_io_rerun.sh` | Boutique L1/L2 only |
 
 Master roadmap: [`docs/thesis-evaluation-roadmap.md`](docs/thesis-evaluation-roadmap.md)  
-GCP runbook: [`docs/gcp-run-with-progress.md`](docs/gcp-run-with-progress.md)
+GCP runbook: [`docs/gcp-run-with-progress.md`](docs/gcp-run-with-progress.md)  
+**SlowPoke paper study guide (Word):** [`docs/slowpoke-paper-deep-dive.docx`](docs/slowpoke-paper-deep-dive.docx)
