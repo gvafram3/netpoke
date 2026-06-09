@@ -6,6 +6,7 @@
 #
 #   ./watch_progress.sh
 #   ./watch_progress.sh --once
+#   ./watch_progress.sh --append          # second SSH: scrollable history
 #   ./watch_progress.sh --loop-tty results/
 
 set -u
@@ -14,14 +15,15 @@ EVAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESULTS_DIR="${RESULTS_DIR:-$EVAL_DIR/results}"
 LOG_FILE=""
 INTERVAL="${WATCH_INTERVAL:-15}"
-MODE="fullscreen"  # fullscreen | once | loop-tty
+MODE="fullscreen"  # fullscreen | once | loop-tty | append
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --once) MODE=once; shift ;;
+    --append) MODE=append; shift ;;
     --loop-tty) MODE=loop-tty; shift ;;
     -h|--help)
-      sed -n '2,12p' "$0"
+      sed -n '2,13p' "$0"
       exit 0
       ;;
     *)
@@ -282,6 +284,29 @@ stall_count=0
 if [[ "$MODE" == "once" ]]; then
   print_compact
   exit 0
+fi
+
+if [[ "$MODE" == "append" ]]; then
+  echo "[slowpoke] Append mode — new snapshot every ${INTERVAL}s (scroll up for history)."
+  while true; do
+    echo "======== $(date '+%Y-%m-%d %H:%M:%S') ========"
+    print_compact
+    echo ""
+    if [[ -n "${LOG_FILE:-}" && -f "$LOG_FILE" ]]; then
+      size=$(wc -c <"$LOG_FILE" | tr -d ' ')
+      if [[ "$size" == "$prev_size" ]]; then
+        stall_count=$((stall_count + 1))
+        if (( stall_count >= 8 )); then
+          echo "  (no log growth ~$((stall_count * INTERVAL))s — normal during long wrk; worry if >15 min)"
+          echo ""
+        fi
+      else
+        stall_count=0
+      fi
+      prev_size=$size
+    fi
+    sleep "$INTERVAL"
+  done
 fi
 
 if [[ "$MODE" == "loop-tty" ]]; then
