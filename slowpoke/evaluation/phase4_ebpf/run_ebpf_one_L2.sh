@@ -90,9 +90,15 @@ else
   bash "$IO_GAP/run_io_medium.sh" "$BENCH" L2 "$LOG"
 fi
 
+SAMPLER_EXIT=0
 kill "$SAMPLER_PID" 2>/dev/null || true
-wait "$SAMPLER_PID" 2>/dev/null || true
+wait "$SAMPLER_PID" 2>/dev/null || SAMPLER_EXIT=$?
 SAMPLER_PID=""
+
+if (( SAMPLER_EXIT != 0 )); then
+  echo "[ebpf_one] FATAL: residual sampler exited $SAMPLER_EXIT (update residual_io_sampler.py from netpoke/experiments)"
+  exit 1
+fi
 
 if [[ "$SMOKE" != "smoke" ]] && ! log_complete "$LOG"; then
   echo "[ebpf_one] FATAL: $LOG missing Error Perc:"

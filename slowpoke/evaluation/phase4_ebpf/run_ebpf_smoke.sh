@@ -37,13 +37,16 @@ with open(path) as f:
         if r.get("stopped_pids", 0) > 0:
             stopped += 1
 print(f"  samples={samples}  with_state_T={stopped}")
+if samples == 0:
+    print("  FAIL: sampler produced no samples (crash or wrong script version)")
+    sys.exit(1)
 if stopped == 0:
-    print("  WARN: no SIGSTOP (state T) observed — check cluster load or re-run during active benchmark")
-else:
-    print("  PASS: sampler saw paused processes")
+    print("  FAIL: no SIGSTOP (state T) observed during benchmark")
+    sys.exit(1)
+print("  PASS: sampler saw paused processes")
 PY
 
 echo ""
-echo "Next: full suite in screen:"
+echo "Smoke PASSED. Next: full suite in screen:"
 echo "  screen -S phase4-ebpf"
 echo "  WATCH_INTERVAL=10 ./phase4_ebpf/run_ebpf_all_L2.sh"
