@@ -1,45 +1,49 @@
-# Phase 4 — eBPF residual I/O during SIGSTOP pauses
+# Phase 4 — eBPF / residual I/O during SIGSTOP (L2)
 
-**Objective (O2 / RQ2):** Measure bytes and syscalls that continue during POKER pause windows; correlate with Phase 3 prediction error.
+Measure bytes and syscalls that continue while non-target processes are **SIGSTOP'd** (state `T`), during **L2** I/O-gap configurations.
 
-## When to run
+**Scripts live in:** `slowpoke/evaluation/phase4_ebpf/` (sync to `~/slowpoke` on netpoke-control).
 
-After Phase 3 I/O-gap matrix is complete. Run during **L2 (heavy I/O)** configurations — same targets and injections as `io_gap/io_levels.conf`.
-
-## Priority order
-
-1. Social L2 (`hometimeline` + poststorage 50ms + socialgraph 30ms) — largest gap  
-2. Hotel L2 (`profile` + rate 50ms + user 30ms) — monotonic gap  
-3. Movie L2 (`moviereviews` + reviewstorage 50ms + movieinfo 30ms)  
-4. Boutique L2 (after product_catalog re-run)
-
-## Measurements (per thesis roadmap)
-
-- Bytes received/sent on service interface during pause windows  
-- Syscall counts (`read`, `write`, `recvfrom`, …) while process is SIGSTOP'd  
-- Later: compare SIGSTOP-only vs NetPoke (Phase 6)
-
-## Deliverables
-
-| ID | Output |
-|----|--------|
-| T3 | Residual I/O (bytes) vs pause duration |
-| T4 | Correlation: residual I/O vs Error % |
-| F8 | CDF or bar chart (4 apps or representative subset) |
-| D3 | `results/cluster/ebpf/*_ebpf_*.log` |
-
-## Implementation status
-
-- [ ] eBPF probe scripts (scale from reference `experiment_f_*` logs when available on cluster)  
-- [ ] Wrapper: run medium benchmark with eBPF attached to paused non-target pods  
-- [ ] `summarize_ebpf_residual.py` → tables under `netpoke/results/cluster/ebpf/tables/`
-
-## Cluster placeholder
+## Quick start
 
 ```bash
 export SLOWPOKE_TOP=~/slowpoke
 cd ~/slowpoke/evaluation
-# TBD: bash phase4_ebpf/run_ebpf_during_io_L2.sh social
+
+# 1) Verify environment
+bash phase4_ebpf/preflight_ebpf.sh
+
+# 2) Smoke test (~5–10 min)
+bash phase4_ebpf/run_ebpf_smoke.sh
+
+# 3) Full suite (~3–4 h) — SSH 1
+screen -S phase4-ebpf
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+WATCH_INTERVAL=10 ./phase4_ebpf/run_ebpf_all_L2.sh
+# Ctrl+A D
+
+# 4) SSH 2 — scrollable monitor
+export WATCH_INTERVAL=10 SLOWPOKE_PHASE4_EBPF=1
+cd ~/slowpoke/evaluation
+./watch_progress.sh --append results/
 ```
 
-Results pack into repo via `scripts/pack_results_for_repo.sh` (extend for ebpf/).
+## Outputs
+
+| File | Content |
+|------|---------|
+| `<app>_ebpf_L2_medium.log` | Full SlowPoke L2 benchmark log |
+| `<app>_ebpf_L2_residual.jsonl` | Residual I/O samples during state `T` |
+| `final_package/ebpf_residual_summary.csv` | Table T3/T4 input |
+
+## Order
+
+social → hotel → movie → boutique (largest Phase 3 gap first).
+
+## Pack for repo
+
+```bash
+bash scripts/pack_results_for_repo.sh
+```
+
+Copy into `netpoke/results/cluster/ebpf/`.

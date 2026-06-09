@@ -78,6 +78,8 @@ case " $* " in
   *io_L1_medium*) export SLOWPOKE_ACTIVE_LOG="" ;;  # set per-run by run_io_gap_all.sh
   *io_L2_medium*) export SLOWPOKE_ACTIVE_LOG="" ;;
   *run_io_gap_all*|*run_io_gap_suite*) export SLOWPOKE_ACTIVE_LOG="" SLOWPOKE_IO_GAP_SUITE=1 ;;
+  *run_ebpf_all*|*phase4_ebpf*) export SLOWPOKE_ACTIVE_LOG="" SLOWPOKE_PHASE4_EBPF=1 ;;
+  *ebpf_L2_medium*) export SLOWPOKE_ACTIVE_LOG="" SLOWPOKE_PHASE4_EBPF=1 ;;
   *run_reproducible_remaining*|*run_social_movie*) export SLOWPOKE_ACTIVE_LOG="" ;;  # pick via main.py -b
   *) export SLOWPOKE_ACTIVE_LOG="" ;;
 esac

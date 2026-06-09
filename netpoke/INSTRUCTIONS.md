@@ -101,7 +101,18 @@ bash io_gap/run_boutique_io_rerun.sh
 
 ---
 
-# 4. Phase 4 — eBPF (next, all benchmarks L2)
+# 4. Phase 4 — eBPF residual I/O (all benchmarks L2)
+
+```bash
+cd ~/slowpoke/evaluation
+bash phase4_ebpf/preflight_ebpf.sh          # verify
+bash phase4_ebpf/run_ebpf_smoke.sh          # ~5–10 min smoke
+
+screen -S phase4-ebpf
+WATCH_INTERVAL=10 ./phase4_ebpf/run_ebpf_all_L2.sh   # ~3–4 h full suite
+```
+
+**SSH 2 monitor:** `WATCH_INTERVAL=10 SLOWPOKE_PHASE4_EBPF=1 ./watch_progress.sh --append results/`
 
 See [`netpoke/evaluation/phase4_ebpf/README.md`](evaluation/phase4_ebpf/README.md).
 

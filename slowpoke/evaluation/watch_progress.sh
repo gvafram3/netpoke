@@ -59,6 +59,15 @@ pick_active_log() {
       return
     fi
   fi
+  if [[ -n "${SLOWPOKE_PHASE4_EBPF:-}" ]]; then
+    for name in social hotel movie boutique; do
+      f="$dir/${name}_ebpf_L2_medium.log"
+      if [[ ! -f "$f" ]] || ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
+        echo "$f"
+        return
+      fi
+    done
+  fi
   # Phase 3 I/O-gap suite: first incomplete log in fixed order.
   for name in "${REPRO_BENCHES[@]}"; do
     for level in "${IO_GAP_LEVELS[@]}"; do
@@ -110,6 +119,19 @@ io_gap_summary_line() {
     fi
   done
   echo "I/O-gap: ${done}/8 runs complete (boutique L1→L2 → hotel → social → movie)"
+}
+
+phase4_ebpf_summary_line() {
+  local dir="$1" done=0 bench f
+  local -a order=(social hotel movie boutique)
+  for bench in "${order[@]}"; do
+    f="$dir/${bench}_ebpf_L2_medium.log"
+    if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null \
+        && [[ -s "$dir/${bench}_ebpf_L2_residual.jsonl" ]]; then
+      done=$((done + 1))
+    fi
+  done
+  echo "Phase-4 eBPF: ${done}/4 L2 runs complete (social → hotel → movie → boutique)"
 }
 
 # Sets globals: P_LOG, P_BENCHMARK, P_TARGET, P_NUM_EXP, P_FINISHED_OPT, P_THROUGHPUTS,
@@ -201,7 +223,9 @@ print_compact() {
         done_total=$((done_total + 1))
       fi
     done
-    if (( show_io )) || [[ -n "${SLOWPOKE_IO_GAP_SUITE:-}" ]]; then
+    if [[ -n "${SLOWPOKE_PHASE4_EBPF:-}" ]]; then
+      phase4_ebpf_summary_line "$RESULTS_DIR"
+    elif (( show_io )) || [[ -n "${SLOWPOKE_IO_GAP_SUITE:-}" ]]; then
       io_gap_summary_line "$RESULTS_DIR"
     else
       echo "Suite: ${done_total}/4 benchmarks finished (boutique→hotel→social→movie)"

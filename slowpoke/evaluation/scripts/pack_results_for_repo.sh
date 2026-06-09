@@ -20,10 +20,16 @@ if ls results/*_io_L*_medium.log 1>/dev/null 2>&1; then
   python3 io_gap/summarize_io_gap_matrix.py results/ -o results/final_package/io_gap_matrix.csv
   python3 io_gap/plot_io_gap_rmse.py results/ -o results/fig_io_gap_rmse.png 2>/dev/null || true
 fi
+if ls results/*_ebpf_L2_residual.jsonl 1>/dev/null 2>&1; then
+  python3 phase4_ebpf/summarize_ebpf_residual.py results/ \
+    -o results/final_package/ebpf_residual_summary.csv 2>/dev/null || true
+fi
 
 tar czf "$OUT" \
   results/*_medium.log \
   results/*_io_L*_medium.log \
+  results/*_ebpf_L2_medium.log \
+  results/*_ebpf_L2_residual.jsonl \
   results/*.png \
   results/plot_macro.pdf \
   results/fig_io_gap_rmse.png \
