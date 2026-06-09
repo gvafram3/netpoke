@@ -71,6 +71,7 @@ if [[ "$SMOKE" == "smoke" ]]; then
   # Short SlowPoke run: 1 opt point, fewer requests
   export SLOWPOKE_IO_GAP_LEVEL=L2
   export SLOWPOKE_IO_GAP_BENCHMARK="$BENCH"
+  bash "$IO_GAP/restore_io_injection.sh" || true
   bash "$IO_GAP/apply_io_injection.sh" "$BENCH" L2
   {
     echo "# phase4 smoke: benchmark=$BENCH target=$TARGET level=L2"

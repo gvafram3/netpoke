@@ -19,7 +19,8 @@ bash "$EVAL/phase4_ebpf/run_ebpf_one_L2.sh" boutique smoke
 
 RES="$EVAL/results/boutique_ebpf_L2_residual.jsonl"
 echo ""
-echo "Smoke output: $RES"
+echo "Smoke output (full path): $RES"
+echo "  (not ~/results/ — files live under ~/slowpoke/evaluation/results/)"
 echo "Lines: $(wc -l <"$RES")"
 echo "SIGSTOP windows:"
 python3 - "$RES" <<'PY'

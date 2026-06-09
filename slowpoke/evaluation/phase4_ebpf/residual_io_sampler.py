@@ -68,7 +68,9 @@ def k8s_app_label(service: str) -> str:
 
 def list_benchmark_pods(bench: str) -> dict[str, str]:
     """Return service_key → pod name for running benchmark pods."""
-    out, _ = sh_quiet(["kubectl", "get", "pods", "-n", "default", "-o", "wide"], timeout=45)
+    rc, out, err = sh_quiet(["kubectl", "get", "pods", "-n", "default", "-o", "wide"], timeout=45)
+    if rc != 0:
+        return {}
     pods: dict[str, str] = {}
     for line in out.splitlines()[1:]:
         parts = line.split()
