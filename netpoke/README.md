@@ -1,5 +1,7 @@
 # NetPoke
 
+**Resume work here:** [`CONTINUE_FROM_HERE.md`](CONTINUE_FROM_HERE.md) — full handoff (status, results, commands, next steps).
+
 NetPoke extends SlowPoke (Xie et al., 2026, NSDI) so that its throughput
 predictions remain accurate for I/O-bound microservices, not only compute-bound
 ones. SlowPoke slows non-target services by suspending their processes with

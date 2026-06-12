@@ -19,6 +19,8 @@ cd netpoke
 git checkout netpoke/experiments
 ```
 
+**Full handoff (start here in Cursor):** [`CONTINUE_FROM_HERE.md`](CONTINUE_FROM_HERE.md)
+
 ## Where experiments run
 
 | Location | Role |
