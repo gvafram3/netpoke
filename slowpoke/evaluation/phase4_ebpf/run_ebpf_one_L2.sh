@@ -49,10 +49,19 @@ bash "$IO_GAP/restore_io_injection.sh" || true
 pkill -f 'python3.*main\.py' 2>/dev/null || true
 bash "$EVAL/safe_delete_workloads.sh"
 
+# No --max-seconds cap: sampler must stay alive through the SLOWDOWN phase
+# (where POKER sends SIGSTOP); it exits when main.py exits (--wait-main).
+# A 600s cap previously expired during baseline/groundtruth → with_state_T=0.
 SAMPLER_EXTRA=()
 if [[ "$SMOKE" == "smoke" ]]; then
-  SAMPLER_EXTRA=(--max-seconds 600)
-  echo "[ebpf_one] SMOKE mode: short sampler window"
+  echo "[ebpf_one] SMOKE mode: 1 opt point, sampler runs until main.py exits"
+  # Fewer pods per cycle → faster polling → better odds of landing on a pause.
+  case "$BENCH" in
+    boutique) SAMPLER_EXTRA=(--services "frontend,productcatalog,currency") ;;
+    social)   SAMPLER_EXTRA=(--services "poststorage,socialgraph,frontend") ;;
+    hotel)    SAMPLER_EXTRA=(--services "rate,user,frontend") ;;
+    movie)    SAMPLER_EXTRA=(--services "reviewstorage,movieinfo,frontend") ;;
+  esac
 fi
 
 python3 "$P4/residual_io_sampler.py" \
