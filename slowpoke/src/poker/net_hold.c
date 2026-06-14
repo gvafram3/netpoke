@@ -25,6 +25,8 @@ static int nl_sock = -1;
 static int ifindex = -1;
 static unsigned int nl_seq = 1;
 static int netpoke_enabled = 0;
+static int plug_is_buffering = 0;
+static char net_iface[IFNAMSIZ] = "eth0";
 
 static int env_truthy(const char *value)
 {
@@ -141,7 +143,7 @@ static int plug_msg(int action, int flags)
     req.tcm.tcm_handle = PLUG_QDISC_HANDLE;
     req.tcm.tcm_parent = PLUG_QDISC_PARENT;
 
-    if (addattr_l(&req.nlh, sizeof(req), TCA_KIND, "plug", 4) < 0) {
+    if (addattr_l(&req.nlh, sizeof(req), TCA_KIND, "plug", 5) < 0) {
         return -1;
     }
 
@@ -205,7 +207,8 @@ static int plug_delete(void)
 
 static int plug_change(int action)
 {
-    return plug_msg(action, NLM_F_REPLACE);
+    /* Match `tc qdisc change … plug block`: CREATE|REPLACE on the root qdisc. */
+    return plug_msg(action, NLM_F_CREATE | NLM_F_REPLACE);
 }
 
 int net_pause_init_from_env(void)
@@ -223,6 +226,8 @@ int net_pause_init_from_env(void)
     if (iface == NULL || *iface == '\0') {
         iface = "eth0";
     }
+    strncpy(net_iface, iface, sizeof(net_iface) - 1);
+    net_iface[sizeof(net_iface) - 1] = '\0';
 
     ifindex = (int)if_nametoindex(iface);
     if (ifindex <= 0) {
@@ -252,7 +257,8 @@ int net_pause_init_from_env(void)
     }
 
     netpoke_enabled = 1;
-    fprintf(stderr, "netpoke: sch_plug ready on %s (limit=%u)\n", iface, PLUG_BUFFER_LIMIT);
+    plug_is_buffering = 0;
+    fprintf(stderr, "netpoke: sch_plug ready on %s (limit=%u)\n", net_iface, PLUG_BUFFER_LIMIT);
     return 0;
 }
 
@@ -262,16 +268,20 @@ void net_hold(void)
         return;
     }
     if (plug_change(TCQ_PLUG_BUFFER) != 0) {
-        fprintf(stderr, "netpoke: net_hold failed: %s\n", strerror(errno));
+        fprintf(stderr, "netpoke: net_hold failed on %s: %s\n", net_iface, strerror(errno));
+        return;
     }
+    plug_is_buffering = 1;
 }
 
 void net_release(void)
 {
-    if (!netpoke_enabled || nl_sock < 0) {
+    if (!netpoke_enabled || nl_sock < 0 || !plug_is_buffering) {
         return;
     }
     if (plug_change(TCQ_PLUG_RELEASE_INDEFINITE) != 0) {
-        fprintf(stderr, "netpoke: net_release failed: %s\n", strerror(errno));
+        fprintf(stderr, "netpoke: net_release failed on %s: %s\n", net_iface, strerror(errno));
+        return;
     }
+    plug_is_buffering = 0;
 }
