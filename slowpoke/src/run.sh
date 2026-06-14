@@ -17,6 +17,10 @@ YAML_PATH=$SLOWPOKE_TOP/evaluation/$benchmark/yamls
 if [[ $benchmark == "synthetic" ]]; then
     YAML_PATH=$SLOWPOKE_TOP/evaluation/$benchmark/$request/yamls
 fi
+if [[ "${SLOWPOKE_NETPOKE:-}" == "1" && -d "$SLOWPOKE_TOP/evaluation/$benchmark/yamls/netpoke" ]]; then
+    YAML_PATH=$SLOWPOKE_TOP/evaluation/$benchmark/yamls/netpoke
+    echo "[run.sh] NetPoke: deploying from $YAML_PATH"
+fi
 
 supported_benchmarks=("boutique" "social" "movie" "hotel" "synthetic")
 

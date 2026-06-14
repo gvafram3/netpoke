@@ -51,6 +51,21 @@ echo "[ebpf_one] benchmark=$BENCH target=$TARGET level=L2"
 echo "[ebpf_one] slowpoke log: $LOG"
 echo "[ebpf_one] residual jsonl: $RESIDUAL"
 
+if [[ "${SLOWPOKE_NETPOKE:-}" == "1" ]]; then
+  NP="$EVAL/$BENCH/yamls/netpoke"
+  if [[ ! -d "$NP" ]] || [[ -z "$(ls -A "$NP"/*.yaml 2>/dev/null)" ]]; then
+    echo "[ebpf_one] NetPoke: generating $NP ..."
+    python3 "$EVAL/phase5_netpoke/patch_netpoke_caps.py" \
+      "$EVAL/$BENCH/yamls/frontend.yaml" "$NP/frontend.yaml" "$BENCH" 2>/dev/null || true
+    bash "$EVAL/phase5_netpoke/patch_all_netpoke_yamls.sh" "$BENCH"
+  fi
+  if [[ ! -d "$NP" ]]; then
+    echo "[ebpf_one] FATAL: SLOWPOKE_NETPOKE=1 but $NP missing — run patch_all_netpoke_yamls.sh"
+    exit 1
+  fi
+  echo "[ebpf_one] NetPoke: run.sh will deploy from $NP"
+fi
+
 bash "$IO_GAP/restore_io_injection.sh" || true
 pkill -f 'python3.*main\.py' 2>/dev/null || true
 bash "$EVAL/safe_delete_workloads.sh"
