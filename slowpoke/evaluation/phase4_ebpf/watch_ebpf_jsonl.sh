@@ -85,7 +85,10 @@ path = sys.argv[1]
 meta = {}
 samples = 0
 stopped = 0
-nrx = ntx = scr = 0
+nrx_all = ntx_all = scr = 0
+nrx_pause = ntx_pause = 0
+last_stopped = 0
+last_main = "?"
 try:
     with open(path, encoding="utf-8") as f:
         for line in f:
@@ -97,11 +100,18 @@ try:
                 meta = rec
             elif rec.get("type") == "sample":
                 samples += 1
-                if rec.get("stopped_pids", 0) > 0:
+                sp = rec.get("stopped_pids", 0)
+                last_stopped = sp
+                last_main = rec.get("main_py_running", "?")
+                drx = rec.get("delta_net_rx", 0)
+                dtx = rec.get("delta_net_tx", 0)
+                nrx_all += drx
+                ntx_all += dtx
+                if sp > 0:
                     stopped += 1
-                nrx += rec.get("delta_net_rx", 0)
-                ntx += rec.get("delta_net_tx", 0)
-                scr += rec.get("delta_syscr", 0)
+                    nrx_pause += drx
+                    ntx_pause += dtx
+                    scr += rec.get("delta_syscr", 0)
 except FileNotFoundError:
     print("  (file not found)")
     sys.exit(0)
@@ -111,12 +121,14 @@ except json.JSONDecodeError as e:
 bench = meta.get("benchmark", "?")
 target = meta.get("target", "?")
 print(f"benchmark: {bench}  target: {target}")
-print(f"sample lines: {samples}   with_state_T (SIGSTOP windows): {stopped}")
-print(f"Δ net rx (paused windows): {nrx:,} B   Δ net tx: {ntx:,} B   Δ syscr: {scr:,}")
-if stopped == 0 and samples > 20:
-    print("WARN: samples>0 but with_state_T=0 — sampler may not be catching pauses")
+print(f"sample lines: {samples}   SIGSTOP windows (with_state_T>0): {stopped}")
+print(f"last sample: stopped_pids={last_stopped}  main_py={last_main}")
+print(f"Δ net rx ALL windows: {nrx_all:,} B   Δ net tx ALL: {ntx_all:,} B")
+print(f"Δ net rx SIGSTOP windows only: {nrx_pause:,} B   Δ net tx: {ntx_pause:,} B   Δ syscr: {scr:,}")
+if stopped == 0 and samples > 50:
+    print("NOTE: no SIGSTOP yet — normal during baseline/groundtruth; expect with_state_T>0 in slowdown phase")
 elif stopped > 0:
-    print("OK: sampler seeing SIGSTOP windows")
+    print("OK: sampler catching SIGSTOP windows")
 PY
   else
     echo "  (file not created yet)"
