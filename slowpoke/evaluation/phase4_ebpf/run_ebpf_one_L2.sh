@@ -55,8 +55,6 @@ if [[ "${SLOWPOKE_NETPOKE:-}" == "1" ]]; then
   NP="$EVAL/$BENCH/yamls/netpoke"
   if [[ ! -d "$NP" ]] || [[ -z "$(ls -A "$NP"/*.yaml 2>/dev/null)" ]]; then
     echo "[ebpf_one] NetPoke: generating $NP ..."
-    python3 "$EVAL/phase5_netpoke/patch_netpoke_caps.py" \
-      "$EVAL/$BENCH/yamls/frontend.yaml" "$NP/frontend.yaml" "$BENCH" 2>/dev/null || true
     bash "$EVAL/phase5_netpoke/patch_all_netpoke_yamls.sh" "$BENCH"
   fi
   if [[ ! -d "$NP" ]]; then
