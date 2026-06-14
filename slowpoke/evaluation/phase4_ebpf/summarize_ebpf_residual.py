@@ -83,10 +83,15 @@ def main() -> int:
 
     rows = []
     for bench in ("social", "hotel", "movie", "boutique"):
-        jsonl = os.path.join(rdir, f"{bench}_ebpf_L2_residual.jsonl")
-        log = os.path.join(rdir, f"{bench}_ebpf_L2_medium.log")
-        if os.path.isfile(jsonl):
-            rows.append(summarize_one(jsonl, log if os.path.isfile(log) else None))
+        for suffix in ("_ebpf_L2_netpoke", "_ebpf_L2"):
+            jsonl = os.path.join(rdir, f"{bench}{suffix}_residual.jsonl")
+            log = os.path.join(rdir, f"{bench}{suffix}_medium.log")
+            if os.path.isfile(jsonl):
+                label = bench if suffix == "_ebpf_L2" else f"{bench}+netpoke"
+                row = summarize_one(jsonl, log if os.path.isfile(log) else None)
+                row["benchmark"] = label
+                rows.append(row)
+                break
 
     if not rows:
         print(f"No *_ebpf_L2_residual.jsonl in {rdir}", file=sys.stderr)
