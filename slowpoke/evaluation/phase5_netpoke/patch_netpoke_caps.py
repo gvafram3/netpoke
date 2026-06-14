@@ -53,12 +53,16 @@ def patch(src: Path, dst: Path, benchmark: str) -> None:
 '''
         text = text.replace("          env:\n", "          env:\n" + env_patch, 1)
 
-    if "NET_ADMIN" not in text:
-        cap_block = '''          securityContext:
+    # NET_ADMIN must be on the poker container, not only on a removed netem sidecar.
+    cap_block = '''          securityContext:
             capabilities:
               add:
                 - NET_ADMIN
 '''
+    if not re.search(
+        r"securityContext:\s*\n\s*capabilities:\s*\n\s*add:\s*\n\s*- NET_ADMIN\s*\n\s*ports:",
+        text,
+    ):
         marker = "          ports:"
         if marker not in text:
             raise SystemExit(f"Could not find ports marker in {src}")
