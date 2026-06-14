@@ -31,10 +31,19 @@ gcloud compute scp --recurse netpoke/slowpoke/evaluation/phase5_netpoke netpoke-
 
 ### 2. Confirm kernel support (no rebuild)
 
+Fastest — no boutique deploy:
+
 ```bash
 export SLOWPOKE_TOP=~/slowpoke
 cd ~/slowpoke/evaluation
-bash phase5_netpoke/test_sch_plug.sh boutique/shipping
+bash phase5_netpoke/test_sch_plug.sh --netshoot
+```
+
+Or against a real SlowPoke pod (namespace **default**, not `boutique`):
+
+```bash
+bash phase5_netpoke/deploy_smoke_pod.sh shipping
+bash phase5_netpoke/test_sch_plug.sh shipping
 ```
 
 ### 3. Rebuild & push images
