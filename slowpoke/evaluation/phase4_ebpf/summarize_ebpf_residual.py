@@ -83,21 +83,21 @@ def main() -> int:
 
     rows = []
     for bench in ("social", "hotel", "movie", "boutique"):
-        for suffix in ("_ebpf_L2_netpoke", "_ebpf_L2"):
+        for suffix in ("_ebpf_L2", "_ebpf_L2_netpoke"):
             jsonl = os.path.join(rdir, f"{bench}{suffix}_residual.jsonl")
             log = os.path.join(rdir, f"{bench}{suffix}_medium.log")
-            if os.path.isfile(jsonl):
-                label = bench if suffix == "_ebpf_L2" else f"{bench}+netpoke"
-                row = summarize_one(jsonl, log if os.path.isfile(log) else None)
-                row["benchmark"] = label
-                rows.append(row)
-                break
+            if not os.path.isfile(jsonl):
+                continue
+            label = bench if suffix == "_ebpf_L2" else f"{bench}+netpoke"
+            row = summarize_one(jsonl, log if os.path.isfile(log) else None)
+            row["benchmark"] = label
+            rows.append(row)
 
     if not rows:
         print(f"No *_ebpf_L2_residual.jsonl in {rdir}", file=sys.stderr)
         return 1
 
-    print("Phase 4 — residual I/O during SIGSTOP (L2 runs)")
+    print("Residual I/O during SIGSTOP (L2 eBPF runs)")
     print(f"results: {rdir}\n")
     hdr = (
         f"{'App':<10} {'Target':<14} {'SIGSTOP wins':>12} {'Δ read B':>12} {'Δ write B':>12} "
