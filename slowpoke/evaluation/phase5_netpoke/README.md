@@ -2,6 +2,8 @@
 
 Design: `netpoke/design/poker-io-pause.md`
 
+**Docker Hub:** `gvafram3/mucache` — tags `*-pokerpp-netpoke` (see `images.env`).
+
 ## What was added
 
 | File | Role |
@@ -9,7 +11,8 @@ Design: `netpoke/design/poker-io-pause.md`
 | `slowpoke/src/poker/net_hold.c` | `sch_plug` netlink helper |
 | `slowpoke/src/poker/net_hold.h` | API |
 | `slowpoke/src/poker/poker.c` | `net_hold()` before SIGSTOP, `net_release()` after SIGCONT |
-| `slowpoke/app/slowpoke/poker/*` | Docker build copy (run `sync_to_app.sh` after edits) |
+| `phase5_netpoke/images.env` | Registry `gvafram3/mucache` |
+| `phase5_netpoke/build_netpoke_images.sh` | Build/push all four benchmarks |
 
 Runtime control:
 
@@ -25,13 +28,11 @@ Without `SLOWPOKE_NETPOKE=1`, poker behaves like stock SlowPoke (A/B with same b
 From Cloud Shell (after `git pull` on `netpoke/experiments`):
 
 ```bash
-gcloud compute scp --recurse netpoke/slowpoke/src/poker netpoke-control:~/slowpoke/src/ --zone=us-central1-a
-gcloud compute scp --recurse netpoke/slowpoke/evaluation/phase5_netpoke netpoke-control:~/slowpoke/evaluation/ --zone=us-central1-a
+gcloud compute scp --recurse slowpoke/src/poker netpoke-control:~/slowpoke/src/ --zone=us-central1-a
+gcloud compute scp --recurse slowpoke/evaluation/phase5_netpoke netpoke-control:~/slowpoke/evaluation/ --zone=us-central1-a
 ```
 
 ### 2. Confirm kernel support (no rebuild)
-
-Fastest — no boutique deploy:
 
 ```bash
 export SLOWPOKE_TOP=~/slowpoke
@@ -39,32 +40,44 @@ cd ~/slowpoke/evaluation
 bash phase5_netpoke/test_sch_plug.sh --netshoot
 ```
 
-Or against a real SlowPoke pod (namespace **default**, not `boutique`):
+### 3. Build & push images
 
 ```bash
-bash phase5_netpoke/deploy_smoke_pod.sh shipping
-bash phase5_netpoke/test_sch_plug.sh shipping
+export SLOWPOKE_TOP=~/slowpoke
+cd ~/slowpoke/evaluation
+
+sudo docker login   # username: gvafram3
+
+bash phase5_netpoke/build_netpoke_images.sh boutique
+PUSH=1 bash phase5_netpoke/build_netpoke_images.sh boutique
+
+# all four benchmarks when ready:
+PUSH=1 bash phase5_netpoke/build_netpoke_images.sh all
 ```
 
-### 3. Rebuild & push images
+Tags produced:
 
-On a machine with Docker (build context `slowpoke/app`):
+| Benchmark | Image |
+|-----------|--------|
+| boutique | `gvafram3/mucache:boutique-pokerpp-netpoke` |
+| social | `gvafram3/mucache:social-pokerpp-netpoke` |
+| hotel | `gvafram3/mucache:hotel-pokerpp-netpoke` |
+| movie | `gvafram3/mucache:movie-pokerpp-netpoke` |
+
+### 4. Patch YAMLs for NET_ADMIN + NetPoke image
 
 ```bash
-cd slowpoke/app
-bash ../src/poker/sync_to_app.sh
-docker build --build-arg BENCHMARK=boutique -f ../scripts/build/PrebuiltDockerfile . -t YOUR_REGISTRY/boutique-pokerpp-netpoke
-# repeat for social, hotel, movie; push; update YAML image tags
+bash phase5_netpoke/patch_all_netpoke_yamls.sh boutique
+kubectl apply -f boutique/yamls/netpoke/shipping.yaml
 ```
 
-### 4. Patch YAMLs for NET_ADMIN
+Or one service:
 
 ```bash
-python3 phase5_netpoke/patch_netpoke_caps.py boutique/yamls/shipping.yaml boutique/yamls/shipping_netpoke.yaml
-kubectl apply -f boutique/yamls/shipping_netpoke.yaml
+python3 phase5_netpoke/patch_netpoke_caps.py \
+  boutique/yamls/shipping.yaml boutique/yamls/netpoke/shipping.yaml boutique
+kubectl apply -f boutique/yamls/netpoke/shipping.yaml
 ```
-
-Or patch all poker deployments before Phase 6 matrix.
 
 ### 5. Mechanistic validation (Phase 5)
 
