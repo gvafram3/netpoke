@@ -10,6 +10,8 @@
 #include <time.h>
 #include <pthread.h>
 
+#include "net_hold.h"
+
 #define FIFO_PATH "/tmp/slowpoke_fifo"
 #define FIFO_RECOVER_PATH "/tmp/slowpoke_fifo_recover"
 
@@ -115,6 +117,7 @@ void *monitor_fifo(void *arg) {
             long long nanosleep = *(long long *)(&buffer[0]);
             accumulated_nano_sleep += nanosleep;
             long long start_time = get_current_time_ns();
+            net_hold();
             if (kill(-child_pgid, SIGSTOP) == -1) {
                 printf("error in stopping");
                 fflush(stdout);
@@ -134,6 +137,7 @@ void *monitor_fifo(void *arg) {
                 printf("error in conting");
                 fflush(stdout);
             }
+            net_release();
         }
 
         // Check if the child has exited
@@ -223,6 +227,10 @@ int main(int argc, char *argv[]) {
         perror("execvp"); // If execvp fails
         exit(EXIT_FAILURE);
     } else { // Parent process
+        if (net_pause_init_from_env() != 0) {
+            fprintf(stderr, "NetPoke init failed; continuing without egress hold\n");
+        }
+
         // Create threads
         pthread_t fifo_thread, child_thread;
         pid_t pgid = getpgid(pid);
