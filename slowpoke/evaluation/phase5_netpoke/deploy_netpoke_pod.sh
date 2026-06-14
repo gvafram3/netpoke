@@ -55,8 +55,10 @@ kubectl delete "deployment/$SERVICE" "svc/$SERVICE" --ignore-not-found --wait=tr
 
 envsubst <"$DST" | kubectl apply -f -
 kubectl wait --for=condition=ready "pod" -l "app=$SERVICE" --timeout=180s
+POD=$(kubectl get pods -l "app=$SERVICE" --field-selector=status.phase=Running \
+  -o jsonpath='{.items[0].metadata.name}')
 kubectl get pods -l "app=$SERVICE" -o wide
 
 echo ""
-echo "Logs (look for: netpoke: sch_plug ready on eth0):"
-kubectl logs -l "app=$SERVICE" --tail=40
+echo "Logs from $POD (look for: netpoke: sch_plug ready on eth0; no tc errors):"
+kubectl logs "$POD" --tail=40

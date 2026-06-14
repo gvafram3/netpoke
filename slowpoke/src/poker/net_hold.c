@@ -207,8 +207,22 @@ static int plug_delete(void)
 
 static int plug_change(int action)
 {
-    /* Match `tc qdisc change … plug block`: CREATE|REPLACE on the root qdisc. */
-    return plug_msg(action, NLM_F_CREATE | NLM_F_REPLACE);
+    (void)action;
+    return -1;
+}
+
+static int tc_plug_action(const char *action)
+{
+    char cmd[256];
+    int rc;
+
+    snprintf(cmd, sizeof(cmd), "tc qdisc change dev %s root plug %s", net_iface, action);
+    rc = system(cmd);
+    if (rc != 0) {
+        fprintf(stderr, "netpoke: tc plug %s on %s failed (rc=%d)\n", action, net_iface, rc);
+        return -1;
+    }
+    return 0;
 }
 
 int net_pause_init_from_env(void)
@@ -264,11 +278,10 @@ int net_pause_init_from_env(void)
 
 void net_hold(void)
 {
-    if (!netpoke_enabled || nl_sock < 0) {
+    if (!netpoke_enabled) {
         return;
     }
-    if (plug_change(TCQ_PLUG_BUFFER) != 0) {
-        fprintf(stderr, "netpoke: net_hold failed on %s: %s\n", net_iface, strerror(errno));
+    if (tc_plug_action("block") != 0) {
         return;
     }
     plug_is_buffering = 1;
@@ -276,11 +289,10 @@ void net_hold(void)
 
 void net_release(void)
 {
-    if (!netpoke_enabled || nl_sock < 0 || !plug_is_buffering) {
+    if (!netpoke_enabled || !plug_is_buffering) {
         return;
     }
-    if (plug_change(TCQ_PLUG_RELEASE_INDEFINITE) != 0) {
-        fprintf(stderr, "netpoke: net_release failed on %s: %s\n", net_iface, strerror(errno));
+    if (tc_plug_action("release_indefinite") != 0) {
         return;
     }
     plug_is_buffering = 0;

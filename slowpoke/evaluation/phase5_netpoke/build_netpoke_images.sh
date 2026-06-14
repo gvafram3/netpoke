@@ -33,14 +33,23 @@ if ! grep -q 'linux-headers' "$DOCKERFILE"; then
   sed -i 's|gcc musl-dev zeromq-dev|gcc musl-dev linux-headers zeromq-dev|' "$DOCKERFILE"
 fi
 
+if ! grep -q 'iproute2' "$DOCKERFILE"; then
+  echo "WARN: $DOCKERFILE missing iproute2 — patching in place"
+  sed -i 's|zeromq-dev iftop|zeromq-dev iftop iproute2|' "$DOCKERFILE"
+fi
+
 cp -f "$SLOWPOKE_TOP/src/poker/"{poker.c,net_hold.c,net_hold.h} \
   "$APP/slowpoke/poker/"
+
+POKER_CACHEBUST=$(md5sum "$SLOWPOKE_TOP/src/poker/"{poker.c,net_hold.c,net_hold.h} 2>/dev/null | md5sum | awk '{print $1}')
 
 build_one() {
   local bench="$1"
   local tag="${DOCKER_USER}/${DOCKER_REPO}:${bench}-pokerpp-netpoke"
-  echo "=== build $tag ==="
-  (cd "$APP" && sudo docker build --build-arg "BENCHMARK=$bench" \
+  echo "=== build $tag (poker $POKER_CACHEBUST) ==="
+  (cd "$APP" && sudo docker build \
+    --build-arg "BENCHMARK=$bench" \
+    --build-arg "POKER_CACHEBUST=$POKER_CACHEBUST" \
     -f "$DOCKERFILE" -t "$tag" .)
   if [[ "${PUSH:-0}" == "1" ]]; then
     echo "=== push $tag ==="
