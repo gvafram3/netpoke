@@ -35,12 +35,12 @@ run_tc_test() {
     tc qdisc del dev \"\$IFACE\" root 2>/dev/null || true
     tc qdisc add dev \"\$IFACE\" root plug limit \"\$LIMIT\"
     tc qdisc show dev \"\$IFACE\"
-    echo '--- buffer + release ---'
-    tc qdisc change dev \"\$IFACE\" root plug buffer
+    echo '--- block + release ---'
+    tc qdisc change dev \"\$IFACE\" root plug block
     tc qdisc change dev \"\$IFACE\" root plug release_indefinite
     echo '--- cleanup ---'
     tc qdisc del dev \"\$IFACE\" root
-    echo 'PASS: sch_plug add/buffer/release/delete on '\$IFACE
+    echo 'PASS: sch_plug add/block/release/delete on '\$IFACE
   "
 
   echo ""

@@ -71,7 +71,7 @@ tc qdisc add dev eth0 root plug limit 100000
 
 Then per pause event, send a netlink message to the qdisc:
 
-- on hold (before SIGSTOP):   `TCQ_PLUG_BUFFER`            (start buffering)
+- on hold (before SIGSTOP):   `TCQ_PLUG_BUFFER` via netlink (`tc ... plug block` on the CLI)
 - on release (after SIGCONT): `TCQ_PLUG_RELEASE_INDEFINITE`(flush and pass through)
 
 POKER opens one `AF_NETLINK`/`NETLINK_ROUTE` socket at startup and reuses it for
