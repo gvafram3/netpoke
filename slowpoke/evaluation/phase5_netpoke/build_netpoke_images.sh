@@ -23,6 +23,16 @@ if [[ ! -f "$DOCKERFILE" ]]; then
   exit 1
 fi
 
+if ! grep -q 'net_hold.c' "$DOCKERFILE"; then
+  echo "WARN: $DOCKERFILE missing net_hold.c — patching in place"
+  sed -i 's|gcc /slowpoke/poker/poker.c -O2|gcc /slowpoke/poker/poker.c /slowpoke/poker/net_hold.c -O2|' \
+    "$DOCKERFILE"
+fi
+if ! grep -q 'linux-headers' "$DOCKERFILE"; then
+  echo "WARN: $DOCKERFILE missing linux-headers — patching in place"
+  sed -i 's|gcc musl-dev zeromq-dev|gcc musl-dev linux-headers zeromq-dev|' "$DOCKERFILE"
+fi
+
 cp -f "$SLOWPOKE_TOP/src/poker/"{poker.c,net_hold.c,net_hold.h} \
   "$APP/slowpoke/poker/"
 

@@ -25,7 +25,7 @@ ARG BENCHMARK="boutique"
 RUN echo "Building image for ${BENCHMARK} benchmark"
 
 # Install dependencies
-RUN apk add --no-cache gcc musl-dev zeromq-dev iftop
+RUN apk add --no-cache gcc musl-dev linux-headers zeromq-dev iftop
 
 WORKDIR /app
 
