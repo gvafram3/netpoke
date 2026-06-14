@@ -5,6 +5,7 @@
 #include "net_hold.h"
 
 #include <errno.h>
+#include <stdint.h>
 #include <linux/netlink.h>
 #include <linux/pkt_sched.h>
 #include <linux/rtnetlink.h>

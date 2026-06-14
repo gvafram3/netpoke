@@ -16,8 +16,21 @@ IMAGE_MAP = {
 }
 
 
+def strip_netem_sidecar(text: str) -> str:
+    """Remove Phase 3 io_gap netem sidecar if present on the VM copy."""
+    if "tc-netem-sidecar" not in text:
+        return text
+    return re.sub(
+        r'\n        - name: "tc-netem-sidecar"\n.*?(?=\n      affinity:)',
+        "\n",
+        text,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+
 def patch(src: Path, dst: Path, benchmark: str) -> None:
-    text = src.read_text()
+    text = strip_netem_sidecar(src.read_text())
 
     old_img, new_img = IMAGE_MAP.get(benchmark, (None, None))
     if old_img and old_img in text:
