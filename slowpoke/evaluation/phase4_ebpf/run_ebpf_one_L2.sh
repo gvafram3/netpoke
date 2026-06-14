@@ -13,8 +13,13 @@ SMOKE="${2:-}"
 
 mkdir -p "$RESULTS" "$RESULTS/saved"
 
-LOG="$RESULTS/${BENCH}_ebpf_L2_medium.log"
-RESIDUAL="$RESULTS/${BENCH}_ebpf_L2_residual.jsonl"
+if [[ "${SLOWPOKE_NETPOKE:-}" == "1" ]]; then
+  LOG="$RESULTS/${BENCH}_ebpf_L2_netpoke_medium.log"
+  RESIDUAL="$RESULTS/${BENCH}_ebpf_L2_netpoke_residual.jsonl"
+else
+  LOG="$RESULTS/${BENCH}_ebpf_L2_medium.log"
+  RESIDUAL="$RESULTS/${BENCH}_ebpf_L2_residual.jsonl"
+fi
 ACTIVE_STAMP="$RESULTS/.slowpoke_active_log"
 
 # shellcheck source=io_levels.conf
@@ -28,6 +33,7 @@ log_complete() {
 
 if log_complete "$LOG" && [[ -s "$RESIDUAL" ]] && [[ "$SMOKE" != "smoke" ]]; then
   echo "[ebpf_one] SKIP: $LOG and $RESIDUAL already exist"
+  echo "[ebpf_one] Archive or delete them to re-run, or use SLOWPOKE_NETPOKE=1 for netpoke logs"
   exit 0
 fi
 
