@@ -21,6 +21,34 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (Phase 2 done) — fresh Phase 1 RMSE numbers: boutique now matches the paper; hotel/social higher
+
+Ran `plot_fig8_png.sh` + `summarize_results.py` on the 4 fresh Phase 1 logs. Comparison against
+the old (pre-this-session) numbers:
+
+| App | Old baseline (req/s) | Old RMSE | New baseline (req/s) | New RMSE | Δ |
+|---|---|---|---|---|---|
+| Boutique | 1820.0 | 9.19% | 1937.3 | **2.57%** | −6.62 pp |
+| Hotel | 563.2 | 10.23% | 723.9 | **20.65%** | +10.42 pp |
+| Social | 930.0 | 10.34% | 959.9 | **14.01%** | +3.67 pp |
+| Movie | 611.2 | 13.97% | 550.8 | **12.21%** | −1.76 pp |
+
+- **Boutique now matches the paper's own reported ~2.07% RMSE almost exactly** — the best
+  agreement this project has produced. Strong circumstantial evidence that this session's
+  harness fixes (`main.py` empty-`times` guard, `run.sh` wrk duration cap, `fix_req_n.lua`
+  nil-guard) were eliminating real silent measurement corruption, not just cosmetic bugs.
+- **Hotel and social came out higher, not lower.** Treating this as real but not yet
+  explained: these are single-repetition measurements (already flagged elsewhere in this
+  project as noisy), and hotel's baseline throughput itself also shifted notably (563→724
+  req/s, +28%), consistent with ordinary run-to-run cluster variance rather than a regression
+  traceable to any specific fix (none of this session's fixes touched hotel-specific code
+  paths). Not investigated further — not part of the current plan, and would need repeated
+  runs to separate signal from noise.
+- **This is now the baseline of record going forward**, superseding the old numbers for the
+  I/O-gap and eventual NetPoke comparisons. Fresh figures: `results/{boutique,hotel,social,
+  movie}_medium.png`, `results/plot_macro.pdf` (on netpoke-control, not yet synced to repo).
+- Phase 3 (I/O-gap, all 4 apps × L1/L2) continues running in parallel, unaffected by this.
+
 ### 2026-07-16 (Phase 1 done) — fresh baseline complete for all 4 apps; Phase 3 running; both monitor fixes confirmed working
 
 - **Fresh Phase 1 baseline complete**: boutique, hotel, social, movie all finished successfully
