@@ -21,6 +21,24 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (second monitor bug fixed) — pick_active_log() checked a static guess before what's actually running
+
+- After the stale-stamp fix (below), the dashboard jumped from `boutique_medium.log` straight to
+  `boutique_io_L1_medium.log` while hotel's Phase 1 baseline was still genuinely running (`ps aux`
+  confirmed `main.py -b hotel` active, `hotel_medium.log` growing, no `_io_` files existed
+  anywhere yet). Root cause: `pick_active_log()`'s "Phase 3 I/O-gap suite: first incomplete log
+  in fixed order" loop ran *before* the "match the benchmark main.py is actually running" check,
+  so it matched `boutique_io_L1_medium.log` simply because that file doesn't exist yet — true in
+  Phase 1 for every benchmark, not a sign Phase 3 had started.
+- Fixed by reordering: check what's actually running first, and only probe that benchmark's
+  `_io_L1`/`_io_L2` variants if I/O-gap output already exists somewhere on disk (evidence Phase
+  3 has actually begun) — otherwise go straight to its plain `_medium.log`. The fixed-order
+  guess is now only a last-resort fallback for when nothing can be determined about what's
+  running at all.
+- Same lesson as the stale-stamp bug: neither issue affected the actual experiment, only the
+  live dashboard's display — but worth fixing properly since this run spans many hours and
+  many phase transitions where it would keep recurring otherwise.
+
 ### 2026-07-16 (fresh baseline started) — watch_progress.sh stale-stamp bug fixed; Phase 1+3 re-run underway
 
 - **Fresh Phase 1 + Phase 3 re-run started** (`run_reproducible.sh && io_gap/run_io_gap_all.sh`

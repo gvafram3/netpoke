@@ -100,7 +100,40 @@ pick_active_log() {
       fi
     done
   fi
-  # Phase 3 I/O-gap suite: first incomplete log in fixed order.
+  # Match the benchmark main.py is actually running -- checked BEFORE the
+  # fixed-order guess below. Previously this fixed-order loop ran first and
+  # would immediately match e.g. boutique_io_L1_medium.log (because it
+  # simply doesn't exist yet) even while hotel's Phase 1 baseline was
+  # genuinely still running, jumping the display straight to a Phase 3
+  # target that hadn't actually started. Knowing what's really running is
+  # always a better signal than guessing from a static enumeration order.
+  bench=$(main_py_benchmark)
+  if [[ -n "$bench" ]]; then
+    # Only probe this benchmark's io_L1/L2 files if I/O-gap output already
+    # exists SOMEWHERE on disk (i.e. Phase 3 has actually begun) -- during
+    # Phase 1, ${bench}_io_L1_medium.log doesn't exist for anyone yet
+    # either, which would otherwise be misread as "that's the target."
+    local any_io=0 rname
+    for rname in "${REPRO_BENCHES[@]}"; do
+      if [[ -f "$dir/${rname}_io_L1_medium.log" ]]; then
+        any_io=1
+        break
+      fi
+    done
+    if (( any_io )); then
+      for level in "${IO_GAP_LEVELS[@]}"; do
+        f="$dir/${bench}_io_${level}_medium.log"
+        if [[ ! -f "$f" ]] || ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
+          echo "$f"
+          return
+        fi
+      done
+    fi
+    echo "$dir/${bench}_medium.log"
+    return
+  fi
+  # Fallback only when we can't tell what's actually running (e.g. between
+  # runs): first incomplete I/O-gap log in fixed order.
   for name in "${REPRO_BENCHES[@]}"; do
     for level in "${IO_GAP_LEVELS[@]}"; do
       f="$dir/${name}_io_${level}_medium.log"
@@ -110,19 +143,6 @@ pick_active_log() {
       fi
     done
   done
-  # Match the benchmark main.py is actually running.
-  bench=$(main_py_benchmark)
-  if [[ -n "$bench" ]]; then
-    for level in "${IO_GAP_LEVELS[@]}"; do
-      f="$dir/${bench}_io_${level}_medium.log"
-      if [[ ! -f "$f" ]] || ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
-        echo "$f"
-        return
-      fi
-    done
-    echo "$dir/${bench}_medium.log"
-    return
-  fi
   for name in "${REPRO_BENCHES[@]}"; do
     f="$dir/${name}_medium.log"
     if [[ -f "$f" ]] && ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
