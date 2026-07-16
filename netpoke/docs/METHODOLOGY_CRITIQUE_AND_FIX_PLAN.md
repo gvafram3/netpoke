@@ -15,6 +15,51 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 
 ---
 
+## Live status log
+
+**Read this section first — it's the current "where are we" answer.** Updated as we go;
+newest entry on top. Everything below the log (findings, plan, figures) is the stable
+background reference.
+
+### 2026-07-16 — Step 2 mechanistic smoke test: fixing deploy issues, re-running now
+
+- **`net_hold.c` fix (F1) committed and pushed** to `netpoke/experiments`
+  ([PR #11](https://github.com/gvafram3/netpoke/pull/11), commit `2fdca10`). Repo reorganized:
+  superseded sampler/docs/results moved into `deprecated/` folders; corrected work lives in
+  `slowpoke/evaluation/phase6_netpoke/`.
+- **Synced fix to `netpoke-control`** via Cloud Shell (`git pull` + `gcloud compute scp`).
+  One `scp` attempt for `phase6_netpoke/` failed the first time on a path-truncation issue
+  (likely pasted commands colliding) — resolved by re-running it standalone.
+- **Images rebuilt with the fix and pushed** (`gvafram3/mucache:boutique-pokerpp-netpoke`).
+  ⚠️ *Not yet double-confirmed* that the final pushed image's `POKER_CACHEBUST` hash actually
+  differs from the pre-fix hash `3a4b17e5b14811aa4a4fe5d17777841a` — worth a quick rebuild
+  right before the next run to remove all doubt (it's fast; everything but the poker compile
+  step is cached).
+- **Found and fixed a real deploy bug, unrelated to the netlink fix:**
+  `slowpoke/evaluation/boutique/yamls/netpoke/` only contained `shipping.yaml` (a leftover from
+  earlier manual `sch_plug` testing via `deploy_smoke_pod.sh`/`test_sch_plug.sh`), so `run.sh`
+  was deploying a near-empty boutique app (only `shipping` + `ubuntu-client` ever came up,
+  across two redeploy cycles). `run_ebpf_one_L2.sh` only checks "is the netpoke yaml folder
+  non-empty," not "does it have all services," so this went undetected until we compared
+  pod count against source yaml count. Fixed by deleting the stale folder and re-running
+  `patch_all_netpoke_yamls.sh boutique` — now generates all 9 service yamls correctly.
+- **Current state:** about to re-run `phase6_netpoke/run_toggle_smoke.sh boutique` with the
+  corrected yaml set, using the two-window pattern (see below) for every run from now on,
+  regardless of how short.
+- **Not yet known:** whether the netlink toggle fix actually works on this cluster's kernel
+  (`PASS` / `STILL BROKEN` / `MIXED` — see `phase6_netpoke/README.md`). This is the very next
+  data point.
+
+### Standing process note
+
+Per explicit instruction: **always use the two-SSH-window pattern for every experiment run**,
+no matter how short — one window runs the script, the other live-tails progress (pod status,
+the active SlowPoke log, and/or `netpoke:` toggle lines). Don't run anything experiment-related
+in a single window "because it's quick." See `phase6_netpoke/README.md` for the current
+two-window commands.
+
+---
+
 ## 1. What the paper/SlowPoke actually specifies (confirmed correct in this repo)
 
 From `slowpoke/src/main.py:156-168`, the slowdown delay and prediction are:
