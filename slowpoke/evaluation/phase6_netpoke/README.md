@@ -17,9 +17,9 @@ so we can *see* which path is active instead of assuming.
 
 | Step | Script | Purpose | Status |
 |---|---|---|---|
-| 1 | `phase5_netpoke/build_netpoke_images.sh <bench>` | rebuild image with fixed `net_hold.c` | done for boutique (2026-07-16) — rebuild once more right before the next run to be certain the pushed image's `POKER_CACHEBUST` hash differs from the pre-fix `3a4b17e5b14811aa4a4fe5d17777841a` |
-| 2 | `run_toggle_smoke.sh <bench>` + `check_toggle_latency.sh <bench>` | confirm the netlink toggle actually works on this kernel, measure real per-toggle cost | **in progress** — first attempt deployed an incomplete boutique app (stale `yamls/netpoke/` with only `shipping.yaml`, fixed by regenerating via `patch_all_netpoke_yamls.sh`); re-running now with the corrected yaml set |
-| 3 | in-pod residual sampler (replaces the deprecated kubectl-exec-loop one) | fine-grained residual I/O evidence for RQ2 | **not yet built — build after Step 2 tells us the toggle path is confirmed working** |
+| 1 | `phase5_netpoke/build_netpoke_images.sh <bench>` | rebuild image with fixed `net_hold.c` | **done** for boutique, confirmed with the `SO_RCVTIMEO` fix included (2026-07-16) |
+| 2 | `run_toggle_smoke.sh <bench>` + `check_toggle_latency.sh <bench>` | confirm the netlink toggle actually works on this kernel, measure real per-toggle cost | **PASS (2026-07-16)** — boutique: `n=362 min_ns=7280 avg_ns=481359 max_ns=25724998`, zero CLI fallbacks. Net hit two sync gotchas getting here (see live status log): `gcloud compute scp --recurse` nesting a directory into itself, and a skipped sync step producing a false "still broken" reading — both resolved. |
+| 3 | in-pod residual sampler (replaces the deprecated kubectl-exec-loop one) | fine-grained residual I/O evidence for RQ2 | **up next** |
 | 4 | L0 overhead-only regression check | confirm NetPoke doesn't regress the compute-bound baseline | not yet built |
 | 5 | full L2 RMSE matrix, NetPoke on, all 4 apps | Table N1 / Fig N1 | not yet built |
 | 6 | fan-out instrumentation for the boutique outlier | explain, not just report, the L2 anomaly | not yet built |

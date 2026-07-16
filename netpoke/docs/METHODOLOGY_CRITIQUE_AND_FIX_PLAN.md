@@ -21,6 +21,29 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (final) — Step 2 PASS: netlink toggle confirmed working on the cluster kernel
+
+- After two failed sync attempts (`gcloud compute scp --recurse` nested the directory into
+  itself both times — `~/slowpoke/src/poker/poker/net_hold.c` — rather than overwriting in
+  place; fixed by scp'ing the individual files instead of the directory), the `SO_RCVTIMEO` fix
+  finally landed correctly, image rebuilt, smoke test re-run.
+- **Result: PASS.** `check_toggle_latency.sh boutique` →
+  `netlink  n=362  min_ns=7280  avg_ns=481359  max_ns=25724998  (avg=0.481ms)`.
+  **Zero** of 362 pause events fell back to the CLI path — finding F1 is fixed and confirmed on
+  the real cluster kernel, not just in theory. The original EINVAL-causing bug (nested rtattr
+  instead of the raw `struct tc_plug_qopt`) and the silent-hang risk (`recvmsg()` with no
+  timeout) are both resolved.
+- **First real NetPoke overhead data, ever:** min 7.3µs (matches the design's "microsecond
+  toggle" intent exactly), avg 0.48ms, max 25.7ms. The max is a real tail-latency outlier, most
+  likely `rtnl_lock` contention from many pods toggling `sch_plug` concurrently — worth
+  watching as we scale up, not concerning at this stage (still far cheaper on average than the
+  `system("tc ...")` fork/exec path it replaced, which the design doc estimated at several ms
+  minimum per call).
+- **Step 2 is done.** Next: Step 3 — build the corrected in-pod residual-I/O sampler (replacing
+  the deprecated `kubectl exec`-polling one, finding F2) to get real evidence of whether
+  NetPoke actually shrinks residual I/O during pauses, correlated against POKER's own
+  hold/release timestamps.
+
 ### 2026-07-16 (later still) — SO_RCVTIMEO fix not actually tested yet: sync step was skipped
 
 - Re-ran the smoke test after the `SO_RCVTIMEO` fix (previous entry) — still **zero**
