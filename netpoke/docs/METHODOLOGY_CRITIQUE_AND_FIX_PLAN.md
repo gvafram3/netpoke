@@ -21,6 +21,23 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (later still) — SO_RCVTIMEO fix not actually tested yet: sync step was skipped
+
+- Re-ran the smoke test after the `SO_RCVTIMEO` fix (previous entry) — still **zero**
+  `hold`/`release` log lines, same as before.
+- Before assuming the fix doesn't work, checked whether it was actually on the VM:
+  `grep SO_RCVTIMEO ~/slowpoke/src/poker/net_hold.c` on `netpoke-control` came back **empty**.
+  The Cloud Shell → VM sync step for this fix was skipped, so this test (and the one before
+  it) ran the exact same pre-timeout code both times — fully consistent with the silent-hang
+  theory, just not yet actually exercised against the fix.
+- Also checked `imagePullPolicy` on the boutique netpoke yamls as a second possible
+  explanation (stale cached image on a worker node despite pushing a new one under the same
+  tag) — this came back clean, `Always` is already set everywhere, so that's **ruled out** as
+  a contributing factor.
+- **Not yet known:** whether the timeout fix actually resolves the hang. Next: sync
+  `slowpoke/src/poker/` again, verify the grep finds `SO_RCVTIMEO` on the VM *before*
+  rebuilding, rebuild + push, then re-run the smoke test.
+
 ### 2026-07-16 (later) — found and fixed a likely silent-hang bug in the netlink toggle
 
 - **Deploy bug from the previous entry fixed correctly:** re-ran the smoke test with the
