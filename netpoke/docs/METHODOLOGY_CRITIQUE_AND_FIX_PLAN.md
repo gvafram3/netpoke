@@ -21,6 +21,34 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (Step 3 PASS) — first real mechanistic evidence: residual RX is reduced, not eliminated
+
+- Re-ran `run_residual_check.sh boutique smoke` after the stream-in + parallel-attach fix — the
+  sampler attached successfully across all three redeploy cycles (baseline/groundtruth/slowdown)
+  and 8 pods returned samples + POKER logs.
+- **`correlate_residual.py` result:** for every service with a real computed delay (checkout,
+  currency, frontend, payment, product_catalog, shipping), net RX during pause windows is
+  consistently *lower* than RX outside pause windows — e.g. `product_catalog` ~191KB during
+  pause vs ~1.9MB outside (~10%); `payment` ~4.8KB vs ~214KB (~2%). Aggregate: 3.0MB RX during
+  pause windows vs 13.2MB outside, across 69/197 windows that had ≥1 overlapping sample.
+  `email`/`recommendations` show ~1 window each with no data, consistent with their known
+  zero request-ratio for this target — expected, not a gap in the instrument.
+- **This is genuinely new evidence, not just a working tool:** it's the first time this project
+  has directly measured that NetPoke's egress hold reduces (not eliminates) residual ingress
+  during a pause, rather than asserting it from design intent. Residual isn't exactly zero,
+  which matches the design doc's own expectation (packets already in flight at the instant of
+  the pause have to land somewhere) — the open question is whether this reduced level is
+  *meaningfully* smaller than the un-mitigated SIGSTOP-only case, which requires the baseline
+  comparison below to answer.
+- **Caveat, not a flaw:** several services (currency, frontend, shipping) had 30+ real pause
+  windows but the sampler only landed inside 1-2 of them — those specific during-pause numbers
+  are single-sample estimates, not solid averages, at this smoke test's tiny 5000-request scale.
+  Worth revisiting sampling resolution once we're doing this at full scale (Phase 4 redo), not
+  now.
+- **Step 3 is done.** Per the agreed sequencing, next is the fresh Phase 1 + Phase 3 re-run
+  (all 4 apps, SIGSTOP-only, no NetPoke) on the current bug-fixed harness — independent of the
+  sampler, so nothing here blocks it.
+
 ### 2026-07-16 (Step 3, first run failed silently) — fixed swallowed errors + a likely race
 
 - First cluster run of `run_residual_check.sh boutique smoke`: the experiment itself completed
