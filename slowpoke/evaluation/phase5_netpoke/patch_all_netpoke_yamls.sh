@@ -24,8 +24,16 @@ patch_bench() {
     [[ -f "$src" ]] || continue
     base=$(basename "$src")
     [[ "$base" == *.off ]] && continue
+    # nginx.yaml (and similar) are comment-only stubs — skip without aborting the bench.
+    if ! grep -q 'kind: Deployment' "$src" 2>/dev/null; then
+      echo "  SKIP $base (no Deployment)"
+      continue
+    fi
     dst="$outdir/$base"
-    python3 "$SCRIPT_DIR/patch_netpoke_caps.py" "$src" "$dst" "$b"
+    if ! python3 "$SCRIPT_DIR/patch_netpoke_caps.py" "$src" "$dst" "$b"; then
+      echo "  SKIP $base (patch failed)" >&2
+      continue
+    fi
     echo "  $dst"
   done
 }

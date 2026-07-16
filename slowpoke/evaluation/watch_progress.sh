@@ -14,6 +14,7 @@ set -u
 EVAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESULTS_DIR="${RESULTS_DIR:-$EVAL_DIR/results}"
 LOG_FILE=""
+PINNED_LOG=0
 INTERVAL="${WATCH_INTERVAL:-15}"
 MODE="fullscreen"  # fullscreen | once | loop-tty | append
 
@@ -29,6 +30,7 @@ while [[ $# -gt 0 ]]; do
     *)
       if [[ -f "$1" ]]; then
         LOG_FILE="$1"
+        PINNED_LOG=1
       elif [[ -d "$1" ]]; then
         RESULTS_DIR="$1"
       fi
@@ -40,21 +42,40 @@ done
 REPRO_BENCHES=(boutique hotel social movie)
 IO_GAP_LEVELS=(L1 L2)
 
+main_py_benchmark() {
+  ps aux 2>/dev/null | grep -E '[p]ython3.*main\.py -b ' | sed -n 's/.*-b \([a-z]*\).*/\1/p' | head -1
+}
+
 pick_active_log() {
-  local dir="$1" name f bench level stamp
+  local dir="$1" name f bench level stamp running=0
+  if pgrep -f '[p]ython3.*main\.py' >/dev/null; then
+    running=1
+  fi
   if [[ -n "${SLOWPOKE_ACTIVE_LOG:-}" && -f "${SLOWPOKE_ACTIVE_LOG}" ]]; then
     if ! grep -q 'Error Perc:' "${SLOWPOKE_ACTIVE_LOG}" 2>/dev/null \
-        || pgrep -f '[p]ython3.*main\.py' >/dev/null; then
+        || (( running )); then
       echo "$SLOWPOKE_ACTIVE_LOG"
+      return
+    fi
+  fi
+  # Phase 4: follow the benchmark main.py is actually running.
+  if [[ -n "${SLOWPOKE_PHASE4_EBPF:-}" ]]; then
+    bench=$(main_py_benchmark)
+    if [[ -n "$bench" ]]; then
+      echo "$dir/${bench}_ebpf_L2_medium.log"
       return
     fi
   fi
   stamp="$dir/.slowpoke_active_log"
   if [[ -f "$stamp" ]]; then
     f=$(tr -d '\n' <"$stamp")
+    # Do not stick on a finished log while main.py moved to the next benchmark.
+    if [[ -n "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null && (( running )); then
+      f=""
+    fi
     if [[ -n "$f" ]] && { [[ ! -f "$f" ]] \
         || ! grep -q 'Error Perc:' "$f" 2>/dev/null \
-        || pgrep -f '[p]ython3.*main\.py' >/dev/null; }; then
+        || (( running )); }; then
       echo "$f"
       return
     fi
@@ -79,7 +100,7 @@ pick_active_log() {
     done
   done
   # Match the benchmark main.py is actually running.
-  bench=$(ps aux 2>/dev/null | grep -E '[p]ython3.*main\.py -b ' | sed -n 's/.*-b \([a-z]*\).*/\1/p' | head -1)
+  bench=$(main_py_benchmark)
   if [[ -n "$bench" ]]; then
     for level in "${IO_GAP_LEVELS[@]}"; do
       f="$dir/${bench}_io_${level}_medium.log"
@@ -208,7 +229,7 @@ render_bar() {
 # Optional arg: output path (e.g. /dev/tty); default is stdout.
 print_compact() {
   local out="${1:-}"
-  if [[ -z "${LOG_FILE:-}" ]]; then
+  if (( ! PINNED_LOG )); then
     LOG_FILE=$(pick_active_log "$RESULTS_DIR")
   fi
 
@@ -266,7 +287,7 @@ print_compact() {
 }
 
 print_fullscreen() {
-  if [[ -z "${LOG_FILE:-}" ]]; then
+  if (( ! PINNED_LOG )); then
     LOG_FILE=$(pick_active_log "$RESULTS_DIR")
   fi
   clear
@@ -304,6 +325,7 @@ print_fullscreen() {
 
 prev_size=0
 stall_count=0
+prev_log=""
 
 if [[ "$MODE" == "once" ]]; then
   print_compact
@@ -317,6 +339,11 @@ if [[ "$MODE" == "append" ]]; then
     print_compact
     echo ""
     if [[ -n "${LOG_FILE:-}" && -f "$LOG_FILE" ]]; then
+      if [[ "$LOG_FILE" != "$prev_log" ]]; then
+        prev_log="$LOG_FILE"
+        prev_size=0
+        stall_count=0
+      fi
       size=$(wc -c <"$LOG_FILE" | tr -d ' ')
       if [[ "$size" == "$prev_size" ]]; then
         stall_count=$((stall_count + 1))
@@ -341,6 +368,11 @@ if [[ "$MODE" == "loop-tty" ]]; then
     print_compact "$tty_out"
     echo "" >"$tty_out"
     if [[ -n "${LOG_FILE:-}" && -f "$LOG_FILE" ]]; then
+      if [[ "$LOG_FILE" != "$prev_log" ]]; then
+        prev_log="$LOG_FILE"
+        prev_size=0
+        stall_count=0
+      fi
       size=$(wc -c <"$LOG_FILE" | tr -d ' ')
       if [[ "$size" == "$prev_size" ]]; then
         stall_count=$((stall_count + 1))

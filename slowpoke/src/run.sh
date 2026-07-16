@@ -178,7 +178,9 @@ run_test() {
         echo "$output"
         return 1
     fi
-    duration=$(awk -v r="$TOTAL_REQ" -v s="$speed" 'BEGIN{print (1.5*r/s < 200) ? int(1.5*r/s) : 200}')
+    # Need enough wrk time for every thread to hit fix_req_n.lua's per-thread counter.
+    # Old cap at 200s caused L2 io_gap runs (100k req @ ~500 req/s) to end early → Lua panic → status 1.
+    duration=$(awk -v r="$TOTAL_REQ" -v s="$speed" 'BEGIN{d=int(1.5*r/s); if(d<5)d=5; if(d>600)d=600; print d}')
     echo "[run.sh] Speed is $speed, duration is $duration"
 
     echo "[run.sh] Fix the request number."

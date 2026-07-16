@@ -102,6 +102,9 @@ class Runner:
         if process.wait() != 0:
             print(f"    [exp] Error running {cmd}")
             return 0
+        if not times:
+            print(f"    [exp] Error: no stop times from wrk (incomplete run or fix_req_n.lua)")
+            return 0
         throughput = self.num_req / (sum(times)/len(times))
         print(f"    [exp] Times: {times}")
         print(f"    [exp] Throughput: {throughput}")

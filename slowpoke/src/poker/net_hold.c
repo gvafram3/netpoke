@@ -6,6 +6,7 @@
 
 #include <errno.h>
 #include <stdint.h>
+#include <time.h>
 #include <linux/netlink.h>
 #include <linux/pkt_sched.h>
 #include <linux/rtnetlink.h>
@@ -27,6 +28,17 @@ static unsigned int nl_seq = 1;
 static int netpoke_enabled = 0;
 static int plug_is_buffering = 0;
 static char net_iface[IFNAMSIZ] = "eth0";
+/* Set once if a netlink toggle fails at runtime; after that we fall back to
+ * the tc CLI for the rest of this process's life instead of re-trying (and
+ * re-failing) netlink on every single pause. See net_hold()/net_release(). */
+static int netlink_toggle_broken = 0;
+
+static long long now_ns(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (long long)ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
 
 static int env_truthy(const char *value)
 {
@@ -63,21 +75,6 @@ static int addattr_l(struct nlmsghdr *n, int maxlen, int type, const void *data,
     }
     n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len) + RTA_ALIGN(len);
     return 0;
-}
-
-static int addattr_nest(struct nlmsghdr *n, int maxlen, int type)
-{
-    struct rtattr *rta = nlmsg_tail(n);
-    if (addattr_l(n, maxlen, type, NULL, 0) < 0) {
-        return -1;
-    }
-    return (int)((char *)rta - (char *)n);
-}
-
-static void addattr_nest_end(struct nlmsghdr *n, int nest)
-{
-    struct rtattr *rta = (struct rtattr *)((char *)n + nest);
-    rta->rta_len = (unsigned short)((char *)nlmsg_tail(n) - (char *)rta);
 }
 
 static int netlink_send_ack(int fd, struct nlmsghdr *n)
@@ -124,13 +121,26 @@ static int netlink_send_ack(int fd, struct nlmsghdr *n)
     return 0;
 }
 
-static int plug_msg(int action, int flags)
+/*
+ * IMPORTANT: sch_plug's kernel handler (net/sched/sch_plug.c) reads TCA_OPTIONS
+ * as a *raw* `struct tc_plug_qopt { int action; __u32 limit; }` (nla_data(opt)
+ * cast straight to the struct) — it is NOT a nested rtattr tree keyed by
+ * action. An earlier version of this file built TCA_OPTIONS as a nested
+ * attribute whose sub-type equaled the numeric action (see git history:
+ * "Fix net_hold netlink: CREATE|REPLACE for plug block/release", reverted one
+ * commit later as "Netlink toggle EINVAL on cluster kernel"). That mismatch
+ * — sending a nested-attribute blob where the kernel expects 8 raw bytes —
+ * is the most likely cause of that EINVAL. This version sends the flat
+ * struct directly as the TCA_OPTIONS payload, matching the kernel UAPI.
+ */
+static int plug_msg_raw(int action, uint32_t limit, int flags)
 {
     struct {
         struct nlmsghdr nlh;
         struct tcmsg tcm;
         char buf[256];
     } req;
+    struct tc_plug_qopt qopt;
 
     memset(&req, 0, sizeof(req));
     req.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct tcmsg));
@@ -147,25 +157,11 @@ static int plug_msg(int action, int flags)
         return -1;
     }
 
-    if (action >= 0) {
-        int nest = addattr_nest(&req.nlh, sizeof(req), TCA_OPTIONS);
-        if (nest < 0) {
-            return -1;
-        }
-        if (addattr_l(&req.nlh, sizeof(req), action, NULL, 0) < 0) {
-            return -1;
-        }
-        addattr_nest_end(&req.nlh, nest);
-    } else {
-        uint32_t limit = PLUG_BUFFER_LIMIT;
-        int nest = addattr_nest(&req.nlh, sizeof(req), TCA_OPTIONS);
-        if (nest < 0) {
-            return -1;
-        }
-        if (addattr_l(&req.nlh, sizeof(req), TCQ_PLUG_LIMIT, &limit, sizeof(limit)) < 0) {
-            return -1;
-        }
-        addattr_nest_end(&req.nlh, nest);
+    memset(&qopt, 0, sizeof(qopt));
+    qopt.action = action;
+    qopt.limit = limit;
+    if (addattr_l(&req.nlh, sizeof(req), TCA_OPTIONS, &qopt, sizeof(qopt)) < 0) {
+        return -1;
     }
 
     return netlink_send_ack(nl_sock, &req.nlh);
@@ -173,7 +169,7 @@ static int plug_msg(int action, int flags)
 
 static int plug_add(void)
 {
-    int rc = plug_msg(-1, NLM_F_CREATE | NLM_F_EXCL);
+    int rc = plug_msg_raw(TCQ_PLUG_LIMIT, PLUG_BUFFER_LIMIT, NLM_F_CREATE | NLM_F_EXCL);
     if (rc == 0) {
         return 0;
     }
@@ -182,6 +178,15 @@ static int plug_add(void)
         return 0;
     }
     return rc;
+}
+
+/* Fast path for net_hold()/net_release(): toggle the already-created qdisc
+ * via NLM_F_REPLACE (no create/exclusive flags — the qdisc must already
+ * exist from plug_add()). Returns 0 on success, -1 with errno set on failure
+ * (e.g. EINVAL if this kernel's sch_plug still rejects the encoding above). */
+static int plug_toggle(int action)
+{
+    return plug_msg_raw(action, 0, NLM_F_REPLACE);
 }
 
 static int plug_delete(void)
@@ -205,12 +210,10 @@ static int plug_delete(void)
     return netlink_send_ack(nl_sock, &req.nlh);
 }
 
-static int plug_change(int action)
-{
-    (void)action;
-    return -1;
-}
-
+/* Fallback only: forks+execs the tc CLI. This is the path the design doc
+ * warns is "far too slow and jittery" for a per-pause toggle (fork/exec/shell
+ * parse, easily single-digit-to-tens of milliseconds). Used only if the
+ * netlink fast path (plug_toggle) fails at runtime — see net_hold(). */
 static int tc_plug_action(const char *action)
 {
     char cmd[256];
@@ -276,15 +279,36 @@ int net_pause_init_from_env(void)
     return 0;
 }
 
+/* Try the microsecond netlink toggle first; only fall back to the slow CLI
+ * path (and only once, permanently, for this process) if netlink fails at
+ * runtime. Every toggle is timed and logged to stderr (captured by
+ * `kubectl logs`) so a smoke test can immediately confirm which path is
+ * active and how expensive each toggle actually is, instead of assuming. */
 void net_hold(void)
 {
     if (!netpoke_enabled) {
         return;
     }
-    if (tc_plug_action("block") != 0) {
-        return;
+    long long t0 = now_ns();
+    int rc = -1;
+    const char *via = "netlink";
+    if (!netlink_toggle_broken) {
+        rc = plug_toggle(TCQ_PLUG_BUFFER);
+        if (rc != 0) {
+            fprintf(stderr, "netpoke: netlink hold failed (%s) — falling back to tc CLI for rest of run\n",
+                    strerror(errno));
+            netlink_toggle_broken = 1;
+        }
     }
-    plug_is_buffering = 1;
+    if (netlink_toggle_broken) {
+        via = "cli";
+        rc = tc_plug_action("block");
+    }
+    long long t1 = now_ns();
+    fprintf(stderr, "netpoke: hold via=%s took_ns=%lld\n", via, t1 - t0);
+    if (rc == 0) {
+        plug_is_buffering = 1;
+    }
 }
 
 void net_release(void)
@@ -292,8 +316,24 @@ void net_release(void)
     if (!netpoke_enabled || !plug_is_buffering) {
         return;
     }
-    if (tc_plug_action("release_indefinite") != 0) {
-        return;
+    long long t0 = now_ns();
+    int rc;
+    const char *via = "netlink";
+    if (!netlink_toggle_broken) {
+        rc = plug_toggle(TCQ_PLUG_RELEASE_INDEFINITE);
+        if (rc != 0) {
+            fprintf(stderr, "netpoke: netlink release failed (%s) — falling back to tc CLI for rest of run\n",
+                    strerror(errno));
+            netlink_toggle_broken = 1;
+        }
     }
-    plug_is_buffering = 0;
+    if (netlink_toggle_broken) {
+        via = "cli";
+        rc = tc_plug_action("release_indefinite");
+    }
+    long long t1 = now_ns();
+    fprintf(stderr, "netpoke: release via=%s took_ns=%lld\n", via, t1 - t0);
+    if (rc == 0) {
+        plug_is_buffering = 0;
+    }
 }

@@ -28,7 +28,8 @@ function done(summary, latency, requests)
    io.write("------------------------------\n")
    for i, thread in ipairs(threads) do
       local y = thread:get("y")
-      local msg = "stop time: %f"
-      print(msg:format(y))
+      if y ~= nil then
+         print(string.format("stop time: %f", y))
+      end
    end
 end
