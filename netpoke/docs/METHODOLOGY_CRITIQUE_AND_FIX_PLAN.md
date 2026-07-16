@@ -21,6 +21,26 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (Phase 1 done) — fresh baseline complete for all 4 apps; Phase 3 running; both monitor fixes confirmed working
+
+- **Fresh Phase 1 baseline complete**: boutique, hotel, social, movie all finished successfully
+  in the current `screen` session. This is the clean "before" data the sequencing plan called
+  for, collected on the current bug-fixed harness (not the numbers gathered before this
+  session's `main.py`/`run.sh`/`fix_req_n.lua` fixes).
+- **Both `watch_progress.sh` fixes confirmed working end-to-end, unattended**: the dashboard
+  auto-transitioned hotel → social → movie, then correctly detected Phase 1's completion and
+  Phase 3's start (`I/O-gap: 0/8 runs complete` → `boutique_io_L1_medium.log`, real throughput
+  data flowing) with zero manual stamp-file edits or restarts. No further monitor intervention
+  expected for the rest of this run (Phase 3's remaining 7 transitions).
+- **Phase 3 (I/O-gap, all 4 apps × L1/L2) now running**, fresh, same bug-fixed harness.
+- **Next, safe to do now in parallel** (reads log files only, no cluster interaction): Phase 2
+  packaging — `plot_fig8_png.sh results/` + `summarize_results.py` on the 4 fresh baseline logs
+  — to get updated Fig. 8 panels / macro PDF / RMSE table before Phase 3 finishes.
+- **After Phase 3 finishes:** sync the 8 fresh logs down, update
+  `netpoke/results/cluster/baseline/` and `.../io_gap/` tables to replace the old numbers, then
+  move to Phase 4 (residual I/O, SIGSTOP-only, using the now-validated in-pod sampler from
+  Step 3) before finally the NetPoke comparison (Phase 5/6).
+
 ### 2026-07-16 (second monitor bug fixed) — pick_active_log() checked a static guess before what's actually running
 
 - After the stale-stamp fix (below), the dashboard jumped from `boutique_medium.log` straight to
