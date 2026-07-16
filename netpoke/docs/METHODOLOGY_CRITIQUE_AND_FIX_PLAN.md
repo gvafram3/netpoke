@@ -21,6 +21,39 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (Step 3 built) — corrected residual-I/O sampler, sequencing decision
+
+- **Agreed sequencing for the rest of the evaluation**, in order: (1) validate the new
+  in-pod residual sampler on a cheap single-app smoke test, (2) a **fresh** Phase 1 + Phase 3
+  re-run (all 4 apps, SIGSTOP-only, no NetPoke) on the current harness — worth doing properly
+  since this session already fixed real bugs in `main.py`/`run.sh`/`fix_req_n.lua` that affect
+  the ordinary path too, so old numbers may carry latent effects of bugs that no longer exist,
+  (3) Phase 4 redone properly with the corrected sampler against that fresh baseline, (4) the
+  actual NetPoke comparison (Phase 5/6) against steps 2-3's numbers. This keeps both sides of
+  the eventual before/after comparison measured with the same trustworthy tooling.
+- **Added a required piece of instrumentation that wasn't scoped until now:** POKER's
+  `hold`/`release` log lines only carried a *duration* (`took_ns`), not an absolute
+  timestamp — nothing to correlate residual-I/O samples against. Added `uptime_s` to both log
+  lines in `net_hold.c` (seconds since node boot, same underlying clock as `/proc/uptime`,
+  which the new sampler also reads — directly comparable without a separate clock-sync step).
+- **Built Step 3** (`slowpoke/evaluation/phase6_netpoke/`):
+  - `residual_sampler_inpod.sh` — runs inside each non-target pod, POSIX shell, ~10ms polling
+    of `/proc/[pid]/stat`+`/proc/pid/io`+`/proc/net/dev`, no `kubectl exec` per sample (the
+    core fix for finding F2).
+  - `run_residual_check.sh <bench> [smoke|full]` — orchestrates: attaches the sampler to
+    every non-target pod as it becomes `Running`, re-attaches across the baseline →
+    groundtruth → slowdown redeploy cycles (pods are not the same pods across phases),
+    collects samples + POKER logs at the end.
+  - `correlate_residual.py` — pairs `hold`/`release` timestamps into pause windows, buckets
+    every sampled I/O delta as during-pause vs outside-pause, reports totals. This is the
+    actual O2/RQ2 evidence the deprecated sampler couldn't produce.
+- **Not yet run on the cluster.** None of this required a rebuild (the sampler and
+  orchestration are plain scripts, not baked into the image), so no sync/rebuild cycle needed
+  before testing — just `bash phase6_netpoke/run_residual_check.sh boutique smoke`.
+- **Next action:** run the smoke-scale validation on boutique (cheap, and we already know this
+  exact scenario produces 362 real pauses from Step 2), confirm the correlation script produces
+  a sane result, then move to the fresh Phase 1+3 re-run.
+
 ### 2026-07-16 (final) — Step 2 PASS: netlink toggle confirmed working on the cluster kernel
 
 - After two failed sync attempts (`gcloud compute scp --recurse` nested the directory into

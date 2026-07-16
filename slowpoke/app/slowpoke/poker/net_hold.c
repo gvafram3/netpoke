@@ -322,7 +322,17 @@ void net_hold(void)
         rc = tc_plug_action("block");
     }
     long long t1 = now_ns();
-    fprintf(stderr, "netpoke: hold via=%s took_ns=%lld\n", via, t1 - t0);
+    /*
+     * uptime_s: t1 expressed in seconds since this node booted. CLOCK_MONOTONIC
+     * (what now_ns() reads) and /proc/uptime are the same underlying clock on
+     * Linux absent time-namespace isolation (not used by default in vanilla
+     * k8s pods), so this is directly comparable to a sampler reading
+     * /proc/uptime inside the same pod -- lets the residual-I/O sampler line
+     * its samples up against real pause windows instead of just knowing a
+     * pause happened at some point. t1 (end of the hold toggle, right before
+     * SIGSTOP fires next in poker.c) is used as "pause start."
+     */
+    fprintf(stderr, "netpoke: hold via=%s took_ns=%lld uptime_s=%.3f\n", via, t1 - t0, t1 / 1e9);
     if (rc == 0) {
         plug_is_buffering = 1;
     }
@@ -349,7 +359,10 @@ void net_release(void)
         rc = tc_plug_action("release_indefinite");
     }
     long long t1 = now_ns();
-    fprintf(stderr, "netpoke: release via=%s took_ns=%lld\n", via, t1 - t0);
+    /* t0 (start of the release toggle, right after SIGCONT already fired in
+     * poker.c) is used as "pause end" -- see the matching comment in
+     * net_hold() above. */
+    fprintf(stderr, "netpoke: release via=%s took_ns=%lld uptime_s=%.3f\n", via, t1 - t0, t0 / 1e9);
     if (rc == 0) {
         plug_is_buffering = 0;
     }

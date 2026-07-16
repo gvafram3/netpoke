@@ -9,9 +9,12 @@ first — everything here exists to fix or verify a specific finding in that doc
 
 `slowpoke/src/poker/net_hold.c` was rewritten (finding F1): `net_hold()`/`net_release()`
 now try the fast netlink toggle first (the design always intended this) and
-only fall back to shelling out to `tc` if netlink fails at runtime — and every
-toggle is timed and logged to stderr (`netpoke: hold via=netlink took_ns=...`),
-so we can *see* which path is active instead of assuming.
+only fall back to shelling out to `tc` if netlink fails at runtime, with a
+receive timeout so a stuck netlink call fails visibly instead of hanging the
+pause-monitoring thread forever. Every toggle is timed **and now timestamped**
+and logged to stderr (`netpoke: hold via=netlink took_ns=... uptime_s=...`),
+so we can *see* which path is active and line pause windows up against
+independent evidence — which is exactly what Step 3 uses `uptime_s` for.
 
 ## Status / what to run, in order
 
@@ -19,17 +22,48 @@ so we can *see* which path is active instead of assuming.
 |---|---|---|---|
 | 1 | `phase5_netpoke/build_netpoke_images.sh <bench>` | rebuild image with fixed `net_hold.c` | **done** for boutique, confirmed with the `SO_RCVTIMEO` fix included (2026-07-16) |
 | 2 | `run_toggle_smoke.sh <bench>` + `check_toggle_latency.sh <bench>` | confirm the netlink toggle actually works on this kernel, measure real per-toggle cost | **PASS (2026-07-16)** — boutique: `n=362 min_ns=7280 avg_ns=481359 max_ns=25724998`, zero CLI fallbacks. Net hit two sync gotchas getting here (see live status log): `gcloud compute scp --recurse` nesting a directory into itself, and a skipped sync step producing a false "still broken" reading — both resolved. |
-| 3 | in-pod residual sampler (replaces the deprecated kubectl-exec-loop one) | fine-grained residual I/O evidence for RQ2 | **up next** |
+| 3 | `run_residual_check.sh <bench> [smoke\|full]` | fine-grained residual I/O evidence for RQ2, correctly correlated to real pause windows | **built, not yet run on the cluster** |
 | 4 | L0 overhead-only regression check | confirm NetPoke doesn't regress the compute-bound baseline | not yet built |
 | 5 | full L2 RMSE matrix, NetPoke on, all 4 apps | Table N1 / Fig N1 | not yet built |
 | 6 | fan-out instrumentation for the boutique outlier | explain, not just report, the L2 anomaly | not yet built |
 
-Steps 3-6 are deliberately not built yet: there is no point building the
-fine-grained residual sampler (which is real engineering effort) until Step 2
-confirms the netlink fix actually works on your cluster's kernel. If Step 2
-comes back "STILL BROKEN", the next move is diagnosing that specific netlink
-error (reported by `check_toggle_latency.sh`), not building more on top of a
-broken toggle.
+Steps 4-6 are deliberately not built yet — see the live status log for the
+current sequencing decision (validate the sampler first, then a fresh
+SIGSTOP-only Phase 1+3 re-run on the fixed harness, then Phase 4 redone with
+this sampler, then the NetPoke comparison).
+
+## Step 3 in detail
+
+Three new files, none baked into the Docker image (no rebuild needed for
+this step):
+
+- `residual_sampler_inpod.sh` — runs *inside* each non-target pod (no
+  `kubectl exec` per sample, unlike the deprecated sampler — finding F2).
+  Polls `/proc/[pid]/stat` + `/proc/pid/io` + `/proc/net/dev` every 10ms by
+  default, writing JSONL to a local file in the container.
+- `run_residual_check.sh <bench> [smoke|full]` — the orchestrator. Copies
+  the sampler script into every non-target pod as soon as it's `Running`
+  (via `kubectl cp` + a backgrounded `kubectl exec`), keeps re-attaching it
+  across the baseline → groundtruth → slowdown redeploy cycles (`run.sh`
+  fully redeploys between each — a pod that existed for baseline is not the
+  same pod that exists for slowdown), runs the NetPoke experiment, then
+  collects each pod's sample file and POKER's own `netpoke:` log lines.
+- `correlate_residual.py` — pairs POKER's `hold`/`release` timestamps
+  (`uptime_s`, now logged — see above) into pause windows, buckets every
+  sampled I/O delta as "during a pause window" vs "outside," and reports
+  totals. This is the actual mechanistic answer: if net RX during pause
+  windows comes back at or near zero, that's the evidence NetPoke's egress
+  hold is doing its job.
+
+```bash
+bash phase6_netpoke/run_residual_check.sh boutique smoke
+```
+
+`smoke` mode reuses the same 1-point/5000-request scale as Step 2's smoke
+test — cheap, fast, meant to validate the sampler itself (we already know
+this scenario produces real pauses, since Step 2 confirmed 362 of them).
+Once that's confirmed working, the real target per the plan is `social`
+(largest I/O gap in Phase 3) with `full` instead of `smoke`.
 
 ## Step 2 in detail
 
