@@ -67,13 +67,29 @@ smoke test, uses two terminals on `netpoke-control`:
 bash phase6_netpoke/run_toggle_smoke.sh boutique
 ```
 
-**Window 2 — watches it live**, pod status first, then the toggle events
-themselves as soon as pods are up:
+**Window 2 — the live dashboard**, same tool as Phase 3/4, pinned directly at
+this smoke test's log file (its auto-detection doesn't recognize the
+`_netpoke_` suffix, and env-var-based detection doesn't carry across a
+separate SSH session anyway):
 ```bash
-watch -n 5 kubectl get pods -n default -o wide
+WATCH_INTERVAL=5 bash ~/slowpoke/evaluation/watch_progress.sh \
+  ~/slowpoke/evaluation/results/boutique_ebpf_L2_netpoke_medium.log
 ```
-and, once pods show `Running`, in a third pane/tab (or after `Ctrl-C`-ing the
-`watch` above):
+Shows the familiar `workloads X/3` / `opt points X/1` bars (3, not 21 --
+smoke mode is baseline + 1 groundtruth + 1 slowdown), current phase, and last
+throughput, refreshed every 5s.
+
+Once that dashboard shows `FINISHED`, get the actual netlink-vs-CLI answer
+(works in either window, the pods are still alive after the run finishes):
+```bash
+bash phase6_netpoke/check_toggle_latency.sh boutique
+```
+
+If you want to catch `netpoke:` toggle lines live rather than waiting for
+the run to finish, use this instead of/alongside the dashboard in a spare
+pane -- but note it's tied to one specific pod, and `run.sh` fully
+redeploys between the groundtruth and slowdown phases, so it may need
+re-running once the pod it's watching gets replaced:
 ```bash
 while true; do
   POD=$(kubectl get pods -n default --field-selector=status.phase=Running \
