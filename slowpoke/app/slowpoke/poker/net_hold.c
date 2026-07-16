@@ -16,6 +16,7 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #define PLUG_QDISC_HANDLE TC_H_MAKE(0x10000, 0)
@@ -256,6 +257,22 @@ int net_pause_init_from_env(void)
     if (nl_sock < 0) {
         perror("netpoke: socket");
         return -1;
+    }
+
+    /*
+     * Without a receive timeout, recvmsg() in netlink_send_ack() blocks
+     * forever if the kernel never acks a given message (e.g. a REPLACE that
+     * this sch_plug version handles differently than the CREATE path did).
+     * That would silently freeze POKER's one pause-monitoring thread on the
+     * very first net_hold() call -- no error, no fallback, no more pauses
+     * ever, for the rest of the pod's life. A short timeout turns a silent
+     * hang into a visible failure that falls back to the CLI path instead.
+     */
+    {
+        struct timeval rcvto = { .tv_sec = 0, .tv_usec = 100000 }; /* 100ms */
+        if (setsockopt(nl_sock, SOL_SOCKET, SO_RCVTIMEO, &rcvto, sizeof(rcvto)) < 0) {
+            perror("netpoke: setsockopt(SO_RCVTIMEO)");
+        }
     }
 
     if (bind(nl_sock, (struct sockaddr *)&local, sizeof(local)) < 0) {

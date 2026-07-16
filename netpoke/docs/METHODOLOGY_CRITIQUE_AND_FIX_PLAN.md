@@ -21,6 +21,39 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (later) — found and fixed a likely silent-hang bug in the netlink toggle
+
+- **Deploy bug from the previous entry fixed correctly:** re-ran the smoke test with the
+  corrected 9-service yaml set — all pods deployed and ran a full baseline → groundtruth →
+  slowdown cycle successfully (boutique smoke summary: groundtruth 1718.4, slowdown 1731.6,
+  predicted 2843.9 req/s — the 65.5% error is expected noise for a 1-point/5000-request smoke
+  run, not meaningful on its own).
+- **New finding, more fundamental than netlink-vs-CLI:** `check_toggle_latency.sh` found
+  **zero** `hold`/`release` log lines for *any* of the 8 non-target services, for their entire
+  lifetime (this is a full `kubectl logs` read, not a sampling gap — genuinely zero pauses
+  fired). Confirmed via the log itself that this wasn't a model/ratio problem: `request_ratio`
+  and the slowdown experiment's `SLOWPOKE_DELAY_MICROS_*` values were real and non-zero for
+  `checkout` (4423.5µs), `currency` (869.5µs), `frontend` (225.5µs), `payment` (4423.5µs),
+  `product_catalog` (370.5µs), `shipping` (2211.5µs) — `frontend` alone touches ~100% of
+  requests (`request_ratio: 1.0`), so it should have fired dozens of pause batches over 5000
+  requests. Getting *nothing at all*, not even a failure message, pointed at a hang rather than
+  a clean failure.
+- **Root cause hypothesis:** `netlink_send_ack()` in `net_hold.c` calls `recvmsg()` with no
+  receive timeout on the socket. If the kernel doesn't ack the `NLM_F_REPLACE` toggle message
+  the same way it acks the `NLM_F_CREATE` init message, `recvmsg()` blocks forever — and since
+  `net_hold()` runs synchronously in POKER's single pause-monitoring thread, the very first
+  pause attempt would freeze that thread permanently, silently, for the rest of the pod's life.
+  This fully explains the observed symptom (init message present, zero toggle messages,
+  everywhere).
+- **Fix applied:** added `SO_RCVTIMEO` (100ms) to the netlink socket in
+  `net_pause_init_from_env()`. The existing error handling (`if (len < 0) return -1`) already
+  does the right thing once `recvmsg()` actually returns instead of blocking — so a timeout now
+  surfaces as a normal, loggable "netlink hold failed" fallback to the CLI path instead of a
+  silent freeze.
+- **Not yet synced or tested.** Next: sync this change to `netpoke-control` (Cloud Shell
+  `git pull` + `gcloud compute scp` for `slowpoke/src/poker/`), rebuild + push the image again
+  (watch for a new `POKER_CACHEBUST` hash), and re-run the smoke test.
+
 ### 2026-07-16 — Step 2 mechanistic smoke test: fixing deploy issues, re-running now
 
 - **`net_hold.c` fix (F1) committed and pushed** to `netpoke/experiments`
