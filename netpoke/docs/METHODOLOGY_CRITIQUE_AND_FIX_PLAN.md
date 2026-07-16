@@ -21,6 +21,25 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (Step 3, first run failed silently) — fixed swallowed errors + a likely race
+
+- First cluster run of `run_residual_check.sh boutique smoke`: the experiment itself completed
+  fine (Error Perc -7.4%, consistent smoke noise), but **zero pods ever got the sampler
+  attached** — `correlate_residual.py` found no `.jsonl` files at all.
+- Root cause was in the orchestration script, not the sampler or the cluster: `kubectl
+  cp`/`kubectl exec` stderr was being silently discarded, so there was no way to see why every
+  attach attempt failed. Two real issues fixed:
+  1. `kubectl cp` shells out to `tar` inside the target container -- not explicitly installed
+     in these images, and unverifiable from here. Replaced with streaming the sampler script
+     over `kubectl exec -i`'s stdin (`cat > file`), which only needs `sh`/`cat`.
+  2. Likely timing race: attaching to each pod took ~2 kubectl round-trips done serially, one
+     pod at a time, while `run.sh` fully redeploys all pods between baseline → groundtruth →
+     slowdown -- in a fast 5000-request smoke run a phase may not last long enough for a
+     serial sweep across ~8 pods to finish before they're replaced. Now fires all attach
+     attempts in parallel per watch cycle instead of one at a time, and logs every failure
+     reason to `results/residual/<bench>/.attach_debug.log` instead of discarding it.
+- **Not yet re-tested.** Next: re-sync just this one file and re-run the same smoke command.
+
 ### 2026-07-16 (Step 3 built) — corrected residual-I/O sampler, sequencing decision
 
 - **Agreed sequencing for the rest of the evaluation**, in order: (1) validate the new

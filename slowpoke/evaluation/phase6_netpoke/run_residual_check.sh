@@ -25,7 +25,9 @@ INTERVAL="${SAMPLER_INTERVAL:-0.01}"
 OUTDIR="$RESULTS/residual/$BENCH"
 mkdir -p "$OUTDIR"
 STARTED_FILE="$OUTDIR/.started_pods"
+DEBUG_LOG="$OUTDIR/.attach_debug.log"
 : > "$STARTED_FILE"
+: > "$DEBUG_LOG"
 
 LOG="$RESULTS/${BENCH}_ebpf_L2_netpoke_medium.log"
 
@@ -42,26 +44,43 @@ if [[ ! -d "$NP" ]] || [[ -z "$(ls -A "$NP"/*.yaml 2>/dev/null)" ]]; then
   bash "$EVAL/phase5_netpoke/patch_all_netpoke_yamls.sh" "$BENCH"
 fi
 
+# Streams the sampler script over `kubectl exec`'s stdin (via `cat > file`)
+# instead of `kubectl cp`, which shells out to `tar` inside the target
+# container -- a dependency these images don't explicitly install and that
+# we have no way to verify from here. `sh`/`cat` are guaranteed present.
 start_sampler_on_pod() {
-  local pod="$1" ctr
+  local pod="$1" ctr out
   grep -qx "$pod" "$STARTED_FILE" 2>/dev/null && return
   case "$pod" in
     "$TARGET"-*|ubuntu-client-*) return ;;
   esac
-  ctr=$(kubectl get pod -n default "$pod" -o jsonpath='{.spec.containers[0].name}' 2>/dev/null) || return
-  [[ -z "$ctr" ]] && return
-  kubectl cp "$P6/residual_sampler_inpod.sh" "default/$pod:/tmp/residual_sampler_inpod.sh" -c "$ctr" >/dev/null 2>&1 || return
-  kubectl exec -n default "$pod" -c "$ctr" -- sh -c \
+  if ! ctr=$(kubectl get pod -n default "$pod" -o jsonpath='{.spec.containers[0].name}' 2>&1) || [[ -z "$ctr" ]]; then
+    echo "$(date -Is) $pod: get container name failed: $ctr" >> "$DEBUG_LOG"
+    return
+  fi
+  if ! out=$(kubectl exec -i -n default "$pod" -c "$ctr" -- sh -c 'cat > /tmp/residual_sampler_inpod.sh' \
+    < "$P6/residual_sampler_inpod.sh" 2>&1); then
+    echo "$(date -Is) $pod: stream-in failed: $out" >> "$DEBUG_LOG"
+    return
+  fi
+  if ! out=$(kubectl exec -n default "$pod" -c "$ctr" -- sh -c \
     "chmod +x /tmp/residual_sampler_inpod.sh; nohup sh /tmp/residual_sampler_inpod.sh $INTERVAL /tmp/netpoke_residual.jsonl $IFACE >/tmp/sampler.log 2>&1 &" \
-    >/dev/null 2>&1 || return
+    2>&1); then
+    echo "$(date -Is) $pod: launch failed: $out" >> "$DEBUG_LOG"
+    return
+  fi
   echo "$pod" >> "$STARTED_FILE"
   echo "  [sampler] started on $pod ($ctr)"
 }
 
+# Fire off attach attempts for all currently-Running candidate pods in
+# parallel (not one at a time) -- each attach is 2 kubectl round-trips
+# (several seconds); doing them serially across ~8 pods could take longer
+# than a fast smoke-mode phase lasts before it's replaced by the next one.
 watch_and_start() {
   local pod
   while IFS= read -r pod; do
-    [[ -n "$pod" ]] && start_sampler_on_pod "$pod"
+    [[ -n "$pod" ]] && start_sampler_on_pod "$pod" &
   done < <(kubectl get pods -n default --field-selector=status.phase=Running \
     -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null)
 }
@@ -69,7 +88,7 @@ watch_and_start() {
 (
   while :; do
     watch_and_start
-    sleep 2
+    sleep 1
   done
 ) &
 WATCHER_PID=$!
