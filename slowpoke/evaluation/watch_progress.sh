@@ -73,6 +73,17 @@ pick_active_log() {
     if [[ -n "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null && (( running )); then
       f=""
     fi
+    # Do not trust a stamp left over from an earlier, unrelated run just
+    # because *some* main.py process happens to be running now (e.g. a
+    # phase6_netpoke smoke test's stamp pointing at a *_netpoke_medium.log
+    # while Phase 1/3 is actually running boutique_medium.log) -- verify the
+    # stamped log's benchmark actually matches what's running.
+    if [[ -n "$f" ]] && (( running )); then
+      bench=$(main_py_benchmark)
+      if [[ -n "$bench" && "$(basename "$f")" != "${bench}"_* ]]; then
+        f=""
+      fi
+    fi
     if [[ -n "$f" ]] && { [[ ! -f "$f" ]] \
         || ! grep -q 'Error Perc:' "$f" 2>/dev/null \
         || (( running )); }; then

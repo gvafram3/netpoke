@@ -21,6 +21,22 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-16 (fresh baseline started) — watch_progress.sh stale-stamp bug fixed; Phase 1+3 re-run underway
+
+- **Fresh Phase 1 + Phase 3 re-run started** (`run_reproducible.sh && io_gap/run_io_gap_all.sh`
+  in a `screen` session), per the agreed sequencing — all 4 apps, SIGSTOP-only, no NetPoke, on
+  the current bug-fixed harness.
+- **False alarm, real bug found and fixed:** `watch_progress.sh` briefly reported the active log
+  as `boutique_ebpf_L2_netpoke_medium.log` (a leftover from the Step 3 residual-sampler smoke
+  test) while Phase 1's boutique run was genuinely healthy and in progress
+  (`ps aux` confirmed `main.py -b boutique --num_exp 10 --num_req 100000`, correct full-scale
+  params). Root cause: `pick_active_log()`'s `.slowpoke_active_log` stamp-file check trusted any
+  stamped path as long as *some* `main.py` process was running, without checking whether the
+  stamped log actually belonged to that process. Fixed by cross-checking the stamp's benchmark
+  name against `main_py_benchmark()` before trusting it.
+- Not a data-integrity issue — only affected the live dashboard's display, not the actual
+  experiment.
+
 ### 2026-07-16 (Step 3 PASS) — first real mechanistic evidence: residual RX is reduced, not eliminated
 
 - Re-ran `run_residual_check.sh boutique smoke` after the stream-in + parallel-attach fix — the
