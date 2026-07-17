@@ -135,9 +135,17 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# run.sh reads SLOWPOKE_NETPOKE from the shell env to pick which yaml dir to
-# deploy from -- must match what we generated above.
+# run.sh only switches to yamls/netpoke when SLOWPOKE_NETPOKE is exactly
+# "1" -- for the SIGSTOP-only case (netpoke=0) that would silently fall
+# through to the plain (non *-netpoke) image, which has none of our poker.c
+# fixes. SLOWPOKE_YAML_SUBDIR (added to run.sh) selects the directory
+# directly, independent of the netpoke=0/1 semantic flag.
 export SLOWPOKE_NETPOKE="$NETPOKE"
+if [[ "$NETPOKE" == "1" ]]; then
+  export SLOWPOKE_YAML_SUBDIR=netpoke
+else
+  export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop
+fi
 export SLOWPOKE_ACTIVE_LOG="$LOG"
 echo "$LOG" > "$RESULTS/.slowpoke_active_log"
 bash "$IO_GAP/restore_io_injection.sh" || true

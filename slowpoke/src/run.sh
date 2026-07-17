@@ -17,7 +17,16 @@ YAML_PATH=$SLOWPOKE_TOP/evaluation/$benchmark/yamls
 if [[ $benchmark == "synthetic" ]]; then
     YAML_PATH=$SLOWPOKE_TOP/evaluation/$benchmark/$request/yamls
 fi
-if [[ "${SLOWPOKE_NETPOKE:-}" == "1" && -d "$SLOWPOKE_TOP/evaluation/$benchmark/yamls/netpoke" ]]; then
+# SLOWPOKE_YAML_SUBDIR overrides which yamls/<subdir> to deploy from,
+# independent of whether NetPoke itself is active -- needed for the
+# SIGSTOP-only-but-instrumented case (netpoke-sigstop image: same *-netpoke
+# build with the poker.c pause-window fix, SLOWPOKE_NETPOKE forced to "0" in
+# the yaml itself), which still needs the *-netpoke image but must NOT be
+# selected by the SLOWPOKE_NETPOKE=="1" check below.
+if [[ -n "${SLOWPOKE_YAML_SUBDIR:-}" && -d "$SLOWPOKE_TOP/evaluation/$benchmark/yamls/$SLOWPOKE_YAML_SUBDIR" ]]; then
+    YAML_PATH=$SLOWPOKE_TOP/evaluation/$benchmark/yamls/$SLOWPOKE_YAML_SUBDIR
+    echo "[run.sh] deploying from $YAML_PATH (SLOWPOKE_YAML_SUBDIR override)"
+elif [[ "${SLOWPOKE_NETPOKE:-}" == "1" && -d "$SLOWPOKE_TOP/evaluation/$benchmark/yamls/netpoke" ]]; then
     YAML_PATH=$SLOWPOKE_TOP/evaluation/$benchmark/yamls/netpoke
     echo "[run.sh] NetPoke: deploying from $YAML_PATH"
 fi
