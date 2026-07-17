@@ -21,6 +21,36 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-17 (Phase 3 done) — fresh I/O-gap matrix: social cleaner than ever, hotel reversed, mixed overall
+
+Phase 3 completed fully overnight, unattended, with no further monitor intervention needed —
+confirms both `watch_progress.sh` fixes held up across all 8 remaining transitions after the pty
+stall was cleared. Full matrix in
+[`TABLE_IO_GAP_MATRIX.md`](../results/cluster/io_gap/tables/TABLE_IO_GAP_MATRIX.md).
+
+**Honest summary — more mixed than the old dataset, not cleaner:**
+
+| App | Old Δ(L2−L0) | New Δ(L2−L0) | New trend |
+|---|---|---|---|
+| Social | +14.30pp | **+19.60pp** | Monotonic, cleanest result this project has produced |
+| Movie | +2.75pp | +1.63pp | Net positive but L1 spikes to 28.48% then drops — not clean |
+| Boutique | −3.59pp (outlier) | +0.96pp | No longer contradicts the hypothesis, but not a clean trend either |
+| Hotel | +6.05pp (clean, monotonic) | **−3.14pp** | **Reversed** — now contradicts the hypothesis |
+
+- **Social got stronger and cleaner** — the best single piece of evidence for RQ1 (I/O-gap
+  increases prediction error) this project has produced.
+- **Hotel flipped from supporting to contradicting.** Not investigated further, but worth
+  connecting to an existing pattern: hotel's Phase 1 (L0) RMSE alone nearly doubled between the
+  old and fresh runs (10.23% → 20.65%) before any I/O-gap injection is even involved — hotel
+  appears to be unusually sensitive to run-to-run cluster variance specifically, more than the
+  other three apps. This is a real open question, not something to gloss over or resolve by
+  picking whichever run looks more convenient.
+- **Aggregate RQ1 support still holds** (3/4 apps net positive) but the per-app story is noisier
+  than the old dataset suggested. Lead with social; treat boutique/movie/hotel's specific trends
+  as open case studies, not settled evidence either way.
+- **Next: Phase 4** — residual I/O during SIGSTOP-only pauses, redone properly with the
+  validated in-pod sampler from Step 3, on this fresh baseline.
+
 ### 2026-07-17 — Phase 3 stalled ~1h26m on a pty write block, not a script bug; diagnosed and cleared
 
 - **Symptom:** after boutique L1 completed (23:41, real `Error Perc:` data), Phase 3 appeared
