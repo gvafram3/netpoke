@@ -122,6 +122,15 @@ void *monitor_fifo(void *arg) {
                 printf("error in stopping");
                 fflush(stdout);
             }
+            /* Unconditional pause-window marker (independent of NetPoke) --
+             * the residual-I/O sampler needs to know when a pause actually
+             * happened for BOTH the SIGSTOP-only baseline and the NetPoke
+             * case, but net_hold()/net_release() only print anything when
+             * NetPoke is enabled. Without this, there is no way to measure
+             * "how much I/O leaks through during a SIGSTOP-only pause" at
+             * all -- see netpoke/docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md. */
+            printf("poker: pause_start uptime_s=%.3f\n", start_time / 1e9);
+            fflush(stdout);
             // precise_sleep(nanosleep);
             precise_sleep(accumulated_nano_sleep);
             long long end_time = get_current_time_ns();
@@ -135,6 +144,11 @@ void *monitor_fifo(void *arg) {
             }
             if (kill(-child_pgid, SIGCONT) == -1) {
                 printf("error in conting");
+                fflush(stdout);
+            }
+            {
+                long long cont_time = get_current_time_ns();
+                printf("poker: pause_end uptime_s=%.3f\n", cont_time / 1e9);
                 fflush(stdout);
             }
             net_release();

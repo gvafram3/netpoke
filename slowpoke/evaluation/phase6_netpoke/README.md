@@ -22,48 +22,51 @@ independent evidence — which is exactly what Step 3 uses `uptime_s` for.
 |---|---|---|---|
 | 1 | `phase5_netpoke/build_netpoke_images.sh <bench>` | rebuild image with fixed `net_hold.c` | **done** for boutique, confirmed with the `SO_RCVTIMEO` fix included (2026-07-16) |
 | 2 | `run_toggle_smoke.sh <bench>` + `check_toggle_latency.sh <bench>` | confirm the netlink toggle actually works on this kernel, measure real per-toggle cost | **PASS (2026-07-16)** — boutique: `n=362 min_ns=7280 avg_ns=481359 max_ns=25724998`, zero CLI fallbacks. Net hit two sync gotchas getting here (see live status log): `gcloud compute scp --recurse` nesting a directory into itself, and a skipped sync step producing a false "still broken" reading — both resolved. |
-| 3 | `run_residual_check.sh <bench> [smoke\|full]` | fine-grained residual I/O evidence for RQ2, correctly correlated to real pause windows | **PASS (2026-07-16)** — boutique smoke: net RX during pause windows consistently lower than outside for every service with a real delay (e.g. `product_catalog` ~10% of outside-pause rate, `payment` ~2%); 69/197 windows had ≥1 overlapping sample. See live status log for the full result and its caveats (a few services had only 1-2 samples land inside 30+ windows — real signal, not yet solid statistics at smoke scale). |
+| 3 | `run_residual_check.sh <bench> [smoke\|full]` | validate the sampler itself | **PASS (2026-07-16)** — boutique smoke (NetPoke on): net RX during pause windows consistently lower than outside for every service with a real delay; 69/197 windows had ≥1 overlapping sample. See live status log. |
+| 3.5 | `run_residual_check.sh <bench> <L1\|L2> [smoke\|full] [netpoke:0\|1]` | **the actual RQ2 question**: how much I/O leaks through during a SIGSTOP-only pause, under Phase 3's real netem conditions — not yet measured before this | **built (2026-07-17), not yet run** — see below |
 | 4 | L0 overhead-only regression check | confirm NetPoke doesn't regress the compute-bound baseline | not yet built |
 | 5 | full L2 RMSE matrix, NetPoke on, all 4 apps | Table N1 / Fig N1 | not yet built |
 | 6 | fan-out instrumentation for the boutique outlier | explain, not just report, the L2 anomaly | not yet built |
 
-Steps 4-6 are deliberately not built yet — see the live status log for the
-current sequencing decision (validate the sampler first, then a fresh
-SIGSTOP-only Phase 1+3 re-run on the fixed harness, then Phase 4 redone with
-this sampler, then the NetPoke comparison).
+## Step 3.5 — the SIGSTOP-only residual-I/O question, directly
 
-## Step 3 in detail
+Phase 3's RMSE numbers are an *indirect* stimulus test (add netem, see if accuracy gets worse)
+— they never actually watch whether residual I/O during a pause increased as a result. This
+step measures that directly, on the SIGSTOP-only baseline (no NetPoke), under the exact netem
+conditions Phase 3 used, so it can be compared against Phase 3's RMSE pattern (and later against
+the same scenario with NetPoke on).
 
-Three new files, none baked into the Docker image (no rebuild needed for
-this step):
+**This required two real additions, not just a script change:**
 
-- `residual_sampler_inpod.sh` — runs *inside* each non-target pod (no
-  `kubectl exec` per sample, unlike the deprecated sampler — finding F2).
-  Polls `/proc/[pid]/stat` + `/proc/pid/io` + `/proc/net/dev` every 10ms by
-  default, writing JSONL to a local file in the container.
-- `run_residual_check.sh <bench> [smoke|full]` — the orchestrator. Copies
-  the sampler script into every non-target pod as soon as it's `Running`
-  (via `kubectl cp` + a backgrounded `kubectl exec`), keeps re-attaching it
-  across the baseline → groundtruth → slowdown redeploy cycles (`run.sh`
-  fully redeploys between each — a pod that existed for baseline is not the
-  same pod that exists for slowdown), runs the NetPoke experiment, then
-  collects each pod's sample file and POKER's own `netpoke:` log lines.
-- `correlate_residual.py` — pairs POKER's `hold`/`release` timestamps
-  (`uptime_s`, now logged — see above) into pause windows, buckets every
-  sampled I/O delta as "during a pause window" vs "outside," and reports
-  totals. This is the actual mechanistic answer: if net RX during pause
-  windows comes back at or near zero, that's the evidence NetPoke's egress
-  hold is doing its job.
+- `poker.c` now prints an unconditional `poker: pause_start uptime_s=...` /
+  `poker: pause_end uptime_s=...` around every SIGSTOP/SIGCONT, regardless of NetPoke. Previously
+  *only* `net_hold()`/`net_release()` logged timestamps, and those are no-ops when NetPoke is
+  off — meaning there was literally no way to know when a SIGSTOP-only pause happened. This
+  needs a rebuild (`build_netpoke_images.sh`) before it takes effect.
+- `run_residual_check.sh` now takes a `netpoke:0|1` argument (default `0`, SIGSTOP-only). When
+  `0`, it generates a `yamls/netpoke-sigstop/` variant on the fly — same `*-netpoke` image (has
+  the `poker.c` fix above) but with `SLOWPOKE_NETPOKE` forced to `"0"`, so the egress-hold
+  mechanism itself stays inert while pause-window logging still works. This means the
+  SIGSTOP-only and NetPoke-on runs are otherwise identical (same image, same caps) except for
+  that one variable.
+- `correlate_residual.py` now reads the unconditional `poker: pause_*` markers as the primary
+  pause-window signal (falls back to the old `netpoke: hold/release` format for logs captured
+  before this fix). Prints a different summary line depending on `--netpoke`.
 
 ```bash
-bash phase6_netpoke/run_residual_check.sh boutique smoke
+# Rebuild first (poker.c changed) -- sync + rebuild same as always:
+bash phase5_netpoke/build_netpoke_images.sh <bench>
+PUSH=1 bash phase5_netpoke/build_netpoke_images.sh <bench>
+
+# Then, SIGSTOP-only, matching Phase 3's actual L2 conditions:
+bash phase6_netpoke/run_residual_check.sh social L2 smoke 0
 ```
 
-`smoke` mode reuses the same 1-point/5000-request scale as Step 2's smoke
-test — cheap, fast, meant to validate the sampler itself (we already know
-this scenario produces real pauses, since Step 2 confirmed 362 of them).
-Once that's confirmed working, the real target per the plan is `social`
-(largest I/O gap in Phase 3) with `full` instead of `smoke`.
+Recommended: validate on `social` (smoke first — it's the strongest, cleanest RMSE signal, worth
+confirming residual I/O actually tracks it) and `hotel` (smoke first — it reversed direction in
+the fresh Phase 3 re-run, worth checking whether residual I/O explains that or points elsewhere).
+Once smoke confirms the mechanism works under real injection, move to `full` for a trustworthy
+number.
 
 ## Step 2 in detail
 

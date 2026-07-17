@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 """
-Correlate in-pod residual-I/O samples against POKER's own hold/release
+Correlate in-pod residual-I/O samples against POKER's own pause-window
 timestamps, so bytes/syscalls can be attributed strictly to real pause
 windows instead of averaged across whatever ran in between (the flaw in the
 deprecated kubectl-exec-per-sample sampler -- finding F2 in
 netpoke/docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md).
 
+Pause windows come from POKER's unconditional `poker: pause_start` /
+`poker: pause_end` markers (printed around every SIGSTOP/SIGCONT regardless
+of whether NetPoke is enabled) -- this is what makes it possible to measure
+the SIGSTOP-only baseline, not just the NetPoke case. The older
+`netpoke: hold/release via=... uptime_s=...` lines are also recognized for
+logs captured before this instrumentation existed, but `poker: pause_*` is
+preferred when both are present.
+
 Input: a directory containing, per pod, <pod>.jsonl (samples from
-residual_sampler_inpod.sh) and <pod>.netpoke.log (grepped `netpoke:` lines
-from `kubectl logs`, which now include a uptime_s field comparable to the
-sampler's own ts).
+residual_sampler_inpod.sh) and <pod>.netpoke.log (grepped `poker: pause_`
+and `netpoke:` lines from `kubectl logs`, which include a uptime_s field
+comparable to the sampler's own ts).
 """
 from __future__ import annotations
 
@@ -20,7 +28,9 @@ import os
 import re
 import sys
 
-EVENT_RE = re.compile(r"netpoke: (hold|release) via=(\w+) took_ns=(\d+) uptime_s=([\d.]+)")
+POKER_RE = re.compile(r"poker: pause_(start|end) uptime_s=([\d.]+)")
+NETPOKE_RE = re.compile(r"netpoke: (hold|release) via=(\w+) took_ns=(\d+) uptime_s=([\d.]+)")
+_KIND_MAP = {"start": "hold", "end": "release"}  # normalize to hold/release internally
 
 
 def load_events(path: str) -> list[tuple[float, str]]:
@@ -29,7 +39,12 @@ def load_events(path: str) -> list[tuple[float, str]]:
         return events
     with open(path, encoding="utf-8") as f:
         for line in f:
-            m = EVENT_RE.search(line)
+            m = POKER_RE.search(line)
+            if m:
+                kind, uptime_s = m.groups()
+                events.append((float(uptime_s), _KIND_MAP[kind]))
+                continue
+            m = NETPOKE_RE.search(line)
             if m:
                 kind, _via, _took_ns, uptime_s = m.groups()
                 events.append((float(uptime_s), kind))
@@ -119,6 +134,8 @@ def analyze_pod(pod: str, samples: list[dict], windows: list[tuple[float, float]
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("outdir")
+    ap.add_argument("--netpoke", action="store_true",
+                     help="label output as a NetPoke-on run (default: SIGSTOP-only baseline)")
     args = ap.parse_args()
 
     jsonl_files = sorted(glob.glob(os.path.join(args.outdir, "*.jsonl")))
@@ -163,14 +180,20 @@ def main() -> int:
     print(f"Pause windows observed with >=1 overlapping sample: {tot_hit}/{tot_windows}")
     print(f"Total net RX during pause windows: {tot_pause_rx} bytes")
     print(f"Total net RX outside pause windows: {tot_outside_rx} bytes")
-    if tot_pause_rx == 0:
-        print("\n=> Residual ingress during pauses is ZERO across every window sampled — consistent with")
-        print("   NetPoke's egress hold working as designed (TCP flow control stalls senders, so almost")
-        print("   nothing arrives during the pause). This is the mechanistic result the thesis needs.")
+    if args.netpoke:
+        if tot_pause_rx == 0:
+            print("\n=> Residual ingress during pauses is ZERO across every window sampled — consistent with")
+            print("   NetPoke's egress hold working as designed (TCP flow control stalls senders, so almost")
+            print("   nothing arrives during the pause). Compare against the SIGSTOP-only run of the same")
+            print("   scenario to see how much this actually reduced it.")
+        else:
+            print(f"\n=> Non-zero residual RX during pause windows ({tot_pause_rx} bytes over {tot_hit} windows)")
+            print("   with NetPoke on — compare against the SIGSTOP-only run of the same scenario to see")
+            print("   whether this is meaningfully smaller than the un-mitigated case.")
     else:
-        print(f"\n=> Non-zero residual RX during pause windows ({tot_pause_rx} bytes over {tot_hit} windows) —")
-        print("   worth comparing against a SIGSTOP-only (no NetPoke) run of the same scenario to see")
-        print("   whether this is meaningfully smaller than the un-mitigated case.")
+        print(f"\n=> SIGSTOP-only baseline: {tot_pause_rx} bytes of net RX leaked through during")
+        print(f"   {tot_hit}/{tot_windows} observed pause windows. This is the number NetPoke is supposed")
+        print("   to reduce — run the same scenario with netpoke=1 to compare.")
     return 0
 
 

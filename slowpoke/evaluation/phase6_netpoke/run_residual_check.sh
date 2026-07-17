@@ -1,15 +1,26 @@
 #!/usr/bin/env bash
-# Phase 6, Step 3: validate + run the corrected in-pod residual-I/O sampler.
+# Phase 6, Step 3/4: run the corrected in-pod residual-I/O sampler under
+# either the SIGSTOP-only baseline or NetPoke, at a chosen I/O-gap level, so
+# residual I/O during real pause windows can be directly measured and
+# compared -- not just inferred from an RMSE number (see the "does Phase 3
+# actually measure this" discussion in
+# netpoke/docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md).
 #
 # Starts residual_sampler_inpod.sh inside every non-target pod, watching for
 # pod replacement across the baseline -> groundtruth -> slowdown redeploy
-# cycles (run.sh fully redeploys between each), runs a NetPoke experiment,
-# collects each pod's samples plus POKER's own hold/release log, and
+# cycles (run.sh fully redeploys between each), runs the experiment,
+# collects each pod's samples plus POKER's own pause-window log, and
 # correlates them so residual I/O can be attributed strictly to real pause
 # windows -- unlike the deprecated kubectl-exec-per-sample sampler (finding
 # F2 in netpoke/docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md).
 #
-# Usage: bash phase6_netpoke/run_residual_check.sh <bench> [smoke|full]
+# Usage: bash phase6_netpoke/run_residual_check.sh <bench> <level:L1|L2> [mode:smoke|full] [netpoke:0|1]
+#   netpoke=0 (default) -- SIGSTOP-only baseline, the number this project has
+#     never actually measured directly before. Still uses the *-netpoke
+#     image (it has the unconditional poker: pause_start/pause_end fix) but
+#     with SLOWPOKE_NETPOKE forced to "0", so the egress-hold mechanism
+#     itself stays inert.
+#   netpoke=1 -- NetPoke on, for the before/after comparison later.
 set -euo pipefail
 
 export SLOWPOKE_TOP="${SLOWPOKE_TOP:-$HOME/slowpoke}"
@@ -18,30 +29,55 @@ P6="$EVAL/phase6_netpoke"
 IO_GAP="$EVAL/io_gap"
 RESULTS="${RESULTS_DIR:-$EVAL/results}"
 BENCH="${1:?benchmark required}"
-MODE="${2:-smoke}"
+LEVEL="${2:?level required (L1|L2)}"
+MODE="${3:-smoke}"
+NETPOKE="${4:-0}"
 IFACE="${SLOWPOKE_NET_IFACE:-eth0}"
 INTERVAL="${SAMPLER_INTERVAL:-0.01}"
 
-OUTDIR="$RESULTS/residual/$BENCH"
+case "$LEVEL" in L1|L2) ;; *) echo "ERROR: level must be L1 or L2" >&2; exit 1 ;; esac
+case "$NETPOKE" in 0|1) ;; *) echo "ERROR: netpoke must be 0 or 1" >&2; exit 1 ;; esac
+
+TAG="sigstop"; [[ "$NETPOKE" == "1" ]] && TAG="netpoke"
+
+OUTDIR="$RESULTS/residual/${BENCH}_${LEVEL}_${TAG}"
 mkdir -p "$OUTDIR"
 STARTED_FILE="$OUTDIR/.started_pods"
 DEBUG_LOG="$OUTDIR/.attach_debug.log"
 : > "$STARTED_FILE"
 : > "$DEBUG_LOG"
 
-LOG="$RESULTS/${BENCH}_ebpf_L2_netpoke_medium.log"
+LOG="$RESULTS/${BENCH}_io_${LEVEL}_residual_${TAG}_medium.log"
 
 # shellcheck source=../io_gap/io_levels.conf
 source "$IO_GAP/io_levels.conf"
-var="IO_${BENCH^^}_L2_TARGET"
+var="IO_${BENCH^^}_${LEVEL}_TARGET"
 TARGET="${!var}"
 
-echo "=== residual check: benchmark=$BENCH target=$TARGET (excluded) mode=$MODE ==="
+echo "=== residual check: benchmark=$BENCH level=$LEVEL netpoke=$NETPOKE target=$TARGET (excluded) mode=$MODE ==="
 
-NP="$EVAL/$BENCH/yamls/netpoke"
-if [[ ! -d "$NP" ]] || [[ -z "$(ls -A "$NP"/*.yaml 2>/dev/null)" ]]; then
-  echo "[residual] generating $NP ..."
+SRC_NP="$EVAL/$BENCH/yamls/netpoke"
+if [[ ! -d "$SRC_NP" ]] || [[ -z "$(ls -A "$SRC_NP"/*.yaml 2>/dev/null)" ]]; then
+  echo "[residual] generating $SRC_NP ..."
   bash "$EVAL/phase5_netpoke/patch_all_netpoke_yamls.sh" "$BENCH"
+fi
+
+if [[ "$NETPOKE" == "1" ]]; then
+  NP="$SRC_NP"
+else
+  # SIGSTOP-only but still instrumented: reuse the *-netpoke image (has the
+  # unconditional poker: pause_start/pause_end fix) with SLOWPOKE_NETPOKE
+  # forced to "0", so net_hold()/net_release() stay no-ops but pause-window
+  # timestamps are still logged. Derived from the netpoke yamls so the two
+  # runs are otherwise identical (same image, same caps, same everything
+  # except the one env var that turns the egress hold on).
+  NP="$EVAL/$BENCH/yamls/netpoke-sigstop"
+  mkdir -p "$NP"
+  for f in "$SRC_NP"/*.yaml; do
+    [[ -f "$f" ]] || continue
+    sed '/name: SLOWPOKE_NETPOKE/{n;s/value: "1"/value: "0"/}' "$f" > "$NP/$(basename "$f")"
+  done
+  echo "[residual] SIGSTOP-only yamls generated in $NP (SLOWPOKE_NETPOKE=0, same *-netpoke image)"
 fi
 
 # Streams the sampler script over `kubectl exec`'s stdin (via `cat > file`)
@@ -99,7 +135,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-export SLOWPOKE_NETPOKE=1
+# run.sh reads SLOWPOKE_NETPOKE from the shell env to pick which yaml dir to
+# deploy from -- must match what we generated above.
+export SLOWPOKE_NETPOKE="$NETPOKE"
 export SLOWPOKE_ACTIVE_LOG="$LOG"
 echo "$LOG" > "$RESULTS/.slowpoke_active_log"
 bash "$IO_GAP/restore_io_injection.sh" || true
@@ -107,22 +145,21 @@ pkill -f 'python3.*main\.py' 2>/dev/null || true
 bash "$EVAL/safe_delete_workloads.sh"
 
 {
-  echo "# phase6 residual check: benchmark=$BENCH target=$TARGET level=L2 mode=$MODE"
+  echo "# phase6 residual check: benchmark=$BENCH level=$LEVEL netpoke=$NETPOKE target=$TARGET mode=$MODE"
   echo "# started: $(date -Is)"
 } > "$LOG"
 
-bash "$IO_GAP/apply_io_injection.sh" "$BENCH" L2
+bash "$IO_GAP/apply_io_injection.sh" "$BENCH" "$LEVEL"
 
 cd "$EVAL"
 if [[ "$MODE" == "smoke" ]]; then
-  var_req="IO_NUM_REQ_${BENCH^^}"
   echo "[residual] SMOKE mode: 1 opt point, 5000 requests"
   python3 -u "$SLOWPOKE_TOP/src/main.py" -b "$BENCH" -r mix -x "$TARGET" \
     --num_exp 1 -t "$IO_THREAD" -c "$IO_CONN" --poker_batch_req "$IO_POKER_BATCH_REQ" \
     --repetitions 1 --num_req 5000 >> "$LOG"
 else
-  echo "[residual] FULL L2 medium run"
-  bash "$IO_GAP/run_io_medium.sh" "$BENCH" L2 "$LOG"
+  echo "[residual] FULL $LEVEL medium run"
+  bash "$IO_GAP/run_io_medium.sh" "$BENCH" "$LEVEL" "$LOG"
 fi
 echo "# finished: $(date -Is)" >> "$LOG"
 
@@ -136,9 +173,11 @@ while IFS= read -r pod; do
   ctr=$(kubectl get pod -n default "$pod" -o jsonpath='{.spec.containers[0].name}' 2>/dev/null) || continue
   kubectl exec -n default "$pod" -c "$ctr" -- cat /tmp/netpoke_residual.jsonl \
     > "$OUTDIR/${pod}.jsonl" 2>/dev/null || echo "  WARN: no samples from $pod (likely replaced before collection)"
-  kubectl logs -n default "$pod" -c "$ctr" 2>/dev/null | grep 'netpoke:' > "$OUTDIR/${pod}.netpoke.log" || true
+  kubectl logs -n default "$pod" -c "$ctr" 2>/dev/null | grep -E 'poker: pause_|netpoke:' > "$OUTDIR/${pod}.netpoke.log" || true
   echo "  collected $pod"
 done < "$STARTED_FILE"
 
 echo "=== correlating ==="
-python3 "$P6/correlate_residual.py" "$OUTDIR"
+CORRELATE_ARGS=("$OUTDIR")
+[[ "$NETPOKE" == "1" ]] && CORRELATE_ARGS+=(--netpoke)
+python3 "$P6/correlate_residual.py" "${CORRELATE_ARGS[@]}"
