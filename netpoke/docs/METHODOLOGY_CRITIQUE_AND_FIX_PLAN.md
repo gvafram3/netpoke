@@ -21,6 +21,32 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-17 — Phase 3 stalled ~1h26m on a pty write block, not a script bug; diagnosed and cleared
+
+- **Symptom:** after boutique L1 completed (23:41, real `Error Perc:` data), Phase 3 appeared
+  stuck — no `boutique_io_L2_medium.log` ever appeared, dashboard showed "log file not created
+  yet" indefinitely, and a `screen -X hardcopy` dump showed content frozen from hours earlier.
+- **Root cause, confirmed via `/proc/<pid>/wchan` and `/proc/<pid>/fd`:** `restore_io_injection.sh`
+  (invoked from `run_io_medium.sh`'s `EXIT` trap, itself a normal, correct part of the design) was
+  blocked in the kernel's `iterate_tty_write`, mid-`write()` to `/dev/pts/2` — the `screen`
+  session's terminal. The pty's output buffer was full and nothing was draining it, so the write
+  blocked indefinitely. This also explains the "frozen hardcopy" — the screen genuinely stopped
+  updating at that point because writes to it had been silently blocking ever since, not a display
+  bug. Not a bug in any of the `io_gap` scripts themselves — a systems/infrastructure issue with a
+  long-running `screen` session's pty filling up while nothing kept it drained (`run_with_monitor.sh`
+  keeps writing periodic status to the same terminal for the life of a run, on top of an
+  interactively-detached session not consuming it).
+- **Fix applied:** `kill`ed the one stuck `restore_io_injection.sh` process. Since `run_io_medium.sh`
+  calls it as `restore_io_injection.sh || true` from its cleanup trap, killing it lets that `||
+  true` swallow the nonzero exit, the script completes normally (its own exit status was already
+  `0` from the successful experiment), and `run_io_gap_all.sh` sees success, confirms
+  `boutique_io_L1_medium.log` is already complete, and proceeds to boutique L2 — no data lost,
+  no restart needed.
+- **Mitigation for the rest of this run (and future long `screen` sessions):** keep a
+  `screen -r <session>` **actively attached** in a spare terminal for the duration, rather than
+  repeated attach/detach — an actively-attached terminal continuously drains the pty so its
+  buffer can't fill up again. Worth remembering for Phase 4/5/6's own long-running sessions.
+
 ### 2026-07-16 (Phase 2 done) — fresh Phase 1 RMSE numbers: boutique now matches the paper; hotel/social higher
 
 Ran `plot_fig8_png.sh` + `summarize_results.py` on the 4 fresh Phase 1 logs. Comparison against
