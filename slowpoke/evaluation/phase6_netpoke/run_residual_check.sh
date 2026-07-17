@@ -188,4 +188,9 @@ done < "$STARTED_FILE"
 echo "=== correlating ==="
 CORRELATE_ARGS=("$OUTDIR")
 [[ "$NETPOKE" == "1" ]] && CORRELATE_ARGS+=(--netpoke)
-python3 "$P6/correlate_residual.py" "${CORRELATE_ARGS[@]}"
+# Don't let one inconclusive correlation (e.g. a stale image that hasn't
+# been rebuilt yet) kill an `&&`-chained multi-run sequence -- the actual
+# experiment (main.py) already succeeded and its log is safely on disk
+# regardless of whether this particular run's residual data correlated.
+python3 "$P6/correlate_residual.py" "${CORRELATE_ARGS[@]}" || \
+  echo "[residual] WARN: correlate_residual.py found nothing for this run (exit $?) -- continuing"
