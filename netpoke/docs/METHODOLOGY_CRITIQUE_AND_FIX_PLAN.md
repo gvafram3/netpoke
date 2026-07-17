@@ -21,6 +21,18 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-17 (social smoke, take 1) — run.sh silently deployed the wrong image; fixed
+
+First cluster attempt at the SIGSTOP-only residual measurement (social, L2, smoke): sampler
+collected thousands of samples per pod correctly, but **zero** pause-window log lines anywhere,
+and a direct check showed the pod had **no `SLOWPOKE_NETPOKE` env entry at all**. Root cause:
+`run.sh` only switches to `yamls/netpoke` when the shell's `SLOWPOKE_NETPOKE` is exactly `"1"` —
+for `netpoke=0` it silently fell through to the plain, original (non-`*-netpoke`) image, which
+has none of this project's `poker.c` fixes. Fixed by adding `SLOWPOKE_YAML_SUBDIR` to `run.sh`
+to select the yaml directory directly, independent of the on/off semantic flag, and updating
+`run_residual_check.sh` to set it explicitly rather than relying on the `SLOWPOKE_NETPOKE=="1"`
+check to also happen to pick the right image. Not yet re-tested on the cluster.
+
 ### 2026-07-17 (methodology pause) — questioned whether Phase 3 actually measures residual I/O
 
 Before moving to Phase 4, stepped back to ask: does Phase 3's netem-injection RMSE method
