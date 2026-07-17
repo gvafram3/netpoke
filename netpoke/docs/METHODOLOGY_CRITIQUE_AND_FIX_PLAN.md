@@ -21,6 +21,32 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-17 (methodology pause) — questioned whether Phase 3 actually measures residual I/O
+
+Before moving to Phase 4, stepped back to ask: does Phase 3's netem-injection RMSE method
+actually measure "does I/O leak through during a SIGSTOP pause," or something more indirect?
+Conclusion: it's an indirect stimulus test (add network delay somewhere, see if the final
+accuracy number moves) that has never actually watched what happens *during* a pause window —
+plausibly connected to the paper's claim (a slower downstream service could mean more in-flight
+data at the instant of a pause), but never verified, and the fresh Phase 3 data's instability
+(hotel reversing direction between runs) is more consistent with a noisy/confounded proxy than a
+clean causal measurement.
+
+**Found we couldn't actually check this even if we wanted to:** the residual sampler (Step 3)
+only ever ran with NetPoke on. For the SIGSTOP-only case, POKER printed no pause-window
+timestamps at all — `net_hold()`/`net_release()` are no-ops when NetPoke is off, and nothing
+else logged when a SIGSTOP/SIGCONT pair actually happened. Fixed by adding an unconditional
+`poker: pause_start`/`poker: pause_end` marker directly in `poker.c` (not gated on NetPoke), and
+extended `run_residual_check.sh` to accept `<level>` and `netpoke:0|1`, generating a
+`yamls/netpoke-sigstop` variant (same `*-netpoke` image, `SLOWPOKE_NETPOKE` forced to `"0"`) so
+the SIGSTOP-only and NetPoke-on runs are identical except for that one variable — needed to make
+the two conditions directly comparable.
+
+**Not yet run.** Needs a rebuild (poker.c changed) and sync, then a smoke-scale validation on
+`social` (confirm the strong RMSE signal is backed by real residual I/O) and `hotel` (check
+whether residual I/O explains its reversal, or whether that reversal is unrelated noise) before
+committing to full-scale runs or the Phase 4 sweep across all four apps.
+
 ### 2026-07-17 (Phase 3 done) — fresh I/O-gap matrix: social cleaner than ever, hotel reversed, mixed overall
 
 Phase 3 completed fully overnight, unattended, with no further monitor intervention needed —
