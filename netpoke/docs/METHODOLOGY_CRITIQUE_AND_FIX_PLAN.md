@@ -49,10 +49,14 @@ background reference.
 - **Real fix:** attached (`screen -r slowpoke-fresh-run`) and immediately pressed `Ctrl-Q` before
   anything else. The entire backlog flushed at once and boutique L2 started running normally.
   No data lost, no restart needed either way.
-- **Mitigation for the rest of this run (and future long `screen` sessions):** keep a
-  `screen -r <session>` **actively attached** in a spare terminal for the duration, rather than
-  repeated attach/detach — an actively-attached terminal continuously drains the pty so its
-  buffer can't fill up again. Worth remembering for Phase 4/5/6's own long-running sessions.
+- **Mitigation, corrected:** the true cause was flow control (likely an accidental keystroke),
+  not a pty buffer simply filling up from lack of reading — `screen`'s own daemon continuously
+  drains its pty regardless of client attachment, so being attached doesn't add protection and
+  arguably adds *more* exposure to an accidental `Ctrl-S`. Better pattern: **leave the session
+  detached** most of the time (SSH disconnecting entirely is fine — that's what `screen` is for),
+  attach only briefly to check status, detach cleanly (`Ctrl+A` `D`) rather than lingering. If it
+  freezes again, attach and immediately press `Ctrl-Q`. Worth remembering for Phase 4/5/6's own
+  long-running sessions.
 
 ### 2026-07-16 (Phase 2 done) — fresh Phase 1 RMSE numbers: boutique now matches the paper; hotel/social higher
 
