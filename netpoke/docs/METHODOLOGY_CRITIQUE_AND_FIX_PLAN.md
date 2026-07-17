@@ -36,12 +36,19 @@ background reference.
   long-running `screen` session's pty filling up while nothing kept it drained (`run_with_monitor.sh`
   keeps writing periodic status to the same terminal for the life of a run, on top of an
   interactively-detached session not consuming it).
-- **Fix applied:** `kill`ed the one stuck `restore_io_injection.sh` process. Since `run_io_medium.sh`
-  calls it as `restore_io_injection.sh || true` from its cleanup trap, killing it lets that `||
-  true` swallow the nonzero exit, the script completes normally (its own exit status was already
-  `0` from the successful experiment), and `run_io_gap_all.sh` sees success, confirms
-  `boutique_io_L1_medium.log` is already complete, and proceeds to boutique L2 — no data lost,
-  no restart needed.
+- **First fix attempt (partial):** `kill`ed the one stuck `restore_io_injection.sh` process,
+  reasoning that `run_io_medium.sh`'s `restore_io_injection.sh || true` cleanup would swallow the
+  resulting nonzero exit and let the script complete. This did clear that one process, but
+  `run_io_medium.sh` itself remained stuck afterward — confirming the pty's output buffer was
+  still full and undrained, so the *next* writer in the chain blocked the same way.
+- **Actual root cause, confirmed:** `screen`'s own daemon process was healthy (`do_select`, the
+  normal idle-wait state — not stuck), which narrowed it to **terminal flow control (XOFF/IXON)**:
+  a `Ctrl-S` sent to that pty at some point (easy to trigger by accident across a long session
+  with many attach/detach cycles) pauses all output to it at the kernel level until a `Ctrl-Q`
+  releases it — exactly matching a healthy reader (screen) with writes still blocking.
+- **Real fix:** attached (`screen -r slowpoke-fresh-run`) and immediately pressed `Ctrl-Q` before
+  anything else. The entire backlog flushed at once and boutique L2 started running normally.
+  No data lost, no restart needed either way.
 - **Mitigation for the rest of this run (and future long `screen` sessions):** keep a
   `screen -r <session>` **actively attached** in a spare terminal for the duration, rather than
   repeated attach/detach — an actively-attached terminal continuously drains the pty so its
