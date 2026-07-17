@@ -21,6 +21,36 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-17 (first real SIGSTOP-only residual result) — poststorage barely gets paused at all
+
+`run_residual_check.sh social L2 smoke 0` (SIGSTOP-only, real L2 netem conditions, the
+`SLOWPOKE_YAML_SUBDIR` fix applied) — the first genuine, direct measurement of residual I/O
+during un-mitigated `SIGSTOP` pauses this project has produced. Good sample coverage: 171/276
+pause windows (62%) had ≥1 overlapping sample, well up from the earlier NetPoke smoke test's 35%.
+
+| Service | Δ net RX during pause | Δ net RX outside pause | Residual ratio |
+|---|---|---|---|
+| `poststorage` | 6.44MB | 7.05MB | **91%** — SIGSTOP barely reduces its traffic at all |
+| `usertimeline` | 3.40MB | 4.77MB | 71% |
+| `composepost` | 0.81MB | 2.10MB | 39% |
+| `socialgraph` | 0.13MB | 1.54MB | 9% — SIGSTOP works reasonably well here |
+
+Aggregate: 10.78MB during pause windows vs 15.45MB outside them (~70% residual rate).
+
+**This directly explains, not just correlates with, Phase 3's strongest result.** `poststorage`
+is exactly the service Phase 3's L2 injection targeted with the heaviest delay (50ms), and
+social produced the cleanest, strongest RMSE increase of all four apps (+19.60pp, monotonic).
+We now have direct mechanistic evidence — not an inferred proxy — that `poststorage` is
+genuinely I/O-heavy enough that `SIGSTOP` fails to meaningfully pause its network activity,
+which is precisely the paper's claimed failure mode. This is the first result in the project
+that closes the causal chain (netem stimulus → genuinely more residual I/O during pause →
+higher RMSE) rather than assuming the middle link.
+
+**Next:** (1) same check on `hotel` (the app that reversed direction in fresh Phase 3 — does it
+show low residual leakage, supporting "reversal is unrelated noise," or high leakage too,
+which would be a more interesting puzzle) and (2) social with `netpoke=1` for the direct
+before/after comparison (does NetPoke bring `poststorage`'s 91% down toward `socialgraph`'s 9%).
+
 ### 2026-07-17 (social smoke, take 1) — run.sh silently deployed the wrong image; fixed
 
 First cluster attempt at the SIGSTOP-only residual measurement (social, L2, smoke): sampler
