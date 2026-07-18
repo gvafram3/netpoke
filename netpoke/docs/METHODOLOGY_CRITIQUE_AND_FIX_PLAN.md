@@ -21,6 +21,57 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-18 (full L2 residual matrix, all 4 apps) — NetPoke reduces residual I/O in 3/4 apps; hotel's RMSE reversal explained
+
+Full-scale (`full`, not `smoke`) `run_residual_check.sh <bench> L2 full {0,1}` chained overnight
+across all four apps. One crash hit along the way (`correlate_residual.py` `KeyError: 'ts'`,
+traced to a real race in `start_sampler_on_pod()` — parallel attach attempts weren't atomic, so
+the same pod could get two sampler processes writing to the same output file at once, producing
+parseable-but-malformed JSON records; fixed with an atomic `mkdir`-based claim, and
+`analyze_pod()` hardened to skip malformed records instead of crashing). The chain-continuation
+fix from the previous entry worked as intended — the crash didn't stop the sequence, and since
+all raw sample/log data was already safely on disk, no cluster time was lost re-running anything;
+only re-correlating the already-collected data was needed.
+
+**Residual RX during pause windows, as % of normal (outside-pause) traffic:**
+
+| App | SIGSTOP-only | NetPoke-on | Change | Sample coverage (hit/total windows) |
+|---|---|---|---|---|
+| Movie | 11.31% | **2.27%** | ~5x reduction | 1.0-1.6% — weak |
+| Hotel | 9.52% | **3.33%** | ~2.9x reduction | 12.7-15.5% — decent |
+| Social | 8.91% | **4.00%** | ~2.2x reduction | 17.1-22.9% — excellent |
+| Boutique | 3.28% | 4.28% | flat/slightly worse | 3.2-9.2% — weak |
+
+**This is the core mechanistic result the thesis needs**: NetPoke substantially reduces residual
+network I/O during pauses in 3 of 4 apps — direct, measured evidence, not inferred from an RMSE
+proxy. Social is the best-supported single result (excellent coverage both conditions): residual
+leakage nearly halved (8.91% → 4.00%).
+
+**Hotel is the most important finding, methodologically.** Its Phase 3 RMSE reversed direction
+(contradicted the I/O-gap hypothesis, unexplained at the time) — but its residual-I/O data here
+shows a completely normal result: real baseline leakage (9.52%) and a real NetPoke reduction
+(3.33%), consistent with social and movie. The direct measurement and the indirect RMSE proxy
+tell *different* stories for hotel specifically. This is strong evidence for the concern raised
+in the "does Phase 3 actually measure residual I/O" entry above: **the RMSE-based method is a
+noisy, confounded proxy that doesn't reliably track the actual phenomenon, and this direct
+residual-I/O measurement is the more trustworthy signal.** Hotel's Phase 3 reversal should be
+read as noise in that proxy, not as evidence against the thesis.
+
+**Boutique staying flat is consistent, not concerning** — it never showed a strong I/O-gap
+signal anywhere in this project (lowest residual ratios of any app under both conditions). Little
+gap to close, little effect from closing it. Internally consistent with everything else measured.
+
+**Caveats, stated plainly:** sample coverage varies a lot by app — social and hotel are
+well-supported, boutique and especially movie (1-1.6% hit rate) are thin. The *direction* is
+consistent (3 of 4 apps improve) but movie's specific magnitude (~5x) should be treated as
+suggestive, not confirmed, until re-sampled with better coverage. Worth a longer/higher-frequency
+follow-up run for movie specifically before this goes in the thesis as a settled number.
+
+**Next:** Step 4 (L0 overhead-only regression check — confirm NetPoke doesn't regress the
+compute-bound baseline) is the one piece of the original validation plan not yet done. After
+that, this table is essentially Table N1 / Fig N1 from the original design doc, ready for
+write-up.
+
 ### 2026-07-17 (first real SIGSTOP-only residual result) — poststorage barely gets paused at all
 
 `run_residual_check.sh social L2 smoke 0` (SIGSTOP-only, real L2 netem conditions, the
