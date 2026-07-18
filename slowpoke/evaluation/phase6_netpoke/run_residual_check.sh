@@ -14,7 +14,9 @@
 # windows -- unlike the deprecated kubectl-exec-per-sample sampler (finding
 # F2 in netpoke/docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md).
 #
-# Usage: bash phase6_netpoke/run_residual_check.sh <bench> <level:L1|L2> [mode:smoke|full] [netpoke:0|1]
+# Usage: bash phase6_netpoke/run_residual_check.sh <bench> <level:L0|L1|L2> [mode:smoke|full] [netpoke:0|1]
+#   level=L0 -- no netem injection at all, for the overhead-regression check
+#     (confirm NetPoke doesn't hurt the compute-bound baseline).
 #   netpoke=0 (default) -- SIGSTOP-only baseline, the number this project has
 #     never actually measured directly before. Still uses the *-netpoke
 #     image (it has the unconditional poker: pause_start/pause_end fix) but
@@ -35,7 +37,7 @@ NETPOKE="${4:-0}"
 IFACE="${SLOWPOKE_NET_IFACE:-eth0}"
 INTERVAL="${SAMPLER_INTERVAL:-0.01}"
 
-case "$LEVEL" in L1|L2) ;; *) echo "ERROR: level must be L1 or L2" >&2; exit 1 ;; esac
+case "$LEVEL" in L0|L1|L2) ;; *) echo "ERROR: level must be L0, L1, or L2" >&2; exit 1 ;; esac
 case "$NETPOKE" in 0|1) ;; *) echo "ERROR: netpoke must be 0 or 1" >&2; exit 1 ;; esac
 
 TAG="sigstop"; [[ "$NETPOKE" == "1" ]] && TAG="netpoke"
@@ -166,7 +168,16 @@ bash "$EVAL/safe_delete_workloads.sh"
   echo "# started: $(date -Is)"
 } > "$LOG"
 
-bash "$IO_GAP/apply_io_injection.sh" "$BENCH" "$LEVEL"
+# L0 has no netem injection defined in io_levels.conf (by design -- it's the
+# plain baseline) -- skip the call entirely rather than let it fail on an
+# undefined IO_*_L0_INJECT var, mirroring run_io_medium.sh's own check.
+var_inject="IO_${BENCH^^}_${LEVEL}_INJECT"
+INJECT="${!var_inject:-}"
+if [[ -n "$INJECT" ]]; then
+  bash "$IO_GAP/apply_io_injection.sh" "$BENCH" "$LEVEL"
+else
+  echo "[residual] level=$LEVEL has no injection configured (expected for L0) -- skipping"
+fi
 
 cd "$EVAL"
 if [[ "$MODE" == "smoke" ]]; then
@@ -174,6 +185,17 @@ if [[ "$MODE" == "smoke" ]]; then
   python3 -u "$SLOWPOKE_TOP/src/main.py" -b "$BENCH" -r mix -x "$TARGET" \
     --num_exp 1 -t "$IO_THREAD" -c "$IO_CONN" --poker_batch_req "$IO_POKER_BATCH_REQ" \
     --repetitions 1 --num_req 5000 >> "$LOG"
+elif [[ "$LEVEL" == "L0" ]]; then
+  # run_io_medium.sh explicitly rejects L0 ("L0 uses run-*-medium.sh") --
+  # replicate its full-scale invocation directly instead, using the same
+  # io_levels.conf variables it would have used.
+  var_req="IO_NUM_REQ_${BENCH^^}"
+  NUM_REQ="${!var_req:-100000}"
+  echo "[residual] FULL L0 medium run (no injection)"
+  python3 -u "$SLOWPOKE_TOP/src/main.py" -b "$BENCH" -r mix -x "$TARGET" \
+    --num_exp "$IO_NUM_EXP" -t "$IO_THREAD" -c "$IO_CONN" \
+    --poker_batch_req "$IO_POKER_BATCH_REQ" --repetitions "$IO_REPETITIONS" \
+    --num_req "$NUM_REQ" >> "$LOG"
 else
   echo "[residual] FULL $LEVEL medium run"
   bash "$IO_GAP/run_io_medium.sh" "$BENCH" "$LEVEL" "$LOG"
