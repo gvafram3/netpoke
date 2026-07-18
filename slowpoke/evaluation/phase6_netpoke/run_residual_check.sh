@@ -85,11 +85,20 @@ fi
 # container -- a dependency these images don't explicitly install and that
 # we have no way to verify from here. `sh`/`cat` are guaranteed present.
 start_sampler_on_pod() {
-  local pod="$1" ctr out
+  local pod="$1" ctr out lockdir="$OUTDIR/.lock.$pod"
   grep -qx "$pod" "$STARTED_FILE" 2>/dev/null && return
   case "$pod" in
     "$TARGET"-*|ubuntu-client-*) return ;;
   esac
+  # Atomic claim BEFORE the slow kubectl calls below. watch_and_start() fires
+  # attempts every 1s in parallel; without this, the same pod appearing in
+  # two consecutive cycles (still in-flight from the first, several seconds
+  # of kubectl exec) could start two sampler processes writing the same
+  # output file at once, interleaving records into garbled-but-parseable
+  # JSON (observed: correlate_residual.py KeyError on a missing "ts" field).
+  # mkdir is atomic at the filesystem level -- only one concurrent caller
+  # can win it.
+  mkdir "$lockdir" 2>/dev/null || return
   if ! ctr=$(kubectl get pod -n default "$pod" -o jsonpath='{.spec.containers[0].name}' 2>&1) || [[ -z "$ctr" ]]; then
     echo "$(date -Is) $pod: get container name failed: $ctr" >> "$DEBUG_LOG"
     return

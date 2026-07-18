@@ -100,6 +100,11 @@ def analyze_pod(pod: str, samples: list[dict], windows: list[tuple[float, float]
 
     prev = None
     for s in samples:
+        # Skip malformed records -- e.g. from two sampler processes racing
+        # to write the same output file (see run_residual_check.sh), which
+        # can interleave writes into JSON that parses but is missing fields.
+        if "ts" not in s or "procs" not in s:
+            continue
         if prev is not None:
             t0, t1 = prev["ts"], s["ts"]
             mid = (t0 + t1) / 2
