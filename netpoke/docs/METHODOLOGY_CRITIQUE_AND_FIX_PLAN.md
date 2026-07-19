@@ -21,6 +21,44 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-19 (Table N1 complete) — L0 overhead check + movie re-sampled; full validation plan done
+
+Ran the last two pieces: boutique at L0 (SIGSTOP-only vs NetPoke, no injection — the overhead
+regression check from design doc §6, never previously executed) and movie's L2 re-run at a
+tighter 5ms sampler interval (its first attempt had only 1.0-1.6% window coverage, too sparse to
+trust). Added `level=L0` support to `run_residual_check.sh` (`run_io_medium.sh` itself rejects
+L0 — "L0 uses run-*-medium.sh" — so L0's full-scale run now replicates that script's main.py
+invocation directly instead of delegating to it).
+
+**One data-hygiene issue hit and fixed along the way:** re-running `movie L2` reused the same
+output directory as the first (contaminated) attempt without clearing old files first, so the
+first correlation pass silently mixed yesterday's sparse data with today's tighter-sampled data.
+Caught via file timestamps (two clear clusters, July 18 vs July 19), separated with `find
+-newermt`, re-correlated clean. Worth remembering: `run_residual_check.sh` does not currently
+clear `OUTDIR` before a re-run of the same bench/level/tag combination — fine for a first run,
+not fine for deliberately re-running the same combination twice.
+
+**Final complete matrix — recorded as
+[Table N1](../results/cluster/netpoke/tables/TABLE_RESIDUAL_MATRIX.md):**
+
+| App | Level | SIGSTOP-only | NetPoke-on | Change | Coverage |
+|---|---|---|---|---|---|
+| Boutique | L0 | 8.43% | 7.06% | ~flat, no regression | 15-17% |
+| Boutique | L2 | 3.28% | 4.28% | flat | 3-9% |
+| Hotel | L2 | 9.52% | 3.33% | ~2.9x reduction | 13-16% |
+| Social | L2 | 8.91% | 4.00% | ~2.2x reduction | 17-23% |
+| Movie | L2 (re-sampled) | 6.89% | **1.59%** | ~4.3x reduction | 8-10% |
+
+Movie's clean number (6.89%→1.59%, ~4.3x) is somewhat different in magnitude from the
+contaminated first estimate (~5x) but the same direction, now with far better statistical
+support (8-10% vs 1-1.6% coverage).
+
+**This completes the originally-planned Phase 6 validation:** Step 2 (mechanism works,
+confirmed on cluster) → Step 3 (sampler works, validated) → residual I/O measured directly for
+all 4 apps at L2 → L0 overhead-regression check (no NetPoke regression) → movie's coverage gap
+fixed. Every piece of `netpoke/design/poker-io-pause.md` §6's validation plan (mechanistic,
+outcome, overhead) now has real data behind it, not just a design intent.
+
 ### 2026-07-18 (full L2 residual matrix, all 4 apps) — NetPoke reduces residual I/O in 3/4 apps; hotel's RMSE reversal explained
 
 Full-scale (`full`, not `smoke`) `run_residual_check.sh <bench> L2 full {0,1}` chained overnight
