@@ -188,7 +188,7 @@ netpoke_rmse_summary_line() {
       done=$((done + 1))
     fi
   done
-  echo "NetPoke RMSE (Phase 5/6): ${done}/4 L2 runs complete (boutique → hotel → social → movie)"
+  echo "NetPoke-on RMSE run: ${done}/4 L2 runs complete (boutique → hotel → social → movie)"
 }
 
 phase4_ebpf_summary_line() {
