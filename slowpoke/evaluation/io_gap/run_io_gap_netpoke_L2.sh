@@ -40,12 +40,24 @@ IO_GAP="$(cd "${BASH_SOURCE%/*}" && pwd)"
 EVAL="$(cd "$IO_GAP/.." && pwd)"
 RESULTS="${RESULTS_DIR:-$EVAL/results}"
 SAVED="$RESULTS/saved"
+ACTIVE_STAMP="$RESULTS/.slowpoke_active_log"
 mkdir -p "$RESULTS" "$SAVED"
 
 APPS=(boutique hotel social movie)
 
 log_complete() {
   [[ -f "$1" ]] && grep -q 'Error Perc:' "$1" 2>/dev/null
+}
+
+# watch_progress.sh (running in a separate SSH session, so it can't see this
+# script's exported env vars) reads this stamp file to know which log to
+# follow. Without it, pick_active_log() falls back to matching this app's
+# plain Phase 3 *_io_L2_medium.log -- which already exists and is complete
+# for every app -- and gets stuck displaying that stale, finished log instead
+# of tracking this run.
+set_active_log() {
+  export SLOWPOKE_ACTIVE_LOG="$1"
+  echo "$1" >"$ACTIVE_STAMP"
 }
 
 save_log() {
@@ -89,6 +101,8 @@ for bench in "${APPS[@]}"; do
     rm -f "$log"
   fi
 
+  set_active_log "$log"
+
   if ! time bash "$IO_GAP/run_io_medium.sh" "$bench" L2 "$log"; then
     echo "[netpoke_rmse] FATAL: $bench L2 failed"
     bash "$IO_GAP/restore_io_injection.sh" || true
@@ -105,6 +119,7 @@ for bench in "${APPS[@]}"; do
   bash "$EVAL/safe_delete_workloads.sh" || true
 done
 
+rm -f "$ACTIVE_STAMP"
 echo ""
 echo "[netpoke_rmse] All 4 NetPoke-on L2 runs complete."
 echo "[netpoke_rmse] Compare against SIGSTOP-only L2 RMSE in"

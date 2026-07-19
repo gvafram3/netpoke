@@ -67,6 +67,12 @@ pick_active_log() {
     fi
   fi
   stamp="$dir/.slowpoke_active_log"
+  # Phase 5/6: run_io_gap_netpoke_L2.sh writes this stamp before each app, so
+  # it takes the same "trust the stamp" path as the Phase 3 orchestrator
+  # below -- called out separately only because its *_io_L2_netpoke_medium.log
+  # naming doesn't match the plain *_io_L1/L2_medium.log pattern the
+  # bench-matching fallback further down checks, and would otherwise fall
+  # through to (already-complete) *_medium.log and get stuck there.
   if [[ -f "$stamp" ]]; then
     f=$(tr -d '\n' <"$stamp")
     # Do not stick on a finished log while main.py moved to the next benchmark.
@@ -173,6 +179,18 @@ io_gap_summary_line() {
   echo "I/O-gap: ${done}/8 runs complete (boutique L1→L2 → hotel → social → movie)"
 }
 
+netpoke_rmse_summary_line() {
+  local dir="$1" done=0 bench f
+  local -a order=(boutique hotel social movie)
+  for bench in "${order[@]}"; do
+    f="$dir/${bench}_io_L2_netpoke_medium.log"
+    if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
+      done=$((done + 1))
+    fi
+  done
+  echo "NetPoke RMSE (Phase 5/6): ${done}/4 L2 runs complete (boutique → hotel → social → movie)"
+}
+
 phase4_ebpf_summary_line() {
   local dir="$1" done=0 bench f
   local -a order=(social hotel movie boutique)
@@ -266,10 +284,12 @@ print_compact() {
 
   _pc_emit() {
     echo "── SlowPoke $(date '+%H:%M:%S') ──"
-    local name done_total=0 f show_io=0
+    local name done_total=0 f show_io=0 show_netpoke_rmse=0
     for name in "${REPRO_BENCHES[@]}"; do
       f="$RESULTS_DIR/${name}_io_L1_medium.log"
       [[ -f "$f" ]] && show_io=1
+      f="$RESULTS_DIR/${name}_io_L2_netpoke_medium.log"
+      [[ -f "$f" ]] && show_netpoke_rmse=1
       f="$RESULTS_DIR/${name}_medium.log"
       if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
         done_total=$((done_total + 1))
@@ -277,6 +297,8 @@ print_compact() {
     done
     if [[ -n "${SLOWPOKE_PHASE4_EBPF:-}" ]]; then
       phase4_ebpf_summary_line "$RESULTS_DIR"
+    elif (( show_netpoke_rmse )); then
+      netpoke_rmse_summary_line "$RESULTS_DIR"
     elif (( show_io )) || [[ -n "${SLOWPOKE_IO_GAP_SUITE:-}" ]]; then
       io_gap_summary_line "$RESULTS_DIR"
     else
