@@ -113,3 +113,33 @@ grep io_gap_summary_line ~/slowpoke/evaluation/watch_progress.sh
 grep 'Waiting for all pod containers to be ready' ~/slowpoke/src/run.sh
 bash ~/slowpoke/evaluation/io_gap/preflight_io_gap.sh results/
 ```
+
+## Phase 5/6 — NetPoke-on RMSE comparison
+
+Everything above measures the SIGSTOP-only baseline (NetPoke off). `run_io_gap_netpoke_L2.sh`
+re-runs the **same** L2 accuracy benchmark (same `-x` target, same netem injection) with
+`SLOWPOKE_NETPOKE=1`, so `src/run.sh` deploys the netpoke-tagged image/yaml — the same
+egress-hold deployment path already exercised for all four apps by
+`phase6_netpoke/run_residual_check.sh` (Table N1) — instead of the plain SIGSTOP-only image.
+This is the direct test of RQ4 ("does the mitigation restore accuracy?"): compare the resulting
+RMSE against the SIGSTOP-only L2 rows in
+[`netpoke/results/cluster/io_gap/tables/TABLE_IO_GAP_MATRIX.md`](../../../netpoke/results/cluster/io_gap/tables/TABLE_IO_GAP_MATRIX.md).
+
+```bash
+screen -S slowpoke-netpoke-rmse
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+cd ~/slowpoke/evaluation
+WATCH_INTERVAL=10 ./io_gap/run_io_gap_netpoke_L2.sh
+# Ctrl+A D
+```
+
+SSH 2 (unchanged): `./watch_progress.sh --append results/`
+
+Outputs `results/<bench>_io_L2_netpoke_medium.log` for all four apps (kept separate from the
+SIGSTOP-only `<bench>_io_L2_medium.log` files). Per-app RMSE:
+
+```bash
+for b in boutique hotel social movie; do
+  python3 summarize_results.py results/${b}_io_L2_netpoke_medium.log
+done
+```

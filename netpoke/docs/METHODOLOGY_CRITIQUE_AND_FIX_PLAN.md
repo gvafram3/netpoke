@@ -21,6 +21,25 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-19 (repo reorg + Chapter 1 rewrite) — RMSE comparison (RQ4) planned next
+
+Reorganized the repo to mirror SlowPoke's own layout (superseded planning docs moved to
+`docs/deprecated/`, not deleted), rewrote both `README.md` files as the "how to replicate this"
+entry point, and corrected Chapter 1 against what was actually built (mechanism section, the
+eBPF→in-pod-sampler swap, discredited numbers, scope section).
+
+Table N1 (residual I/O) answers "does the hold suppress residual I/O" — it does, 2.2-4.3x on
+hotel/social/movie. It does **not** answer RQ4 ("does that translate into restored end-to-end
+prediction accuracy"), which is a different, not-yet-run experiment: the standard L2 accuracy
+benchmark (10-point RMSE, same as Phase 1/3) with `SLOWPOKE_NETPOKE=1`, compared against the
+SIGSTOP-only L2 RMSE already in `TABLE_IO_GAP_MATRIX.md`. Added
+`slowpoke/evaluation/io_gap/run_io_gap_netpoke_L2.sh` to run it — same targets/injection as
+Phase 3's `run_io_medium.sh`, same netpoke-tagged deployment path already validated by Table N1,
+just measuring RMSE instead of residual bytes. Not yet run. Given hotel's Phase 3 L2 RMSE
+reversed direction while its residual-I/O result was clean (see finding below), expect this
+comparison to be the real test of whether the mitigation matters at the accuracy level SlowPoke's
+own paper reports in, not just at the mechanism level.
+
 ### 2026-07-19 (Table N1 complete) — L0 overhead check + movie re-sampled; full validation plan done
 
 Ran the last two pieces: boutique at L0 (SIGSTOP-only vs NetPoke, no injection — the overhead
