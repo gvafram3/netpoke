@@ -6,7 +6,7 @@
 
 **Repository:** gvafram3/netpoke (branch `netpoke/experiments`)
 
-**Companion files:** `slowpoke/INSTRUCTIONS.md`, `netpoke/INSTRUCTIONS.md`, `netpoke/docs/slowpoke-evaluation-process.md`
+**Companion files:** `slowpoke/INSTRUCTIONS.md`, `netpoke/INSTRUCTIONS.md`, `netpoke/docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`
 
 ---
 

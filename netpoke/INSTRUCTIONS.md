@@ -19,7 +19,7 @@ cd netpoke
 git checkout netpoke/experiments
 ```
 
-**Full handoff (start here in Cursor):** [`CONTINUE_FROM_HERE.md`](CONTINUE_FROM_HERE.md)
+**Project overview and current status:** [`README.md`](README.md)
 
 ## Where experiments run
 
@@ -116,7 +116,9 @@ WATCH_INTERVAL=10 ./phase4_ebpf/run_ebpf_all_L2.sh   # ~3–4 h full suite
 
 **SSH 2 monitor:** `WATCH_INTERVAL=10 SLOWPOKE_PHASE4_EBPF=1 ./watch_progress.sh --append results/`
 
-See [`netpoke/evaluation/phase4_ebpf/README.md`](evaluation/phase4_ebpf/README.md).
+See [`slowpoke/evaluation/phase6_netpoke/README.md`](../slowpoke/evaluation/phase6_netpoke/README.md)
+(the in-pod `/proc` sampler that replaced the original eBPF plan — see finding F2 in
+[`docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md)).
 
 ---
 
@@ -149,6 +151,5 @@ Re-run L2 matrix with NetPoke enabled; compare RMSE to Phase 3.
 | `slowpoke/evaluation/scripts/pack_results_for_repo.sh` | Tarball for scp |
 | `slowpoke/evaluation/io_gap/run_boutique_io_rerun.sh` | Boutique L1/L2 only |
 
-Master roadmap: [`docs/thesis-evaluation-roadmap.md`](docs/thesis-evaluation-roadmap.md)  
-GCP runbook: [`docs/gcp-run-with-progress.md`](docs/gcp-run-with-progress.md)  
+Canonical reference (findings, fix plan, dated status log): [`docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md)  
 **SlowPoke paper study guide (Word):** [`docs/slowpoke-paper-deep-dive.docx`](docs/slowpoke-paper-deep-dive.docx)

@@ -19,9 +19,12 @@ Requires: `pip install python-docx`
 
 | File | Description |
 |------|-------------|
+| [`../README.md`](../README.md) | Project overview, current status, how to replicate |
 | [`../INSTRUCTIONS.md`](../INSTRUCTIONS.md) | Artifact manual (experiments branch) |
-| [`slowpoke-evaluation-process.md`](slowpoke-evaluation-process.md) | What the NSDI artifact actually runs |
-| [`gcp-run-with-progress.md`](gcp-run-with-progress.md) | Monitor + screen on netpoke-control |
-| [`fetch-boutique-l2-results.md`](fetch-boutique-l2-results.md) | Pack and sync cluster results |
+| [`METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md) | **Canonical reference** — findings, fix plan, and the dated Live status log (the up-to-date "where are we" record) |
 
 Thesis drafts: branch `netpoke/thesis-material`, folder `netpoke/thesis/`.
+
+Older planning/status docs (superseded by the two files above) have moved to
+[`deprecated/`](deprecated/README.md) rather than being deleted, since they
+still have historical value.
