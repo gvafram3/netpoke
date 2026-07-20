@@ -7,9 +7,16 @@
 # (3.53% -> 10.26%): is that L2-specific, or does the mechanism cost boutique
 # accuracy even at baseline?
 #
-# Reuses the exact same Phase 1 baseline scripts (run-<bench>-medium.sh, same
-# targets, no netem) with one difference: SLOWPOKE_NETPOKE=1. Compare the
-# resulting RMSE against the existing SIGSTOP-only L0 numbers in
+# Replicates the exact same main.py invocation Phase 1's per-app scripts use
+# (run-<bench>-medium.sh: same target/thread/conn/num_req/num_exp, no netem),
+# inlined directly rather than delegating to those files -- ~/slowpoke on the
+# VM is not a git checkout, so files present in this repo aren't guaranteed
+# to exist there (the same lesson run_residual_check.sh's L0 support already
+# hit once: "L0 uses run-*-medium.sh ... so L0's full-scale run now
+# replicates that script's main.py invocation directly instead of delegating
+# to it" -- METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md). One difference from Phase
+# 1: SLOWPOKE_NETPOKE=1. Compare the resulting RMSE against the existing
+# SIGSTOP-only L0 numbers in
 # netpoke/results/cluster/baseline/tables/TABLE_L0_SUMMARY.md.
 #
 # SSH 1 (screen):
@@ -42,6 +49,25 @@ ACTIVE_STAMP="$RESULTS/.slowpoke_active_log"
 mkdir -p "$RESULTS" "$SAVED"
 
 APPS=(boutique hotel social movie)
+
+# target, num_req -- everything else (thread/conn/repetitions/poker_batch_req/
+# num_exp) is identical across all four apps' run-*-medium.sh scripts.
+target_for() {
+  case "$1" in
+    boutique) echo cart ;;
+    hotel) echo profile ;;
+    social) echo hometimeline ;;
+    movie) echo moviereviews ;;
+  esac
+}
+num_req_for() {
+  case "$1" in
+    boutique) echo 100000 ;;
+    hotel) echo 10000 ;;
+    social) echo 30000 ;;
+    movie) echo 20000 ;;
+  esac
+}
 
 log_complete() {
   [[ -f "$1" ]] && grep -q 'Error Perc:' "$1" 2>/dev/null
@@ -79,11 +105,12 @@ cd "$EVAL"
 
 for bench in "${APPS[@]}"; do
   log="$RESULTS/${bench}_netpoke_medium.log"
-  script="$EVAL/${bench}/run-${bench}-medium.sh"
+  target="$(target_for "$bench")"
+  num_req="$(num_req_for "$bench")"
 
   echo ""
   echo "================================================================"
-  echo "[l0_overhead] $bench L0, SLOWPOKE_NETPOKE=1"
+  echo "[l0_overhead] $bench L0 (target=$target, num_req=$num_req), SLOWPOKE_NETPOKE=1"
   echo "[l0_overhead] Log: $log"
   echo "[l0_overhead] Started: $(date -Is)"
   echo "================================================================"
@@ -96,14 +123,14 @@ for bench in "${APPS[@]}"; do
   if [[ -f "$log" && ! -s "$log" ]]; then
     rm -f "$log"
   fi
-  if [[ ! -x "$script" ]]; then
-    echo "[l0_overhead] FATAL: missing $script"
-    exit 1
-  fi
 
   set_active_log "$log"
+  bash "$EVAL/safe_delete_workloads.sh"
 
-  if ! time bash "$script" "$log"; then
+  if ! time python3 -u "$SLOWPOKE_TOP/src/main.py" \
+      -b "$bench" -x "$target" -r mix \
+      -t 8 -c 1024 --num_exp 10 --repetitions 1 --num_req "$num_req" \
+      --poker_batch_req 100 >"$log"; then
     echo "[l0_overhead] FATAL: $bench L0 failed"
     exit 1
   fi
