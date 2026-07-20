@@ -63,14 +63,22 @@ measurement is the more trustworthy signal; see the "Live status log" in
 [`docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md)
 for the full investigation.
 
-**Still open:** boutique's regression under NetPoke at L2 (Table N2) and its
-flat residual-I/O signal (Table N1) point at the same unanswered question —
-why boutique's fan-out never shows the I/O-bound failure mode this project
-set out to fix, and whether the egress hold's overhead is specifically what
-hurts it at L2. All figures above are single-run measurements; repeating
-key runs to separate signal from this cluster's known run-to-run noise
+**Why boutique is different (resolved):** traced directly in source — boutique's
+`cart` target handles requests entirely from an in-process `sync.Map`, with
+zero synchronous network calls in its live code path (a Redis client and
+state-store call exist in the file but are dead code). Hotel/movie/social's
+targets all make at least one real network round-trip (a Dapr state-store
+call, and for movie/social an explicit HTTP call to another service). There
+was never an I/O gap for boutique to have, which is also why NetPoke's
+overhead shows up as pure downside for it at L2 with nothing to offset it.
+Full trace: [`results/cluster/netpoke/tables/BOUTIQUE_FANOUT_FINDING.md`](results/cluster/netpoke/tables/BOUTIQUE_FANOUT_FINDING.md).
+
+**Still open:** all figures above are single-run measurements; repeating key
+runs to separate signal from this cluster's known run-to-run noise
 (especially hotel) is the natural next step before treating exact magnitudes
-as final.
+as final. An L0 RMSE overhead check (NetPoke on vs off, no injection, all
+four apps) is in progress to see whether NetPoke's cost to boutique is
+specific to L2 or shows up at baseline too.
 
 ## Replicating the experiments
 

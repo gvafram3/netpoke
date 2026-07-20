@@ -191,6 +191,18 @@ netpoke_rmse_summary_line() {
   echo "NetPoke-on RMSE run: ${done}/4 L2 runs complete (boutique → hotel → social → movie)"
 }
 
+netpoke_l0_overhead_summary_line() {
+  local dir="$1" done=0 bench f
+  local -a order=(boutique hotel social movie)
+  for bench in "${order[@]}"; do
+    f="$dir/${bench}_netpoke_medium.log"
+    if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
+      done=$((done + 1))
+    fi
+  done
+  echo "NetPoke-on L0 overhead check: ${done}/4 runs complete (boutique → hotel → social → movie)"
+}
+
 phase4_ebpf_summary_line() {
   local dir="$1" done=0 bench f
   local -a order=(social hotel movie boutique)
@@ -284,12 +296,14 @@ print_compact() {
 
   _pc_emit() {
     echo "── SlowPoke $(date '+%H:%M:%S') ──"
-    local name done_total=0 f show_io=0 show_netpoke_rmse=0
+    local name done_total=0 f show_io=0 show_netpoke_rmse=0 show_l0_overhead=0
     for name in "${REPRO_BENCHES[@]}"; do
       f="$RESULTS_DIR/${name}_io_L1_medium.log"
       [[ -f "$f" ]] && show_io=1
       f="$RESULTS_DIR/${name}_io_L2_netpoke_medium.log"
       [[ -f "$f" ]] && show_netpoke_rmse=1
+      f="$RESULTS_DIR/${name}_netpoke_medium.log"
+      [[ -f "$f" ]] && show_l0_overhead=1
       f="$RESULTS_DIR/${name}_medium.log"
       if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
         done_total=$((done_total + 1))
@@ -299,6 +313,8 @@ print_compact() {
       phase4_ebpf_summary_line "$RESULTS_DIR"
     elif (( show_netpoke_rmse )); then
       netpoke_rmse_summary_line "$RESULTS_DIR"
+    elif (( show_l0_overhead )); then
+      netpoke_l0_overhead_summary_line "$RESULTS_DIR"
     elif (( show_io )) || [[ -n "${SLOWPOKE_IO_GAP_SUITE:-}" ]]; then
       io_gap_summary_line "$RESULTS_DIR"
     else

@@ -21,6 +21,29 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-19 (Step 6 done) — boutique's fan-out traced: it has zero synchronous I/O, not "less"
+
+Answered the last open item from §5 of this plan (Step 6) without needing cluster time: read the
+live code path of each app's causal target service directly. Boutique's `cart` handler
+(`GetCart`/`AddItem`/`EmptyCart`) operates entirely on an in-process `sync.Map` — a Redis client
+and `state.GetState` call exist in `cart.go` but are commented out, dead code not on the request
+path. Hotel's `profile`, movie's `moviereviews`, and social's `hometimeline` handlers all call
+`slowpoke.GetState`/`SetState` (a real Dapr state-store round-trip over Redis) and, for
+movie/social, an explicit `slowpoke.Invoke(...)` — a genuine HTTP call to another named service
+via the Dapr sidecar. Confirmed by reading `Invoke`'s implementation directly
+(`app/pkg/invoke/invoke.go:198`, a real `http.NewRequest("POST", ...)`), not inferred.
+
+This isn't "boutique has a smaller I/O gap than the others" — its target genuinely has none in
+the live path. That single fact now explains three previously-separate observations: boutique's
+flat RMSE across every I/O-gap injection level (Phase 1/3), its flat residual-I/O reading in
+Table N1, and Table N2's regression (NetPoke's per-pause netlink/`tc` overhead is real; with
+nothing to suppress, that cost shows up as pure downside instead of being offset by a benefit).
+Full writeup: `netpoke/results/cluster/netpoke/tables/BOUTIQUE_FANOUT_FINDING.md`.
+
+**Also started:** `run_netpoke_l0_overhead.sh` — same RMSE overhead question as Table N2, but at
+L0 (no injection), all four apps, motivated directly by boutique's L2 regression: is the cost
+L2-specific or does it show up at baseline too. Not yet run.
+
 ### 2026-07-19 (Table N2 complete) — RMSE restoration confirmed for 3/4 apps, boutique regresses
 
 Ran `run_io_gap_netpoke_L2.sh` (all 4 apps, single run each). Result vs the SIGSTOP-only L2 RMSE
