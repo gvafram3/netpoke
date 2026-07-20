@@ -21,6 +21,31 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-19 (Table N2 complete) — RMSE restoration confirmed for 3/4 apps, boutique regresses
+
+Ran `run_io_gap_netpoke_L2.sh` (all 4 apps, single run each). Result vs the SIGSTOP-only L2 RMSE
+already in `TABLE_IO_GAP_MATRIX.md`:
+
+- Social (cleanest I/O-gap case): 33.61% → 18.69% — recovers 76% of the gap back to its 14.01%
+  L0 baseline. This is the strongest single piece of evidence in the project that the mechanism
+  restores accuracy, not just reduces residual bytes.
+- Hotel: 17.51% → 10.25%, movie: 13.84% → 10.23% — both improve, both land at/below their own
+  L0 baseline. Read with the standing hotel-volatility caveat (its L0 RMSE alone moved
+  10.23%→20.65% between two runs with no injection involved).
+- Boutique: 3.53% → **10.26%**, clearly worse. Consistent with Table N1 (boutique's residual I/O
+  stayed flat, no real gap to close) but goes further: turning NetPoke on for an app with nothing
+  to fix didn't just fail to help here, it hurt. Not explained yet — flagged as a real open
+  question (same root question as boutique's fan-out never showing an I/O-gap signal anywhere in
+  this project), not glossed over.
+
+Full table: `netpoke/results/cluster/netpoke/tables/TABLE_N2_RMSE_COMPARISON.md`.
+
+Also fixed a bug in `run_io_gap_netpoke_L2.sh` en route: it never wrote the `.slowpoke_active_log`
+stamp `watch_progress.sh` reads, so the monitor got stuck displaying a stale, already-complete
+`boutique_medium.log` instead of tracking the new run. Fixed by adding the same stamp-writing
+`run_io_gap_all.sh` already does, plus a dedicated summary line so the progress banner doesn't
+report Phase 3's unrelated "8/8 complete" count instead.
+
 ### 2026-07-19 (repo reorg + Chapter 1 rewrite) — RMSE comparison (RQ4) planned next
 
 Reorganized the repo to mirror SlowPoke's own layout (superseded planning docs moved to
