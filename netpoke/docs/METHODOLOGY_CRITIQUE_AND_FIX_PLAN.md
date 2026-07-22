@@ -21,6 +21,56 @@ NetPoke's effect unclear) — the instruments haven't been pointed correctly at 
 newest entry on top. Everything below the log (findings, plan, figures) is the stable
 background reference.
 
+### 2026-07-21 (injection-yaml bug found and fixed) — Table N1/N2's L2 NetPoke-on numbers need re-measuring
+
+Found while writing `EXPERIMENT_RUNBOOK.md`: `apply_io_injection.sh` always patched the plain
+`<bench>/yamls/*.yaml` files, but `run.sh` deploys from `<bench>/yamls/netpoke/` or
+`netpoke-sigstop/` whenever `SLOWPOKE_NETPOKE=1` or `SLOWPOKE_YAML_SUBDIR` is set. Any run using
+the netpoke-tagged deployment path at L1/L2 would have deployed from a yaml snapshot that never
+received the injected delay, silently running unstressed while labelled L1/L2.
+
+Affects Table N1's L2 residual-I/O rows (hotel, social, movie, both conditions) and Table N2's
+NetPoke-on L2 RMSE numbers specifically (the SIGSTOP-only side of N2 came from the original,
+unaffected Phase 3 runs). Does not affect Table B1/I1 (plain directory throughout), Table N3
+(L0, no injection involved), or the boutique fan-out finding (source read, no deployment).
+
+Fixed: `apply_io_injection.sh` now resolves the same directory `run.sh` will actually deploy
+from, mirroring `run.sh`'s own precedence. Verified the fix works (netem sidecar now appears in
+the `netpoke/` copy after patching) but have not yet re-run the affected experiments. This is
+the top priority for the next cluster session: re-measure Table N2's L2 NetPoke-on numbers
+(the 76% social recovery result) with the fix in place before treating that figure as settled.
+Full procedure, including a verification step so this class of bug can't recur silently:
+`netpoke/docs/EXPERIMENT_RUNBOOK.md`.
+
+### 2026-07-20 (Table N3 complete) — boutique's regression confirmed baseline, not L2-specific
+
+Ran `run_netpoke_l0_overhead.sh` (all 4 apps, single run each) after fixing a bug where it
+delegated to `boutique/run-boutique-medium.sh` etc. -- files that don't exist on netpoke-control's
+`~/slowpoke` (not a git checkout). Fixed by inlining the `main.py` invocation directly, same
+lesson `run_residual_check.sh`'s L0 support already hit once before.
+
+Result vs the SIGSTOP-only L0 RMSE in `TABLE_L0_SUMMARY.md`:
+
+- Boutique: 2.57% -> **9.13%** (+6.56pp). Essentially the same magnitude as Table N2's L2
+  regression (+6.73pp). This is the second, independent measurement now pointing at the same
+  conclusion as the fan-out trace below: boutique's target has nothing for NetPoke to fix, at any
+  injection level, so the mechanism's overhead is pure cost.
+- Movie: 12.21% -> 12.13% (flat). The cleanest case: negligible cost with no real gap, largest
+  RMSE recovery of any app at L2 (Table N2) when there is one.
+- Social: 14.01% -> 17.35% (+3.34pp, mild). Small baseline cost, dwarfed by a -14.92pp benefit at
+  L2 -- same shape as movie, noisier.
+- Hotel: 20.65% -> 14.13% (-6.52pp). Read with the standing volatility caveat -- hotel's own L0
+  RMSE has already moved by a similar amount (10.23%->20.65%) between two runs with nothing else
+  changed, so this isn't strong evidence of a real NetPoke effect on its own.
+
+One correction to the previous entry below: it said the L0 check (Table N1, residual bytes)
+"confirms NetPoke doesn't hurt the compute-bound baseline" for boutique. That's still true at the
+*byte* level (residual I/O stayed flat). It is not true at the *RMSE* level -- this run shows a
+real cost there. Both are correct; they're measuring different things, and the byte-level check
+alone was not sufficient evidence that there's no overhead.
+
+Full table: `netpoke/results/cluster/netpoke/tables/TABLE_N3_L0_OVERHEAD.md`.
+
 ### 2026-07-19 (Step 6 done) — boutique's fan-out traced: it has zero synchronous I/O, not "less"
 
 Answered the last open item from §5 of this plan (Step 6) without needing cluster time: read the

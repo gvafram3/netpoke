@@ -19,6 +19,17 @@ fi
 
 STAMP="$IO_GAP/.io_injection_active"
 YAML_DIR="$SLOWPOKE_TOP/evaluation/$BENCH/yamls"
+# Mirror run.sh's own yaml-directory selection (src/run.sh) exactly, so the
+# netem sidecar actually lands in the files that get deployed. Without this,
+# a run using SLOWPOKE_YAML_SUBDIR (netpoke or netpoke-sigstop) deploys from
+# a directory this script never touches, silently deploying with no
+# injection at all despite being labelled L1/L2.
+if [[ -n "${SLOWPOKE_YAML_SUBDIR:-}" && -d "$YAML_DIR/$SLOWPOKE_YAML_SUBDIR" ]]; then
+  YAML_DIR="$YAML_DIR/$SLOWPOKE_YAML_SUBDIR"
+elif [[ "${SLOWPOKE_NETPOKE:-}" == "1" && -d "$YAML_DIR/netpoke" ]]; then
+  YAML_DIR="$YAML_DIR/netpoke"
+fi
+echo "[io_gap] injecting into $YAML_DIR"
 
 resolve_yaml_file() {
   local bench="$1" svc="$2"
@@ -56,8 +67,9 @@ for pair in "${PAIRS[@]}"; do
   bak="$YAML_DIR/${yfile}.io_l0bak"
   cp -a "$base" "$bak"
   python3 "$IO_GAP/patch_netem_yaml.py" "$base" "$base" "$delay" "${BENCH}-${LEVEL}-${svc}"
-  echo "${BENCH}/${yfile}|${bak}" >>"$STAMP"
-  echo "[io_gap] $BENCH $LEVEL: ${svc} netem ${delay}ms → $yfile"
+  rel="${YAML_DIR#"$SLOWPOKE_TOP"/evaluation/}/${yfile}"
+  echo "${rel}|${bak}" >>"$STAMP"
+  echo "[io_gap] $BENCH $LEVEL: ${svc} netem ${delay}ms → $base"
 done
 
 date -Is >>"$STAMP"

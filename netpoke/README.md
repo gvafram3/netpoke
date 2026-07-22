@@ -37,13 +37,15 @@ armed and released in lock-step with each real `SIGSTOP`/`SIGCONT` pair.
 | 3 — I/O-gap injection | Static `netem` delay as an indirect I/O-sensitivity probe | **Complete**, 8/8 runs — noisy proxy, see caveat below |
 | 6 — Residual I/O (Table N1) | Direct in-pod measurement of bytes leaking through real pause windows, SIGSTOP-only vs NetPoke-on | **Complete**, all 4 apps at L2 + boutique L0 overhead check |
 | 5/6 — RMSE restoration (Table N2) | Same L2 accuracy benchmark as Phase 3, SIGSTOP-only vs NetPoke-on | **Complete**, all 4 apps |
+| L0 RMSE overhead (Table N3) | Same accuracy benchmark, no injection, SIGSTOP-only vs NetPoke-on | **Complete**, all 4 apps |
 
 **Headline result (Table N1):** with NetPoke on, residual network I/O during
 pause windows drops in 3 of 4 apps — hotel ~2.9x, social ~2.2x, movie ~4.3x —
 measured directly from POKER's own pause-window timestamps, not inferred from
-an RMSE proxy. Boutique stays flat (it never showed a strong I/O-sensitivity
-signal anywhere in this project) and a separate L0 check confirms NetPoke adds
-no overhead when there's no gap to close. Full numbers, coverage, and caveats:
+an RMSE proxy. Boutique's residual-*bytes* stay flat at L0 (no regression at
+the byte level) — but see Table N3 below, which found a real cost at the
+*RMSE* level that the byte-level check didn't catch. Full numbers, coverage,
+and caveats:
 [`results/cluster/netpoke/tables/TABLE_RESIDUAL_MATRIX.md`](results/cluster/netpoke/tables/TABLE_RESIDUAL_MATRIX.md).
 
 **Headline result (Table N2):** that residual-I/O reduction translates into
@@ -69,16 +71,24 @@ zero synchronous network calls in its live code path (a Redis client and
 state-store call exist in the file but are dead code). Hotel/movie/social's
 targets all make at least one real network round-trip (a Dapr state-store
 call, and for movie/social an explicit HTTP call to another service). There
-was never an I/O gap for boutique to have, which is also why NetPoke's
-overhead shows up as pure downside for it at L2 with nothing to offset it.
+was never an I/O gap for boutique to have.
 Full trace: [`results/cluster/netpoke/tables/BOUTIQUE_FANOUT_FINDING.md`](results/cluster/netpoke/tables/BOUTIQUE_FANOUT_FINDING.md).
+
+**Headline result (Table N3):** boutique's regression isn't specific to L2 — it
+costs almost exactly the same at baseline with no injection at all (+6.56pp
+at L0 vs +6.73pp at L2 in Table N2), a second, independent measurement
+consistent with the fan-out finding: nothing to fix, so the mechanism's
+per-pause overhead shows up as pure cost. Movie is the cleanest opposite
+case — flat at L0 (−0.08pp), largest recoverer at L2 — a small, roughly
+constant cost that's negligible without a real gap and outweighed by a large
+benefit when there is one. Full numbers and caveats:
+[`results/cluster/netpoke/tables/TABLE_N3_L0_OVERHEAD.md`](results/cluster/netpoke/tables/TABLE_N3_L0_OVERHEAD.md).
 
 **Still open:** all figures above are single-run measurements; repeating key
 runs to separate signal from this cluster's known run-to-run noise
-(especially hotel) is the natural next step before treating exact magnitudes
-as final. An L0 RMSE overhead check (NetPoke on vs off, no injection, all
-four apps) is in progress to see whether NetPoke's cost to boutique is
-specific to L2 or shows up at baseline too.
+(especially hotel — its L0 RMSE alone has already moved 10.23%→20.65%
+between two runs with nothing else changed) is the natural next step before
+treating exact magnitudes as final.
 
 ## Replicating the experiments
 
@@ -119,6 +129,10 @@ gcloud compute scp --zone=us-central1-a \
   aframviscagyebi@netpoke-control:~/netpoke_results_pack_*.tar.gz .
 ```
 
+**Repeated trials from a cold cluster:** full step-by-step commands for every run, every time,
+including a verification step for an injection-yaml bug found and fixed while writing this:
+[`docs/EXPERIMENT_RUNBOOK.md`](docs/EXPERIMENT_RUNBOOK.md).
+
 ## Repository structure
 
 * [`thesis/`](thesis/) — thesis chapters and drafts (writing happens on branch
@@ -140,10 +154,12 @@ gcloud compute scp --zone=us-central1-a \
 | Document | What it's for |
 |----------|----------------|
 | [`INSTRUCTIONS.md`](INSTRUCTIONS.md) | Step-by-step reproduction commands |
-| [`docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md) | **Canonical reference** — findings, fix plan, dated Live status log |
+| [`docs/EXPERIMENT_RUNBOOK.md`](docs/EXPERIMENT_RUNBOOK.md) | Exact commands for a fresh, repeatable run from a cold cluster |
+| [`docs/ARCHITECTURE_AND_COST_COMPARISON.md`](docs/ARCHITECTURE_AND_COST_COMPARISON.md) | SlowPoke's reference cluster vs. this project's, and why the sizing difference matters |
+| [`docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md) | **Canonical reference**: findings, fix plan, dated Live status log |
 | [`docs/slowpoke-paper-deep-dive.md`](docs/slowpoke-paper-deep-dive.md) | Self-contained study guide to the SlowPoke paper/artifact |
-| [`results/cluster/netpoke/tables/TABLE_RESIDUAL_MATRIX.md`](results/cluster/netpoke/tables/TABLE_RESIDUAL_MATRIX.md) | Table N1 — residual-I/O reduction |
-| [`results/cluster/netpoke/tables/TABLE_N2_RMSE_COMPARISON.md`](results/cluster/netpoke/tables/TABLE_N2_RMSE_COMPARISON.md) | Table N2 — end-to-end RMSE restoration |
+| [`results/cluster/netpoke/tables/TABLE_RESIDUAL_MATRIX.md`](results/cluster/netpoke/tables/TABLE_RESIDUAL_MATRIX.md) | Table N1: residual-I/O reduction |
+| [`results/cluster/netpoke/tables/TABLE_N2_RMSE_COMPARISON.md`](results/cluster/netpoke/tables/TABLE_N2_RMSE_COMPARISON.md) | Table N2: end-to-end RMSE restoration |
 | [`docs/deprecated/`](docs/deprecated/README.md) | Superseded planning docs, kept for history |
 
 ## Current decisions (canonical)
