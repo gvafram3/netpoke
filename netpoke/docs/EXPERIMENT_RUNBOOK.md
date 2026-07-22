@@ -77,21 +77,18 @@ references the `loadgen` node).
 
 ## Step 2: Get `~/slowpoke` onto the (possibly brand new) control node
 
-If this is a freshly created `netpoke-control`, `~/slowpoke` does not exist yet.
+One command, run from Cloud Shell, packs `slowpoke/`, sends it, extracts it, and marks every
+script executable on `netpoke-control` in one shot:
 
 ```bash
 # Cloud Shell
-cd ~/netpoke
-tar czf ~/slowpoke_sync.tgz slowpoke/
-gcloud compute scp --zone=us-central1-a ~/slowpoke_sync.tgz \
-  aframviscagyebi@netpoke-control:~/
+cd ~/netpoke/netpoke/infra/gcp
+./sync_to_control.sh
 ```
 
-```bash
-# SSH 1 (netpoke-control)
-tar xzf ~/slowpoke_sync.tgz -C ~/
-chmod +x ~/slowpoke/evaluation/*.sh ~/slowpoke/evaluation/*/*.sh
-```
+Safe to re-run any time you want to push local changes to the control node, not just on a fresh
+cluster. It ends with `SYNC_OK` printed from the remote side; if you don't see that, something
+failed partway and should be investigated before continuing.
 
 Docker images do **not** need rebuilding. They are already pushed to Docker Hub
 (`gvafram3/mucache:<bench>-pokerpp-netpoke`) and Kubernetes pulls them by tag; rebuilding is only
