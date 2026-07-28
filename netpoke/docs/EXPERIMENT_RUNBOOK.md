@@ -96,14 +96,27 @@ needed if `poker.c` / `net_hold.c` change, which they have not for this phase.
 
 ## Step 3: One-time per-cluster yaml setup
 
-Generates the `netpoke/` yaml variant (all four apps) and confirms it's non-empty. Do this once
+Generates both the `netpoke/` and `netpoke-sigstop/` yaml variants (all four apps). Do this once
 per fresh cluster, not once per repetition.
+
+- `netpoke/` — same `gvafram3` image, `NET_ADMIN`, `SLOWPOKE_NETPOKE=1` (egress hold on)
+- `netpoke-sigstop/` — same `gvafram3` image, `NET_ADMIN`, `SLOWPOKE_NETPOKE=0` (egress hold off)
+
+Both are required. Without `netpoke-sigstop/`, runs 1 and 3 silently fall back to the plain
+`yizhengx` images, which lack the `poker: pause_start`/`pause_end` markers.
 
 ```bash
 # SSH 1
 export SLOWPOKE_TOP=~/slowpoke
 cd ~/slowpoke/evaluation
 bash phase5_netpoke/patch_all_netpoke_yamls.sh all
+```
+
+Confirm both directories are non-empty for at least one app:
+
+```bash
+ls ~/slowpoke/evaluation/social/yamls/netpoke/*.yaml
+ls ~/slowpoke/evaluation/social/yamls/netpoke-sigstop/*.yaml
 ```
 
 **Verify the injection fix actually works before trusting any L2 number.** Pick one app and one
@@ -117,7 +130,18 @@ grep -l tc-netem-sidecar ~/slowpoke/evaluation/social/yamls/netpoke/*.yaml
 bash io_gap/restore_io_injection.sh
 ```
 
-If that `grep` finds nothing, stop and do not trust any L2 NetPoke-on result until this is fixed.
+Also verify the sigstop variant receives injection (run 3 deploys from there):
+
+```bash
+export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
+bash io_gap/apply_io_injection.sh social L2
+grep -l tc-netem-sidecar ~/slowpoke/evaluation/social/yamls/netpoke-sigstop/*.yaml
+# should print at least post_storage.yaml and social_graph.yaml
+bash io_gap/restore_io_injection.sh
+unset SLOWPOKE_YAML_SUBDIR
+```
+
+If either `grep` finds nothing, stop — do not trust any L2 result until this is fixed.
 
 ## Step 4: Start a fresh repetition directory
 
@@ -136,57 +160,70 @@ Two windows for every run, no exceptions, even a "quick" one.
 
 **SSH 2** (leave this running for the whole session):
 ```bash
+export REP=rep1
+export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 cd ~/slowpoke/evaluation
 ./watch_progress.sh --append "$RESULTS_DIR/"
 ```
 
 **SSH 1, run 1: SIGSTOP-only, L0 (no injection):**
 ```bash
+export REP=rep1
+export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
+screen -S rep-l0-sigstop
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
 export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
 cd ~/slowpoke/evaluation
-screen -S rep-l0-sigstop
-WATCH_INTERVAL=10 ./run_with_monitor.sh bash -c '
+WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash -c '
   bash boutique/run-boutique-medium.sh "$RESULTS_DIR/boutique_medium.log"
   bash hotel/run-hotel-medium.sh "$RESULTS_DIR/hotel_medium.log"
   bash social/run-social-medium.sh "$RESULTS_DIR/social_medium.log"
   bash movie/run-movie-medium.sh "$RESULTS_DIR/movie_medium.log"
 '
-# Ctrl+A D
+# Ctrl+A D to detach
 ```
 
 **SSH 1, run 2: NetPoke-on, L0:**
 ```bash
+export REP=rep1
+export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
+screen -S rep-l0-netpoke
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1 SLOWPOKE_NETPOKE=1
 unset SLOWPOKE_YAML_SUBDIR
 cd ~/slowpoke/evaluation
-screen -S rep-l0-netpoke
 WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_netpoke_l0_overhead.sh
-# Ctrl+A D
+# Ctrl+A D to detach
 ```
 
 **SSH 1, run 3: SIGSTOP-only, L2 (same image as NetPoke-on, injection fix applies):**
 ```bash
+export REP=rep1
+export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
+screen -S rep-l2-sigstop
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
 export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
 cd ~/slowpoke/evaluation
-screen -S rep-l2-sigstop
-WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash -c '
-  for b in boutique hotel social movie; do
-    bash io_gap/run_io_medium.sh "$b" L2 "$RESULTS_DIR/${b}_io_L2_medium.log"
-  done
-'
-# Ctrl+A D
+# NOTE: unquoted <<EOF so $RESULTS_DIR expands in the heredoc body.
+# <<'EOF' would pass the literal string "$RESULTS_DIR" to bash, which only
+# works by accident (run_with_monitor.sh re-exports it). Unquoted is explicit.
+WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash <<EOF
+for b in boutique hotel social movie; do
+  bash io_gap/run_io_medium.sh "\$b" L2 "$RESULTS_DIR/\${b}_io_L2_medium.log" || exit 1
+done
+EOF
+# Ctrl+A D to detach
 ```
 
 **SSH 1, run 4: NetPoke-on, L2:**
 ```bash
+export REP=rep1
+export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
+screen -S rep-l2-netpoke
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1 SLOWPOKE_NETPOKE=1
 unset SLOWPOKE_YAML_SUBDIR
 cd ~/slowpoke/evaluation
-screen -S rep-l2-netpoke
 WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_io_gap_netpoke_L2.sh
-# Ctrl+A D
+# Ctrl+A D to detach
 ```
 
 Run these four sequentially, not in parallel: they redeploy the same pods and will interfere

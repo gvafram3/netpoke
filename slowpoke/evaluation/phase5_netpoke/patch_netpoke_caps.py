@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Add NET_ADMIN, SLOWPOKE_NETPOKE=1, and gvafram3 NetPoke image to a deployment yaml."""
+"""Add NET_ADMIN, gvafram3 NetPoke image, and SLOWPOKE_NETPOKE to a deployment yaml.
+
+Usage:
+  patch_netpoke_caps.py SRC_YAML DST_YAML [benchmark]           # SLOWPOKE_NETPOKE=1 (netpoke/)
+  patch_netpoke_caps.py SRC_YAML DST_YAML [benchmark] --sigstop # SLOWPOKE_NETPOKE=0 (netpoke-sigstop/)
+
+Both variants use the same gvafram3 image and NET_ADMIN capability so the
+pause-window markers (poker: pause_start/pause_end) are always present.
+The only difference is whether the sch_plug egress hold is active.
+"""
 import re
 import sys
 from pathlib import Path
@@ -29,7 +38,8 @@ def strip_netem_sidecar(text: str) -> str:
     )
 
 
-def patch(src: Path, dst: Path, benchmark: str) -> None:
+def patch(src: Path, dst: Path, benchmark: str, sigstop: bool = False) -> None:
+    netpoke_value = "0" if sigstop else "1"
     text = strip_netem_sidecar(src.read_text())
 
     old_img, new_img = IMAGE_MAP.get(benchmark, (None, None))
@@ -46,12 +56,20 @@ def patch(src: Path, dst: Path, benchmark: str) -> None:
     if "SLOWPOKE_NETPOKE" not in text:
         if "          env:" not in text:
             raise SystemExit(f"Could not find env block in {src}")
-        env_patch = '''            - name: SLOWPOKE_NETPOKE
-              value: "1"
+        env_patch = f'''            - name: SLOWPOKE_NETPOKE
+              value: "{netpoke_value}"
             - name: SLOWPOKE_NET_IFACE
               value: "eth0"
 '''
         text = text.replace("          env:\n", "          env:\n" + env_patch, 1)
+    else:
+        # Already present (e.g. re-patching a netpoke/ yaml into netpoke-sigstop/):
+        # update the value in place rather than inserting a duplicate entry.
+        text = re.sub(
+            r'(- name: SLOWPOKE_NETPOKE\s*\n\s*value:\s*)"[^"]*"',
+            rf'\1"{netpoke_value}"',
+            text,
+        )
 
     # NET_ADMIN must be on the poker container, not only on a removed netem sidecar.
     cap_block = '''          securityContext:
@@ -72,7 +90,11 @@ def patch(src: Path, dst: Path, benchmark: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) not in (3, 4):
-        raise SystemExit(f"usage: {sys.argv[0]} SRC_YAML DST_YAML [benchmark]")
-    bench = sys.argv[3] if len(sys.argv) == 4 else "boutique"
-    patch(Path(sys.argv[1]), Path(sys.argv[2]), bench)
+    args = [a for a in sys.argv[1:] if not a.startswith("-")]
+    flags = [a for a in sys.argv[1:] if a.startswith("-")]
+    if len(args) not in (2, 3):
+        raise SystemExit(
+            f"usage: {sys.argv[0]} SRC_YAML DST_YAML [benchmark] [--sigstop]"
+        )
+    bench = args[2] if len(args) == 3 else "boutique"
+    patch(Path(args[0]), Path(args[1]), bench, sigstop="--sigstop" in flags)

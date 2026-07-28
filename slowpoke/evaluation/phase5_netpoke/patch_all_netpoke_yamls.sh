@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
-# Patch evaluation YAMLs for NetPoke: NET_ADMIN, SLOWPOKE_NETPOKE=1, gvafram3 images.
+# Patch evaluation YAMLs for NetPoke variants:
+#   yamls/netpoke/          — gvafram3 image, NET_ADMIN, SLOWPOKE_NETPOKE=1 (egress hold ON)
+#   yamls/netpoke-sigstop/  — gvafram3 image, NET_ADMIN, SLOWPOKE_NETPOKE=0 (egress hold OFF)
+#
+# Both directories must exist before running any experiment. The netpoke-sigstop/
+# variant is required for the SIGSTOP-only baseline runs (runs 1 and 3 in the
+# experiment runbook) so they deploy the same instrumented image as the NetPoke-on
+# runs — without it, run.sh silently falls back to the plain yizhengx images which
+# lack the pause-window markers poker.c emits.
 #
 #   export SLOWPOKE_TOP=~/slowpoke
 #   cd ~/slowpoke/evaluation
@@ -15,11 +23,12 @@ patch_bench() {
   local b="$1"
   local ydir="$EVAL/$b/yamls"
   local outdir="$EVAL/$b/yamls/netpoke"
+  local outdir_sigstop="$EVAL/$b/yamls/netpoke-sigstop"
   if [[ ! -d "$ydir" ]]; then
     echo "SKIP: no $ydir"
     return
   fi
-  mkdir -p "$outdir"
+  mkdir -p "$outdir" "$outdir_sigstop"
   for src in "$ydir"/*.yaml; do
     [[ -f "$src" ]] || continue
     base=$(basename "$src")
@@ -29,12 +38,16 @@ patch_bench() {
       echo "  SKIP $base (no Deployment)"
       continue
     fi
-    dst="$outdir/$base"
-    if ! python3 "$SCRIPT_DIR/patch_netpoke_caps.py" "$src" "$dst" "$b"; then
+    if ! python3 "$SCRIPT_DIR/patch_netpoke_caps.py" "$src" "$outdir/$base" "$b"; then
       echo "  SKIP $base (patch failed)" >&2
       continue
     fi
-    echo "  $dst"
+    if ! python3 "$SCRIPT_DIR/patch_netpoke_caps.py" "$src" "$outdir_sigstop/$base" "$b" --sigstop; then
+      echo "  SKIP $base sigstop (patch failed)" >&2
+      continue
+    fi
+    echo "  $outdir/$base"
+    echo "  $outdir_sigstop/$base"
   done
 }
 
@@ -53,4 +66,5 @@ case "$BENCH" in
 esac
 
 echo ""
-echo "Apply example: kubectl apply -f $EVAL/boutique/yamls/netpoke/"
+echo "netpoke/       (SLOWPOKE_NETPOKE=1): kubectl apply -f $EVAL/boutique/yamls/netpoke/"
+echo "netpoke-sigstop/ (SLOWPOKE_NETPOKE=0): kubectl apply -f $EVAL/boutique/yamls/netpoke-sigstop/"
