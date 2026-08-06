@@ -1,155 +1,72 @@
 # NetPoke artifact — reproduction instructions
 
-Extends **SlowPoke** (Xie et al., NSDI 2026) with I/O-gap measurement and **NetPoke**
-(network-synchronised pause). Follow the same workflow as
-[`slowpoke/INSTRUCTIONS.md`](../slowpoke/INSTRUCTIONS.md): functional smoke test →
-reproducible benchmarks → plots → thesis extensions.
+Extends **SlowPoke** (Xie et al., NSDI 2026) with I/O-gap measurement and
+**NetPoke** (network-synchronised pause).
 
-## Branches
+## Where to start
 
-| Branch | Purpose |
-|--------|---------|
-| **`netpoke/experiments`** | Active evaluation work, results layout, scripts |
-| **`netpoke/thesis-material`** | Chapter drafts and writeups (separate from experiment branch) |
-| `netpoke26-thesis` | Integration / defense snapshot |
+**To run experiments:** follow [`docs/EXPERIMENT_RUNBOOK.md`](docs/EXPERIMENT_RUNBOOK.md).
+That document is the single authoritative guide — it covers cluster bring-up,
+the 6 paired runs (L0 + L1 + L2, SIGSTOP-only and NetPoke-on), result
+extraction, and teardown.
 
-```bash
-git clone https://github.com/gvafram3/netpoke.git
-cd netpoke
-git checkout netpoke/experiments
-```
+**To understand the project state, findings, and fixes:** read
+[`docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md).
 
-**Project overview and current status:** [`README.md`](README.md)
-
-## Where experiments run
-
-| Location | Role |
-|----------|------|
-| **netpoke-control** (GCP VM) | All benchmarks, logs, plots |
-| **Cloud Shell** | `git pull`, `gcloud compute scp`, download tarballs |
-| **This repo** | Scripts, reference figures, synced results under `netpoke/results/` |
-
-**Do not** run `draw.py` from Cloud Shell unless logs are copied there first.  
-`~/slowpoke` exists only on **netpoke-control**, not Cloud Shell.
-
-```bash
-# Correct — on netpoke-control
-export SLOWPOKE_TOP=~/slowpoke
-cd ~/slowpoke/evaluation
-python3 summarize_results.py results/boutique_medium.log
-bash plot_fig8_png.sh results/
-```
+**For a handoff summary:** [`docs/HANDOFF_2026_08_04.md`](docs/HANDOFF_2026_08_04.md).
 
 ---
 
-# 1. Artifact functional (~5 min)
+## Cluster (GCP)
 
-```bash
-export SLOWPOKE_TOP=~/slowpoke
-cd ~/slowpoke/evaluation
-bash install_netpoke_fixes.sh
-./run_functional.sh
-```
+| Node | VM | vCPU | Role |
+|------|----|------|------|
+| control-plane | `netpoke-control` | 2 | Runs `kubectl`, `main.py`, all scripts |
+| worker1–3 | `netpoke-worker1/2/3` | 2 each | Service pods + `wrk` client |
+| loadgen | `netpoke-loadgen` | 4 | Disabled (`ENABLE_LOADGEN=0`) |
 
-**Pass:** `results/boutique_tiny.log` exists (accuracy not required).
-
----
-
-# 2. SlowPoke baseline — §5.1 / Fig. 8 (~2.5 h all four apps)
-
-```bash
-screen -S slowpoke-repro
-export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
-cd ~/slowpoke/evaluation
-WATCH_INTERVAL=10 ./run_with_monitor.sh ./run_reproducible.sh
-```
-
-**Pass per app:** `Error Perc:` in log; 21 `[exp] Throughput:` lines.
-
-**Tables + figures (paper format):**
-
-```bash
-python3 summarize_results.py results/*_medium.log
-bash plot_fig8_png.sh results/
-```
-
-**Pack for repo / download:**
-
-```bash
-bash scripts/pack_results_for_repo.sh
-gcloud compute scp --zone=us-central1-a \
-  aframviscagyebi@netpoke-control:~/netpoke_results_pack_*.tar.gz .
-```
-
-Reference appearance: [`netpoke/results/reference/figures/`](../netpoke/results/reference/figures/)
+Managed from **Google Cloud Shell**. Scripts in `netpoke/infra/gcp/`.
 
 ---
 
-# 3. Phase 3 — I/O gap (8 runs, complete)
+## The 6 runs at a glance
 
-```bash
-cd ~/slowpoke/evaluation
-WATCH_INTERVAL=10 ./io_gap/run_io_gap_all.sh
-python3 io_gap/summarize_io_gap_matrix.py results/ -o results/final_package/io_gap_matrix.csv
-python3 io_gap/plot_io_gap_rmse.py results/
-bash io_gap/verify_io_gap_results.sh results/
-```
-
-**Boutique re-run** (product_catalog path — replaces shipping injection):
-
-```bash
-bash io_gap/run_boutique_io_rerun.sh
-```
+| Run | Condition | Level | Core question |
+|-----|-----------|-------|---------------|
+| 1 | SIGSTOP-only | L0 | What is SlowPoke's baseline accuracy? |
+| 2 | NetPoke-on | L0 | Does NetPoke cost accuracy when there's no I/O problem? |
+| 3 | SIGSTOP-only | L1 | How much does moderate I/O stress hurt accuracy? |
+| 4 | NetPoke-on | L1 | Does NetPoke recover that accuracy? |
+| 5 | SIGSTOP-only | L2 | How much does heavy I/O stress hurt accuracy? |
+| 6 | NetPoke-on | L2 | Does NetPoke recover that accuracy? (**core thesis result**) |
 
 ---
 
-# 4. Phase 4 — eBPF residual I/O (all benchmarks L2)
-
-```bash
-cd ~/slowpoke/evaluation
-bash phase4_ebpf/preflight_ebpf.sh          # verify
-bash phase4_ebpf/run_ebpf_smoke.sh          # ~5–10 min smoke
-
-screen -S phase4-ebpf
-WATCH_INTERVAL=10 ./phase4_ebpf/run_ebpf_all_L2.sh   # ~3–4 h full suite
-```
-
-**SSH 2 monitor:** `WATCH_INTERVAL=10 SLOWPOKE_PHASE4_EBPF=1 ./watch_progress.sh --append results/`
-
-See [`slowpoke/evaluation/phase6_netpoke/README.md`](../slowpoke/evaluation/phase6_netpoke/README.md)
-(the in-pod `/proc` sampler that replaced the original eBPF plan — see finding F2 in
-[`docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md)).
-
----
-
-# 5. Phase 5–6 — NetPoke
-
-Design: [`design/poker-io-pause.md`](design/poker-io-pause.md)  
-Re-run L2 matrix with NetPoke enabled; compare RMSE to Phase 3.
-
----
-
-# 6. Results in this repository
-
-| Path | Content |
-|------|---------|
-| [`netpoke/results/README.md`](../netpoke/results/README.md) | Layout |
-| `netpoke/results/reference/` | Paper-format examples (authors' sample) |
-| `netpoke/results/cluster/` | Your cluster logs, figures, tables |
-
----
-
-# 7. Key scripts
+## Key scripts
 
 | Script | Purpose |
 |--------|---------|
-| `slowpoke/evaluation/summarize_results.py` | Per-point table + RMSE (paper) |
-| `slowpoke/evaluation/draw.py` | Fig. 8 panels |
-| `slowpoke/evaluation/plot_macro.py` | Fig. 8 macro PDF |
-| `slowpoke/evaluation/io_gap/summarize_io_gap_matrix.py` | Table I1 |
-| `slowpoke/evaluation/io_gap/plot_io_gap_rmse.py` | I/O-gap RMSE figure |
-| `slowpoke/evaluation/scripts/pack_results_for_repo.sh` | Tarball for scp |
-| `slowpoke/evaluation/io_gap/run_boutique_io_rerun.sh` | Boutique L1/L2 only |
+| `netpoke/infra/gcp/start_cluster_vms.sh` | Start stopped VMs |
+| `netpoke/infra/gcp/01_create_cluster.sh` | Create VMs from scratch |
+| `netpoke/infra/gcp/02_initialize_cluster.sh` | Install Kubernetes on all nodes |
+| `netpoke/infra/gcp/sync_to_control.sh` | Push `slowpoke/` to control node |
+| `netpoke/infra/gcp/03_teardown.sh` | Delete all VMs |
+| `slowpoke/evaluation/phase5_netpoke/patch_all_netpoke_yamls.sh` | Generate `netpoke/` and `netpoke-sigstop/` yaml dirs |
+| `slowpoke/evaluation/io_gap/apply_io_injection.sh` | Inject netem delay (bug fixed) |
+| `slowpoke/evaluation/run_with_monitor.sh` | Run experiment with live progress |
+| `slowpoke/evaluation/run_netpoke_l0_overhead.sh` | Run 2 (NetPoke-on L0) |
+| `slowpoke/evaluation/io_gap/run_io_medium.sh` | Runs 3–6 (L1/L2 per app) |
+| `slowpoke/evaluation/io_gap/run_io_gap_netpoke_L2.sh` | Run 6 (NetPoke-on L2, all apps) |
+| `slowpoke/evaluation/summarize_results.py` | Extract RMSE from a log file |
+| `slowpoke/evaluation/watch_progress.sh` | Live progress dashboard (SSH 2) |
 
-Canonical reference (findings, fix plan, dated status log): [`docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md`](docs/METHODOLOGY_CRITIQUE_AND_FIX_PLAN.md)  
-**SlowPoke paper study guide (Word):** [`docs/slowpoke-paper-deep-dive.docx`](docs/slowpoke-paper-deep-dive.docx)
+---
+
+## Results layout
+
+| Path | Content |
+|------|---------|
+| `netpoke/results/cluster/baseline/` | Table B1 — SIGSTOP-only L0 RMSE |
+| `netpoke/results/cluster/io_gap/` | Tables I1 — I/O-gap RMSE matrix |
+| `netpoke/results/cluster/netpoke/` | Tables N1–N3 — NetPoke results |
+| `netpoke/results/reference/` | Paper-format reference figures |

@@ -1,238 +1,261 @@
-# Experiment runbook: from a cold cluster to genuine numbers
+# Experiment runbook: GCP cluster → clean results
 
-This is the procedure to follow, in order, every time you want a fresh, trustworthy set of
-results, whether that's the first run or the twentieth repetition. It assumes the cluster has
-just been torn down (`03_teardown.sh`) or never existed for this session.
+Full procedure from a cold or stopped cluster to a complete set of results.
+Covers all 6 paired runs (L0 + L1 + L2, SIGSTOP-only and NetPoke-on).
 
-## Read this first: a bug this runbook exists partly to route around
+---
 
-While building this runbook, a real bug was found in
-[`slowpoke/evaluation/io_gap/apply_io_injection.sh`](../../slowpoke/evaluation/io_gap/apply_io_injection.sh)
-and has now been fixed, but it affects how much you should trust some *existing* numbers.
+## Background: what the 6 runs measure
 
-The script that inserts the `netem` delay for L1/L2 injection always patched the plain
-`<bench>/yamls/*.yaml` files. `src/run.sh`, separately, deploys from `<bench>/yamls/netpoke/` or
-`<bench>/yamls/netpoke-sigstop/` whenever `SLOWPOKE_NETPOKE=1` or `SLOWPOKE_YAML_SUBDIR` is set.
-Those are different files. Any run that used the netpoke-tagged deployment path *and* asked for
-L1/L2 injection would have deployed from a yaml snapshot that never received the injected delay,
-silently running under effectively no-injection conditions while being labelled L1/L2.
+| Run | Condition | Level | Tables produced |
+|-----|-----------|-------|-----------------|
+| 1 | SIGSTOP-only | L0 — no injection | Table B1 (baseline RMSE) |
+| 2 | NetPoke-on | L0 — no injection | Table N3 (overhead cost) |
+| 3 | SIGSTOP-only | L1 — moderate I/O stress | Table I1 (L1 row), Table N2 (L1 SIGSTOP side) |
+| 4 | NetPoke-on | L1 — moderate I/O stress | Table N2 (L1 NetPoke side) |
+| 5 | SIGSTOP-only | L2 — heavy I/O stress | Table I1 (L2 row), Table N2 (L2 SIGSTOP side) |
+| 6 | NetPoke-on | L2 — heavy I/O stress | Table N2 (L2 NetPoke side) — **core thesis result** |
 
-This affects, at minimum:
+Run 6 vs Run 5 is the headline comparison. Runs 3–4 add the L1 gradient that
+shows the RMSE degradation and recovery scale with injection severity, not just
+appear at one extreme level.
 
-- **Table N1**'s L2 residual-I/O rows (hotel, social, movie): both the SIGSTOP-only side
-  (`netpoke-sigstop` subdir) and the NetPoke-on side (`netpoke` subdir) may have run without real
-  injected stress.
-- **Table N2**'s NetPoke-on L2 RMSE numbers specifically: the SIGSTOP-only side of that table
-  came from the original Phase 3 runs (plain yaml directory, unaffected), but the NetPoke-on side
-  used `SLOWPOKE_NETPOKE=1` and is subject to the same bug.
+Run these **sequentially**, never in parallel — they redeploy the same pods.
 
-It does **not** affect: Table B1/I1 (original Phase 3, plain directory throughout), Table N3
-(L0, no injection involved at all), or the boutique fan-out finding (source-code analysis, no
-deployment involved).
+---
 
-**The fix** (already applied) makes `apply_io_injection.sh` resolve the same directory `run.sh`
-will actually deploy from, mirroring `run.sh`'s own `SLOWPOKE_YAML_SUBDIR` /
-`SLOWPOKE_NETPOKE` precedence, so the injected delay lands in the files that get deployed.
-
-**What this means for you:** the L2 NetPoke-on numbers in Table N2 need to be re-measured with
-the fix in place before they can be fully trusted. This runbook's Step 5 does that as part of the
-normal sequence, so simply following it from here resolves this rather than requiring a separate
-investigation.
-
-## Step 0: Sync this fix (and anything else pending) to the cluster
+## Step 0: Pull latest code (Cloud Shell)
 
 ```bash
-# Cloud Shell
 cd ~/netpoke && git pull origin netpoke/experiments
 ```
 
-## Step 1: Bring the cluster up
+---
+
+## Step 1: Bring the cluster up (Cloud Shell)
+
+Check current state:
 
 ```bash
-# Cloud Shell
 gcloud compute instances list --filter="tags.items=netpoke-cluster"
 ```
 
-- **Nothing listed (fully torn down):**
-  ```bash
-  cd ~/netpoke/netpoke/infra/gcp
-  cp -n config.env.example config.env    # if config.env doesn't already exist
-  grep -q ENABLE_LOADGEN config.env || echo 'ENABLE_LOADGEN=0' >> config.env
-  ./01_create_cluster.sh
-  # wait ~60s for VMs to finish booting
-  ./02_initialize_cluster.sh
-  ```
-  Wait for the printed `kubectl get nodes` to show all nodes `Ready`.
-
-- **Listed but `TERMINATED` (just stopped):**
-  ```bash
-  cd ~/netpoke/netpoke/infra/gcp
-  grep -q ENABLE_LOADGEN config.env || echo 'ENABLE_LOADGEN=0' >> config.env
-  ./start_cluster_vms.sh
-  ```
-
-`netpoke-loadgen` failing or staying `TERMINATED` is expected and fine with `ENABLE_LOADGEN=0`,
-since it is never used by any experiment script (confirmed: no yaml or shell script in this repo
-references the `loadgen` node).
-
-## Step 2: Get `~/slowpoke` onto the (possibly brand new) control node
-
-One command, run from Cloud Shell, packs `slowpoke/`, sends it, extracts it, and marks every
-script executable on `netpoke-control` in one shot:
+**VMs listed as TERMINATED (stopped from a previous session):**
 
 ```bash
-# Cloud Shell
+cd ~/netpoke/netpoke/infra/gcp
+grep -q ENABLE_LOADGEN config.env || echo 'ENABLE_LOADGEN=0' >> config.env
+./start_cluster_vms.sh
+```
+
+**Nothing listed (fully torn down):**
+
+```bash
+cd ~/netpoke/netpoke/infra/gcp
+cp -n config.env.example config.env
+grep -q ENABLE_LOADGEN config.env || echo 'ENABLE_LOADGEN=0' >> config.env
+./01_create_cluster.sh
+# wait ~60s for VMs to boot, then:
+./02_initialize_cluster.sh
+```
+
+`netpoke-loadgen` staying TERMINATED is expected with `ENABLE_LOADGEN=0`.
+
+---
+
+## Step 2: Sync repo to control node (Cloud Shell)
+
+```bash
 cd ~/netpoke/netpoke/infra/gcp
 ./sync_to_control.sh
 ```
 
-Safe to re-run any time you want to push local changes to the control node, not just on a fresh
-cluster. It ends with `SYNC_OK` printed from the remote side; if you don't see that, something
-failed partway and should be investigated before continuing.
+Must print `SYNC_OK`. Re-run any time you push local changes.
 
-Docker images do **not** need rebuilding. They are already pushed to Docker Hub
-(`gvafram3/mucache:<bench>-pokerpp-netpoke`) and Kubernetes pulls them by tag; rebuilding is only
-needed if `poker.c` / `net_hold.c` change, which they have not for this phase.
+---
 
-## Step 3: One-time per-cluster yaml setup
-
-Generates both the `netpoke/` and `netpoke-sigstop/` yaml variants (all four apps). Do this once
-per fresh cluster, not once per repetition.
-
-- `netpoke/` — same `gvafram3` image, `NET_ADMIN`, `SLOWPOKE_NETPOKE=1` (egress hold on)
-- `netpoke-sigstop/` — same `gvafram3` image, `NET_ADMIN`, `SLOWPOKE_NETPOKE=0` (egress hold off)
-
-Both are required. Without `netpoke-sigstop/`, runs 1 and 3 silently fall back to the plain
-`yizhengx` images, which lack the `poker: pause_start`/`pause_end` markers.
+## Step 3: Verify Kubernetes health (SSH into control node)
 
 ```bash
-# SSH 1
+gcloud compute ssh netpoke-control --zone us-central1-a
+```
+
+```bash
+kubectl get nodes
+```
+
+All nodes must show `Ready` before continuing.
+
+---
+
+## Step 4: One-time yaml setup (control node, once per fresh cluster)
+
+Generates `netpoke/` and `netpoke-sigstop/` yaml variants for all 4 apps.
+Only needed once per cluster, not once per repetition.
+
+```bash
 export SLOWPOKE_TOP=~/slowpoke
 cd ~/slowpoke/evaluation
 bash phase5_netpoke/patch_all_netpoke_yamls.sh all
 ```
 
-Confirm both directories are non-empty for at least one app:
+**Verify the injection fix before trusting any L1/L2 result:**
 
 ```bash
-ls ~/slowpoke/evaluation/social/yamls/netpoke/*.yaml
-ls ~/slowpoke/evaluation/social/yamls/netpoke-sigstop/*.yaml
-```
-
-**Verify the injection fix actually works before trusting any L2 number.** Pick one app and one
-service, apply injection, and confirm the file that will actually be deployed received it:
-
-```bash
+# netpoke/ variant
 export SLOWPOKE_TOP=~/slowpoke SLOWPOKE_NETPOKE=1
 bash io_gap/apply_io_injection.sh social L2
 grep -l tc-netem-sidecar ~/slowpoke/evaluation/social/yamls/netpoke/*.yaml
-# should print at least post_storage.yaml and social_graph.yaml
+# must print post_storage.yaml and social_graph.yaml — if empty, STOP
 bash io_gap/restore_io_injection.sh
-```
 
-Also verify the sigstop variant receives injection (run 3 deploys from there):
-
-```bash
+# netpoke-sigstop/ variant
 export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
 bash io_gap/apply_io_injection.sh social L2
 grep -l tc-netem-sidecar ~/slowpoke/evaluation/social/yamls/netpoke-sigstop/*.yaml
-# should print at least post_storage.yaml and social_graph.yaml
+# must print post_storage.yaml and social_graph.yaml — if empty, STOP
 bash io_gap/restore_io_injection.sh
 unset SLOWPOKE_YAML_SUBDIR
 ```
 
-If either `grep` finds nothing, stop — do not trust any L2 result until this is fixed.
+---
 
-## Step 4: Start a fresh repetition directory
+## Step 5: Create a results directory (control node)
 
-Every repetition gets its own subdirectory so nothing overwrites a prior run.
+Each repetition gets its own directory. Use `rep2`, `rep3`, ... for subsequent runs.
 
 ```bash
-# SSH 1
-export REP=rep1   # rep2, rep3, ... for later repetitions
+export REP=rep2   # increment for each new repetition
 export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 mkdir -p "$RESULTS_DIR"
+echo "RESULTS_DIR=$RESULTS_DIR"
 ```
 
-## Step 5: Run the four paired experiments, in this order
+---
 
-Two windows for every run, no exceptions, even a "quick" one.
+## Step 6: Open two SSH windows
 
-**SSH 2** (leave this running for the whole session):
+Open a **second browser tab** → GCP Console → Compute Engine → VM instances →
+SSH on `netpoke-control`. This gives two independent terminals to the same machine.
+
+**SSH 2 — progress monitor (leave running for the entire session):**
+
 ```bash
-export REP=rep1
+export REP=rep2
 export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 cd ~/slowpoke/evaluation
 ./watch_progress.sh --append "$RESULTS_DIR/"
 ```
 
-**SSH 1, run 1: SIGSTOP-only, L0 (no injection):**
+SSH 2 updates every 15s. Normal to see the same line repeat many times.
+Come back to SSH 1 for all experiment commands.
+
+---
+
+## Step 7: Run 1 — SIGSTOP-only, L0 (SSH 1)
+
 ```bash
-export REP=rep1
-export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
+cd ~/slowpoke/evaluation
 screen -S rep-l0-sigstop
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
 export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
-cd ~/slowpoke/evaluation
 WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash -c '
   bash boutique/run-boutique-medium.sh "$RESULTS_DIR/boutique_medium.log"
   bash hotel/run-hotel-medium.sh "$RESULTS_DIR/hotel_medium.log"
   bash social/run-social-medium.sh "$RESULTS_DIR/social_medium.log"
   bash movie/run-movie-medium.sh "$RESULTS_DIR/movie_medium.log"
 '
-# Ctrl+A D to detach
 ```
 
-**SSH 1, run 2: NetPoke-on, L0:**
+Ctrl+A D to detach. Wait for SSH 2 to show `Suite: 4/4 benchmarks finished`.
+
+---
+
+## Step 8: Run 2 — NetPoke-on, L0 (SSH 1)
+
 ```bash
-export REP=rep1
-export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 screen -S rep-l0-netpoke
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1 SLOWPOKE_NETPOKE=1
 unset SLOWPOKE_YAML_SUBDIR
 cd ~/slowpoke/evaluation
 WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_netpoke_l0_overhead.sh
-# Ctrl+A D to detach
 ```
 
-**SSH 1, run 3: SIGSTOP-only, L2 (same image as NetPoke-on, injection fix applies):**
+Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+
+---
+
+## Step 9: Run 3 — SIGSTOP-only, L1 (SSH 1)
+
 ```bash
-export REP=rep1
-export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
+screen -S rep-l1-sigstop
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
+cd ~/slowpoke/evaluation
+WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash <<EOF
+for b in boutique hotel social movie; do
+  bash io_gap/run_io_medium.sh "\$b" L1 "$RESULTS_DIR/\${b}_io_L1_medium.log" || exit 1
+done
+EOF
+```
+
+Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+
+---
+
+## Step 10: Run 4 — NetPoke-on, L1 (SSH 1)
+
+```bash
+screen -S rep-l1-netpoke
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1 SLOWPOKE_NETPOKE=1
+unset SLOWPOKE_YAML_SUBDIR
+cd ~/slowpoke/evaluation
+WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash <<EOF
+for b in boutique hotel social movie; do
+  bash io_gap/run_io_medium.sh "\$b" L1 "$RESULTS_DIR/\${b}_io_L1_netpoke_medium.log" || exit 1
+done
+EOF
+```
+
+Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+
+---
+
+## Step 11: Run 5 — SIGSTOP-only, L2 (SSH 1)
+
+```bash
 screen -S rep-l2-sigstop
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
 export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
 cd ~/slowpoke/evaluation
-# NOTE: unquoted <<EOF so $RESULTS_DIR expands in the heredoc body.
-# <<'EOF' would pass the literal string "$RESULTS_DIR" to bash, which only
-# works by accident (run_with_monitor.sh re-exports it). Unquoted is explicit.
 WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash <<EOF
 for b in boutique hotel social movie; do
   bash io_gap/run_io_medium.sh "\$b" L2 "$RESULTS_DIR/\${b}_io_L2_medium.log" || exit 1
 done
 EOF
-# Ctrl+A D to detach
 ```
 
-**SSH 1, run 4: NetPoke-on, L2:**
+Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+
+---
+
+## Step 12: Run 6 — NetPoke-on, L2 (SSH 1)
+
 ```bash
-export REP=rep1
-export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 screen -S rep-l2-netpoke
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1 SLOWPOKE_NETPOKE=1
 unset SLOWPOKE_YAML_SUBDIR
 cd ~/slowpoke/evaluation
 WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_io_gap_netpoke_L2.sh
-# Ctrl+A D to detach
 ```
 
-Run these four sequentially, not in parallel: they redeploy the same pods and will interfere
-with each other if overlapped.
+Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
 
-## Step 6: Extract this repetition's numbers
+---
+
+## Step 13: Extract results (before tearing down)
 
 ```bash
-# SSH 1
 cd ~/slowpoke/evaluation
 for f in "$RESULTS_DIR"/*.log; do
   echo "=== $(basename "$f") ==="
@@ -240,19 +263,50 @@ for f in "$RESULTS_DIR"/*.log; do
 done
 ```
 
-Copy this output somewhere durable (paste it to me, or append to a local file) before tearing
-down. `results/` lives only on the VM and does not survive `03_teardown.sh` deleting the disk.
+**Copy this output somewhere durable before tearing down.** Results live only
+on the VM disk and are deleted by `03_teardown.sh`.
 
-## Step 7: Tear down
+---
+
+## Step 14: Tear down (Cloud Shell)
 
 ```bash
-# Cloud Shell
 cd ~/netpoke/netpoke/infra/gcp
 ./03_teardown.sh
 ```
 
-## Step 8: Repeat
+---
 
-Go back to Step 1 for the next repetition (`REP=rep2`, etc.). Once you have three or more
-repetitions recorded, tell me and I'll compute mean/spread across them rather than you tracking
-it by hand.
+## Step 15: Repeat for more repetitions
+
+Go back to Step 1 with `REP=rep3`, `rep4`, etc. Aim for 3+ repetitions to
+compute mean and spread across runs. Paste `summarize_results.py` output after
+each repetition before tearing down.
+
+---
+
+## What to expect during runs
+
+- Each run takes roughly **30–45 minutes** for all 4 apps
+- Hotel RMSE is volatile — large swings between runs are expected and documented
+- Boutique shows little change between SIGSTOP-only and NetPoke-on at any level
+  (its cart handler uses in-memory storage, not real network I/O — see
+  `netpoke/results/cluster/netpoke/tables/BOUTIQUE_FANOUT_FINDING.md`)
+- If a run stalls with no progress for >10 minutes, check `screen -r <name>`
+  for error output
+
+## Reattaching to a detached screen session
+
+```bash
+screen -ls                    # list sessions
+screen -r rep-l0-sigstop      # reattach by name
+```
+
+## Known issues
+
+| Symptom | Fix |
+|---------|-----|
+| `start_cluster_vms.sh` 404 errors | Check `GCP_ZONE` in `config.env` matches where VMs actually are (`gcloud compute instances list`) |
+| `kubectl get nodes` shows `NotReady` after VM restart | Wait 2 minutes; if persists, `kubectl describe node <name>` |
+| `grep` finds no `tc-netem-sidecar` in Step 4 | `git pull` on control node, re-run `sync_to_control.sh`, retry |
+| `main.py already running` error at run start | `pkill -f 'python3.*main\.py'` then `bash safe_delete_workloads.sh` |
