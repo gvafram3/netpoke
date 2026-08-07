@@ -41,6 +41,8 @@ done
 
 REPRO_BENCHES=(boutique hotel social movie)
 IO_GAP_LEVELS=(L1 L2)
+# Suffixes for the 6-run thesis plan logs (beyond plain *_io_L*_medium.log)
+IO_GAP_SUFFIXES=(io_L1_medium io_L2_medium io_L1_sigstop_medium io_L2_sigstop_medium io_L1_netpoke_medium io_L2_netpoke_medium)
 
 main_py_benchmark() {
   ps aux 2>/dev/null | grep -E '[p]ython3.*main\.py -b ' | sed -n 's/.*-b \([a-z]*\).*/\1/p' | head -1
@@ -139,10 +141,10 @@ pick_active_log() {
     return
   fi
   # Fallback only when we can't tell what's actually running (e.g. between
-  # runs): first incomplete I/O-gap log in fixed order.
+  # runs): first incomplete log in fixed order, covering all 6-run variants.
   for name in "${REPRO_BENCHES[@]}"; do
-    for level in "${IO_GAP_LEVELS[@]}"; do
-      f="$dir/${name}_io_${level}_medium.log"
+    for suffix in "${IO_GAP_SUFFIXES[@]}"; do
+      f="$dir/${name}_${suffix}"
       if [[ ! -f "$f" ]] || ! grep -q 'Error Perc:' "$f" 2>/dev/null; then
         echo "$f"
         return
@@ -189,6 +191,33 @@ netpoke_rmse_summary_line() {
     fi
   done
   echo "NetPoke-on RMSE run: ${done}/4 L2 runs complete (boutique → hotel → social → movie)"
+}
+
+# 6-run thesis plan: Runs 1-6 across L0/L1/L2 × SIGSTOP/NetPoke
+thesis_runs_summary_line() {
+  local dir="$1" done=0 bench f
+  local -a order=(boutique hotel social movie)
+  # Run 1: SIGSTOP L0 (*_medium.log without netpoke suffix)
+  # Run 2: NetPoke L0 (*_netpoke_medium.log)
+  # Run 3: SIGSTOP L1 (*_io_L1_sigstop_medium.log)
+  # Run 4: NetPoke L1 (*_io_L1_netpoke_medium.log)
+  # Run 5: SIGSTOP L2 (*_io_L2_sigstop_medium.log or *_io_L2_medium.log)
+  # Run 6: NetPoke L2 (*_io_L2_netpoke_medium.log)
+  local -a patterns=(
+    "_io_L1_sigstop_medium.log"
+    "_io_L1_netpoke_medium.log"
+    "_io_L2_sigstop_medium.log"
+    "_io_L2_netpoke_medium.log"
+  )
+  for bench in "${order[@]}"; do
+    for pat in "${patterns[@]}"; do
+      f="$dir/${bench}${pat}"
+      if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
+        done=$((done + 1))
+      fi
+    done
+  done
+  echo "Thesis 6-run plan: ${done}/16 L1/L2 runs complete (4 apps × 4 variants)"
 }
 
 netpoke_l0_overhead_summary_line() {
@@ -296,7 +325,7 @@ print_compact() {
 
   _pc_emit() {
     echo "── SlowPoke $(date '+%H:%M:%S') ──"
-    local name done_total=0 f show_io=0 show_netpoke_rmse=0 show_l0_overhead=0
+    local name done_total=0 f show_io=0 show_netpoke_rmse=0 show_l0_overhead=0 show_thesis=0
     for name in "${REPRO_BENCHES[@]}"; do
       f="$RESULTS_DIR/${name}_io_L1_medium.log"
       [[ -f "$f" ]] && show_io=1
@@ -304,6 +333,12 @@ print_compact() {
       [[ -f "$f" ]] && show_netpoke_rmse=1
       f="$RESULTS_DIR/${name}_netpoke_medium.log"
       [[ -f "$f" ]] && show_l0_overhead=1
+      f="$RESULTS_DIR/${name}_io_L1_sigstop_medium.log"
+      [[ -f "$f" ]] && show_thesis=1
+      f="$RESULTS_DIR/${name}_io_L1_netpoke_medium.log"
+      [[ -f "$f" ]] && show_thesis=1
+      f="$RESULTS_DIR/${name}_io_L2_sigstop_medium.log"
+      [[ -f "$f" ]] && show_thesis=1
       f="$RESULTS_DIR/${name}_medium.log"
       if [[ -f "$f" ]] && grep -q 'Error Perc:' "$f" 2>/dev/null; then
         done_total=$((done_total + 1))
@@ -311,6 +346,8 @@ print_compact() {
     done
     if [[ -n "${SLOWPOKE_PHASE4_EBPF:-}" ]]; then
       phase4_ebpf_summary_line "$RESULTS_DIR"
+    elif (( show_thesis )); then
+      thesis_runs_summary_line "$RESULTS_DIR"
     elif (( show_netpoke_rmse )); then
       netpoke_rmse_summary_line "$RESULTS_DIR"
     elif (( show_l0_overhead )); then

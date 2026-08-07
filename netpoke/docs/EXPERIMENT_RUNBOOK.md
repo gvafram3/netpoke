@@ -144,7 +144,7 @@ SSH on `netpoke-control`. This gives two independent terminals to the same machi
 export REP=rep2
 export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 cd ~/slowpoke/evaluation
-./watch_progress.sh --append "$RESULTS_DIR/"
+./watch_progress.sh --append
 ```
 
 SSH 2 updates every 15s. Normal to see the same line repeat many times.
@@ -175,13 +175,14 @@ Ctrl+A D to detach. Wait for SSH 2 to show `Suite: 4/4 benchmarks finished`.
 
 ```bash
 screen -S rep-l0-netpoke
-export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1 SLOWPOKE_NETPOKE=1
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+export REP=rep2; export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 unset SLOWPOKE_YAML_SUBDIR
 cd ~/slowpoke/evaluation
-WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_netpoke_l0_overhead.sh
+WATCH_INTERVAL=10 ./run_netpoke_l0_overhead.sh
 ```
 
-Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+Ctrl+A D to detach. Wait for `NetPoke-on L0 overhead check: 4/4 runs complete`.
 
 ---
 
@@ -190,16 +191,12 @@ Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
 ```bash
 screen -S rep-l1-sigstop
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
-export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
+export REP=rep2; export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 cd ~/slowpoke/evaluation
-WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash <<EOF
-for b in boutique hotel social movie; do
-  bash io_gap/run_io_medium.sh "\$b" L1 "$RESULTS_DIR/\${b}_io_L1_medium.log" || exit 1
-done
-EOF
+WATCH_INTERVAL=10 ./io_gap/run_io_gap_sigstop_L1.sh
 ```
 
-Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+Ctrl+A D to detach. Logs: `*_io_L1_sigstop_medium.log`.
 
 ---
 
@@ -207,17 +204,13 @@ Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
 
 ```bash
 screen -S rep-l1-netpoke
-export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1 SLOWPOKE_NETPOKE=1
-unset SLOWPOKE_YAML_SUBDIR
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+export REP=rep2; export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 cd ~/slowpoke/evaluation
-WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash <<EOF
-for b in boutique hotel social movie; do
-  bash io_gap/run_io_medium.sh "\$b" L1 "$RESULTS_DIR/\${b}_io_L1_netpoke_medium.log" || exit 1
-done
-EOF
+WATCH_INTERVAL=10 ./io_gap/run_io_gap_netpoke_L1.sh
 ```
 
-Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+Ctrl+A D to detach. Logs: `*_io_L1_netpoke_medium.log`.
 
 ---
 
@@ -226,16 +219,12 @@ Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
 ```bash
 screen -S rep-l2-sigstop
 export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
-export SLOWPOKE_YAML_SUBDIR=netpoke-sigstop SLOWPOKE_NETPOKE=0
+export REP=rep2; export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 cd ~/slowpoke/evaluation
-WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_with_monitor.sh bash <<EOF
-for b in boutique hotel social movie; do
-  bash io_gap/run_io_medium.sh "\$b" L2 "$RESULTS_DIR/\${b}_io_L2_medium.log" || exit 1
-done
-EOF
+WATCH_INTERVAL=10 ./io_gap/run_io_gap_sigstop_L2.sh
 ```
 
-Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+Ctrl+A D to detach. Logs: `*_io_L2_sigstop_medium.log`.
 
 ---
 
@@ -243,13 +232,13 @@ Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
 
 ```bash
 screen -S rep-l2-netpoke
-export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1 SLOWPOKE_NETPOKE=1
-unset SLOWPOKE_YAML_SUBDIR
+export SLOWPOKE_TOP=~/slowpoke PYTHONUNBUFFERED=1
+export REP=rep2; export RESULTS_DIR=~/slowpoke/evaluation/results/$REP
 cd ~/slowpoke/evaluation
-WATCH_INTERVAL=10 RESULTS_DIR="$RESULTS_DIR" ./run_io_gap_netpoke_L2.sh
+WATCH_INTERVAL=10 ./io_gap/run_io_gap_netpoke_L2.sh
 ```
 
-Ctrl+A D to detach. Wait for `Suite: 4/4 benchmarks finished`.
+Ctrl+A D to detach. Logs: `*_io_L2_netpoke_medium.log`.
 
 ---
 

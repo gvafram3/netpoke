@@ -40,6 +40,12 @@ BENCH="${1:?benchmark required (boutique|hotel|social|movie)}"
 LEVEL="${2:?level required (L1|L2)}"
 OUTFILE="${3:?outfile required}"
 
+if [[ "$OUTFILE" == //* ]]; then
+  echo "ERROR: outfile path starts with // — RESULTS_DIR was empty when the caller built this path." >&2
+  echo "  Fix: export REP=rep2; export RESULTS_DIR=~/slowpoke/evaluation/results/\$REP" >&2
+  exit 1
+fi
+
 case "$LEVEL" in
   L1|L2) ;;
   *)
