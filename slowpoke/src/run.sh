@@ -99,11 +99,29 @@ fix_req_num() {
     local benchmark=$1
     local client=$2
     counter=$((TOTAL_REQ / thread))
+    # Cap counter so every thread can finish within duration at current speed.
+    # Without this, L1/L2 injection drops throughput so low the counter is
+    # unreachable before wrk times out, so done() fires with no stop times.
+    if [[ -n "${speed:-}" && -n "${duration:-}" && "${speed}" != "0" ]]; then
+        local max_counter
+        max_counter=$(awk -v s="$speed" -v t="$thread" -v d="$duration" \
+            'BEGIN{c=int(0.9*s/t*d); if(c<1)c=1; print c}')
+        if (( max_counter < counter )); then
+            echo "[run.sh] fix_req_num: capping counter $counter -> $max_counter (speed=${speed} duration=${duration})"
+            counter=$max_counter
+        fi
+    fi
     PER_THREAD_COUNTER=$counter envsubst < $SLOWPOKE_TOP/client/fix_req_n.lua > /tmp/temp_fix_req_n.lua
     kubectl cp /tmp/temp_fix_req_n.lua ${client}:/wrk/fix_req_n.lua
     rm /tmp/temp_fix_req_n.lua  # clean up
     if [[ $benchmark == *"boutique"* ]]; then
-        kubectl exec ${client} -- /bin/sh -c "cat /wrk/fix_req_n.lua >> /wrk/scripts/online-boutique/${request}.lua"
+        # Reset mix.lua from .orig before appending to avoid accumulation on retries.
+        kubectl exec ${client} -- /bin/sh -c "
+            orig=/wrk/scripts/online-boutique/${request}.lua.orig
+            if [ ! -f \"\$orig\" ]; then cp /wrk/scripts/online-boutique/${request}.lua \"\$orig\"; fi
+            cp \"\$orig\" /wrk/scripts/online-boutique/${request}.lua
+            cat /wrk/fix_req_n.lua >> /wrk/scripts/online-boutique/${request}.lua
+        "
         return
     fi
 }
