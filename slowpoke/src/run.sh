@@ -106,7 +106,7 @@ fix_req_num() {
         # 2-4x below warmup; netem injection is already reflected in warmup speed).
         # Never cap below 3 so done() always fires with usable stop times.
         max_counter=$(awk -v s="$speed" -v t="$thread" -v d="$duration" \
-            'BEGIN{actual=s/4; c=int(0.9*actual/t*d); if(c<3)c=3; print c}')
+            'BEGIN{actual=s/4; c=int(0.9*actual/t*d); if(c<1)c=1; print c}')
         if (( max_counter < counter )); then
             echo "[run.sh] fix_req_num: capping counter $counter -> $max_counter (speed=${speed} duration=${duration})"
             counter=$max_counter
@@ -212,20 +212,27 @@ run_test() {
     echo "[run.sh] Speed is $speed, duration is $duration"
 
     echo "[run.sh] Fix the request number."
+    # For very low throughput (injected runs), ensure conn >= thread so every
+    # thread has at least one connection and will receive requests.
+    # If speed < 2*thread, drop conn to thread count to guarantee coverage.
+    local effective_conn=$conn
+    if awk -v s="$speed" -v t="$thread" 'BEGIN{exit (s >= 2*t)}'; then
+        effective_conn=$thread
+        echo "[run.sh] Low throughput (speed=${speed} < 2*threads=${thread}): reducing conn $conn -> $effective_conn"
+    fi
     fix_req_num $benchmark $ubuntu_client
 
     echo "[run.sh] Running the actual test"
     sleep 10
     if [[ $benchmark == "boutique" ]]; then
-        echo "[run.sh] /wrk/wrk --timeout 20s -t${thread} -c${conn} -d${duration}s -L -s /wrk/scripts/online-boutique/${request}.lua http://frontend:80"
-        kubectl exec $ubuntu_client -- /wrk/wrk --timeout 20s -t${thread} -c${conn} -d${duration}s -L -s /wrk/scripts/online-boutique/${request}.lua http://frontend:80
+        echo "[run.sh] /wrk/wrk --timeout 120s -t${thread} -c${effective_conn} -d${duration}s -L -s /wrk/scripts/online-boutique/${request}.lua http://frontend:80"
+        kubectl exec $ubuntu_client -- /wrk/wrk --timeout 120s -t${thread} -c${effective_conn} -d${duration}s -L -s /wrk/scripts/online-boutique/${request}.lua http://frontend:80
     elif [[ $benchmark == "synthetic" ]]; then
-        echo "[run.sh] /wrk/wrk --timeout 20s -t${thread} -c${conn} -d${duration}s -L -s /wrk/fix_req_n.lua http://service0:80/endpoint1"
-        # kubectl exec $ubuntu_client -- /wrk/wrk --timeout 20s -t${thread} -c${conn} -d20s -L http://service0:80/endpoint1
-        kubectl exec $ubuntu_client -- /wrk/wrk --timeout 20s -t${thread} -c${conn} -d${duration}s -L -s /wrk/fix_req_n.lua http://service0:80/endpoint1
+        echo "[run.sh] /wrk/wrk --timeout 120s -t${thread} -c${effective_conn} -d${duration}s -L -s /wrk/fix_req_n.lua http://service0:80/endpoint1"
+        kubectl exec $ubuntu_client -- /wrk/wrk --timeout 120s -t${thread} -c${effective_conn} -d${duration}s -L -s /wrk/fix_req_n.lua http://service0:80/endpoint1
     else
-        echo "[run.sh] /wrk/wrk --timeout 20s -t${thread} -c${conn} -d${duration}s -s /wrk/fix_req_n.lua -L http://localhost:3000"
-        kubectl exec $ubuntu_client -- /wrk/wrk --timeout 20s -t${thread} -c${conn} -d${duration}s -s /wrk/fix_req_n.lua -L http://localhost:3000
+        echo "[run.sh] /wrk/wrk --timeout 120s -t${thread} -c${effective_conn} -d${duration}s -s /wrk/fix_req_n.lua -L http://localhost:3000"
+        kubectl exec $ubuntu_client -- /wrk/wrk --timeout 120s -t${thread} -c${effective_conn} -d${duration}s -s /wrk/fix_req_n.lua -L http://localhost:3000
     fi
 }
 
