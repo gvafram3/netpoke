@@ -104,11 +104,12 @@ fix_req_num() {
     # unreachable before wrk times out, so done() fires with no stop times.
     if [[ -n "${speed:-}" && -n "${duration:-}" && "${speed}" != "0" ]]; then
         local max_counter
-        # Use speed/20 as a pessimistic actual-speed estimate: L1/L2 injection
-        # can drop throughput 20-60x below warmup speed. This ensures the counter
-        # is reachable within duration even under heavy injection.
+        # Cap counter so every thread can finish within duration.
+        # Use speed/4 as pessimistic estimate (poker SIGSTOP can drop throughput
+        # 2-4x below warmup; netem injection is already reflected in warmup speed).
+        # Never cap below 3 so done() always fires with usable stop times.
         max_counter=$(awk -v s="$speed" -v t="$thread" -v d="$duration" \
-            'BEGIN{actual=s/20; c=int(0.9*actual/t*d); if(c<1)c=1; print c}')
+            'BEGIN{actual=s/4; c=int(0.9*actual/t*d); if(c<3)c=3; print c}')
         if (( max_counter < counter )); then
             echo "[run.sh] fix_req_num: capping counter $counter -> $max_counter (speed=${speed} duration=${duration})"
             counter=$max_counter
