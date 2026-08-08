@@ -99,9 +99,6 @@ fix_req_num() {
     local benchmark=$1
     local client=$2
     counter=$((TOTAL_REQ / thread))
-    # Cap counter so every thread can finish within duration at current speed.
-    # Without this, L1/L2 injection drops throughput so low the counter is
-    # unreachable before wrk times out, so done() fires with no stop times.
     if [[ -n "${speed:-}" && -n "${duration:-}" && "${speed}" != "0" ]]; then
         local max_counter
         # Cap counter so every thread can finish within duration.
