@@ -38,7 +38,12 @@ export PYTHONUNBUFFERED=1
 
 IO_GAP="$(cd "${BASH_SOURCE%/*}" && pwd)"
 EVAL="$(cd "$IO_GAP/.." && pwd)"
-RESULTS="${RESULTS_DIR:-$EVAL/results}"
+RESULTS="${RESULTS_DIR:-}"
+if [[ -z "$RESULTS" ]]; then
+  echo "ERROR: RESULTS_DIR is not set." >&2
+  echo "  Fix: export REP=rep2; export RESULTS_DIR=~/slowpoke/evaluation/results/\$REP" >&2
+  exit 1
+fi
 SAVED="$RESULTS/saved"
 ACTIVE_STAMP="$RESULTS/.slowpoke_active_log"
 mkdir -p "$RESULTS" "$SAVED"

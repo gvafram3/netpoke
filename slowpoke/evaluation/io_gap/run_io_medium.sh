@@ -72,6 +72,9 @@ fi
 var_req="IO_NUM_REQ_${BENCH^^}"
 NUM_REQ="${!var_req:-100000}"
 
+var_conn="IO_CONN_${BENCH^^}"
+IO_CONN="${!var_conn:-${IO_CONN:-1024}}"
+
 OUTDIR="$(dirname "$OUTFILE")"
 mkdir -p "$OUTDIR"
 OUTFILE="$(cd "$OUTDIR" && pwd)/$(basename "$OUTFILE")"
