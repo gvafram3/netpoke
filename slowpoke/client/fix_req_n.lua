@@ -15,7 +15,7 @@ function init(args)
 end
 
 function response()
-   if counter == $PER_THREAD_COUNTER then
+   if counter >= $PER_THREAD_COUNTER then
       wrk.thread:stop()
       local x = wrk.thread:get("x")
       y = socket.gettime() - x
@@ -25,11 +25,15 @@ function response()
 end
 
 function done(summary, latency, requests)
+   local now = socket.gettime()
    io.write("------------------------------\n")
    for i, thread in ipairs(threads) do
       local y = thread:get("y")
+      local x = thread:get("x")
       if y ~= nil then
          print(string.format("stop time: %f", y))
+      elseif x ~= nil and x ~= -1 then
+         print(string.format("stop time: %f", now - x))
       end
    end
 end
