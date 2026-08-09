@@ -85,6 +85,14 @@ if [[ -f "$OUTFILE" ]] && grep -q 'Error Perc:' "$OUTFILE"; then
   exit 2
 fi
 
+# Sanity-check that fix_req_n.lua has the >= fix and fallback stop time.
+# If this fails, sync_to_control.sh was not run after the last Windows commit.
+if ! grep -q '>=' "$SLOWPOKE_TOP/client/fix_req_n.lua" 2>/dev/null; then
+  echo "ERROR: $SLOWPOKE_TOP/client/fix_req_n.lua is stale (missing >= fix)." >&2
+  echo "  Fix: git pull on Cloud Shell, then run sync_to_control.sh" >&2
+  exit 1
+fi
+
 export SLOWPOKE_IO_GAP_LEVEL="$LEVEL"
 export SLOWPOKE_IO_GAP_BENCHMARK="$BENCH"
 export SLOWPOKE_IO_GAP_TARGET="$TARGET"
