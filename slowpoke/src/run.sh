@@ -67,8 +67,15 @@ check_connectivity_all(){
         sleep 5
         return 0
     fi
+    # NetPoke: plug qdisc starts open but a stale plug from a prior run can block
+    # heartbeats indefinitely. Cap at 60s and warn rather than hang forever.
+    local deadline=$(( $(date +%s) + 60 ))
     while true
     do
+        if (( $(date +%s) >= deadline )); then
+            echo "[run.sh] WARNING: connectivity check timed out after 60s (plug qdisc?); continuing"
+            break
+        fi
         all_connected=1
         for pod in $(kubectl get pods | grep -v -E 'NAME' | cut -f 1 -d " ")
         do
