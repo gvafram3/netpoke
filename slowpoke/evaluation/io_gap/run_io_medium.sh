@@ -71,13 +71,6 @@ fi
 
 var_req="IO_NUM_REQ_${BENCH^^}"
 NUM_REQ="${!var_req:-100000}"
-# NetPoke runs override num_req to IO_NUM_REQ_NETPOKE (default 8) so that
-# counter=1 per thread — guaranteeing every thread fires done() at ultra-low
-# throughput (~6-7 req/s) without relying on the wall-time fallback.
-if [[ "${SLOWPOKE_NETPOKE:-}" == "1" && -n "${IO_NUM_REQ_NETPOKE:-}" ]]; then
-  NUM_REQ="$IO_NUM_REQ_NETPOKE"
-  echo "[run_io_medium] NetPoke mode: overriding num_req -> $NUM_REQ"
-fi
 
 var_conn="IO_CONN_${BENCH^^}"
 IO_CONN="${!var_conn:-${IO_CONN:-1024}}"
