@@ -280,49 +280,62 @@ fi
 
 echo "[run.sh] Running benchmark $benchmark with request $request, thread $thread, conn $conn, duration $duration"
 
-# delete all services
-echo "[run.sh] Deleting all services"
-kubectl delete -f $YAML_PATH --ignore-not-found=true
-kubectl delete -f $SLOWPOKE_TOP/client/client.yaml --ignore-not-found=true
-# wait for all pods to be deleted
-echo "[run.sh] Waiting for all pods to be deleted"
-while [[ $(kubectl get pods -n default 2>/dev/null | grep -v NAME | wc -l) -gt 0 ]]; do
-    sleep 1
-done
+# Skip redeploy+populate when pods are already healthy (saves ~5-10 min for social).
+# Force redeploy with FORCE_REDEPLOY=1.
+pods_healthy() {
+    [[ $(kubectl get pods --no-headers 2>/dev/null | grep -v -E 'Running|Completed' | wc -l) -eq 0 ]] || return 1
+    kubectl get pods --no-headers 2>/dev/null \
+        | grep -qE '^[^ ]+ +([0-9]+)/\1 +(Running|Completed) ' || return 1
+    kubectl get pod --no-headers 2>/dev/null | grep -q 'ubuntu-client-' || return 1
+    return 0
+}
 
-# deploy all services
-echo "[run.sh] Deploying all services"
-for file in $(ls -d $YAML_PATH/*.yaml)
-do
-    envsubst < $file | kubectl apply -f - 
-done
+if [[ "${FORCE_REDEPLOY:-0}" == "1" ]] || ! pods_healthy; then
+    # delete all services
+    echo "[run.sh] Deleting all services"
+    kubectl delete -f $YAML_PATH --ignore-not-found=true
+    kubectl delete -f $SLOWPOKE_TOP/client/client.yaml --ignore-not-found=true
+    # wait for all pods to be deleted
+    echo "[run.sh] Waiting for all pods to be deleted"
+    while [[ $(kubectl get pods -n default 2>/dev/null | grep -v NAME | wc -l) -gt 0 ]]; do
+        sleep 1
+    done
 
-kubectl get pod | grep ubuntu-client- 
-if [ $? -ne 0 ]
-then
-    echo "[run.sh] Client pod not found, deploying client"
-    envsubst < $SLOWPOKE_TOP/client/client.yaml | kubectl apply -f -
-fi
+    # deploy all services
+    echo "[run.sh] Deploying all services"
+    for file in $(ls -d $YAML_PATH/*.yaml)
+    do
+        envsubst < $file | kubectl apply -f -
+    done
 
-# wait until all pods are ready by checking the log to see if the "server started" message is printed
-echo "[run.sh] Waiting for all pods to be running"
-while [[ $(kubectl get pods | grep -v -E 'Running|Completed|STATUS' | wc -l) -ne 0 ]]; do
-  sleep 1
-done
-# Accept 1/1, 2/2, … (boutique L2 shipping netem sidecar is 2/2).
-echo "[run.sh] Waiting for all pod containers to be ready"
-while kubectl get pods --no-headers 2>/dev/null \
-    | grep -vqE '^[^ ]+ +([0-9]+)/\1 +(Running|Completed) '; do
-  sleep 1
-done
-echo "[run.sh] All pods are running"
+    kubectl get pod | grep ubuntu-client-
+    if [ $? -ne 0 ]
+    then
+        echo "[run.sh] Client pod not found, deploying client"
+        envsubst < $SLOWPOKE_TOP/client/client.yaml | kubectl apply -f -
+    fi
 
+    # wait until all pods are ready
+    echo "[run.sh] Waiting for all pods to be running"
+    while [[ $(kubectl get pods | grep -v -E 'Running|Completed|STATUS' | wc -l) -ne 0 ]]; do
+      sleep 1
+    done
+    # Accept 1/1, 2/2, … (boutique L2 shipping netem sidecar is 2/2).
+    echo "[run.sh] Waiting for all pod containers to be ready"
+    while kubectl get pods --no-headers 2>/dev/null \
+        | grep -vqE '^[^ ]+ +([0-9]+)/\1 +(Running|Completed) '; do
+      sleep 1
+    done
+    echo "[run.sh] All pods are running"
 
-check_connectivity_all
+    check_connectivity_all
 
-
-if [[ $benchmark != "synthetic" ]]; then
-    populate $benchmark
+    if [[ $benchmark != "synthetic" ]]; then
+        populate $benchmark
+    fi
+else
+    echo "[run.sh] Pods already healthy, skipping redeploy and populate"
+    check_connectivity_all
 fi
 
 sleep 5
