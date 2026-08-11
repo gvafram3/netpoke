@@ -111,7 +111,7 @@ fix_req_num() {
         # Cap counter so every thread can finish within duration.
         # Use speed/4 as pessimistic estimate (poker SIGSTOP can drop throughput
         # 2-4x below warmup; netem injection is already reflected in warmup speed).
-        # Never cap below 3 so done() always fires with usable stop times.
+        # Never cap below 1 so done() always fires with usable stop times.
         max_counter=$(awk -v s="$speed" -v t="$thread" -v d="$duration" \
             'BEGIN{actual=s/4; c=int(0.9*actual/t*d); if(c<1)c=1; print c}')
         if (( max_counter < counter )); then
