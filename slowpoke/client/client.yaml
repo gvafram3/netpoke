@@ -21,7 +21,7 @@ spec:
       nodeName: worker1
       containers:
       - name: hr-client
-        image: yizhengx/mucache:client
+        image: gvafram3/mucache:client
         # resources:
         #   requests:
         #     cpu: $CLIENT_CPU_QUOTA
