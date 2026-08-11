@@ -24,8 +24,11 @@ pub async fn send_req(ip: &str, method: &str, req: String) -> Bytes {
         .body(hyper::Body::from(req))
         .unwrap();
     let client = GCLIENT.with(|c| c.clone());
-    let resp = client.request(r).await.unwrap();
-    hyper::body::to_bytes(resp.into_body()).await.unwrap()
+    let resp = match client.request(r).await {
+        Ok(r) => r,
+        Err(_) => return Bytes::new(),
+    };
+    hyper::body::to_bytes(resp.into_body()).await.unwrap_or_default()
 }
 
 // How to do it elegantly?
