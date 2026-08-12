@@ -24,12 +24,14 @@ pub async fn send_req(ip: &str, method: &str, req: String) -> Bytes {
         .body(hyper::Body::from(req))
         .unwrap();
     let client = GCLIENT.with(|c| c.clone());
-    // Timeout must be shorter than the sch_plug hold duration so proxy workers
-    // are never stalled waiting for a response buffered inside the plug qdisc.
-    // IO_POKER_BATCH_REQ=100 at ~40 req/s → plug fires every ~2.5s; 500ms
-    // ensures the worker unblocks well before the next plug cycle.
+    // Timeout must be LONGER than the maximum sch_plug hold duration so the
+    // proxy worker waits for the buffered response to arrive after net_release()
+    // rather than timing out and dropping the request. Dropping requests during
+    // a plug hold corrupts the slowdown throughput measurement S, which breaks
+    // the prediction formula. At batch=100 / ~40 req/s the hold is ~2.5s;
+    // 10s gives a safe margin while still bounding hangs if the service crashes.
     let resp = match tokio::time::timeout(
-        std::time::Duration::from_millis(500),
+        std::time::Duration::from_secs(10),
         client.request(r),
     ).await {
         Ok(Ok(r)) => r,
