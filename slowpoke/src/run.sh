@@ -106,7 +106,7 @@ fix_req_num() {
     local benchmark=$1
     local client=$2
     counter=$((TOTAL_REQ / thread))
-    if [[ -n "${speed:-}" && -n "${duration:-}" ]] && awk -v s="${speed:-0}" 'BEGIN{exit (s > 0)}'; then
+    if [[ -n "${speed:-}" && -n "${duration:-}" ]] && awk -v s="${speed:-0}" 'BEGIN{exit !(s > 0)}'; then
         local max_counter
         # Cap counter so every thread can finish within duration.
         # Use speed/4 as pessimistic estimate (poker SIGSTOP can drop throughput
