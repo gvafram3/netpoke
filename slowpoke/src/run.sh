@@ -106,7 +106,7 @@ fix_req_num() {
     local benchmark=$1
     local client=$2
     counter=$((TOTAL_REQ / thread))
-    if [[ -n "${speed:-}" && -n "${duration:-}" && "${speed}" != "0" ]]; then
+    if [[ -n "${speed:-}" && -n "${duration:-}" ]] && awk -v s="${speed:-0}" 'BEGIN{exit (s > 0)}'; then
         local max_counter
         # Cap counter so every thread can finish within duration.
         # Use speed/4 as pessimistic estimate (poker SIGSTOP can drop throughput
@@ -208,7 +208,7 @@ run_test() {
 
     # get the speed of the warmup test and estimate the duration
     speed=$(echo "$output" | grep "Requests/sec:" | awk '{print $2}')
-    if [[ -z "$speed" || "$speed" == "0" ]]; then
+    if [[ -z "$speed" ]] || awk -v s="$speed" 'BEGIN{exit (s > 0)}'; then
         echo "[run.sh] ERROR: warmup produced no throughput (wrk/proxy failed)"
         echo "$output"
         return 1
@@ -216,6 +216,7 @@ run_test() {
     # Need enough wrk time for every thread to hit fix_req_n.lua's per-thread counter.
     # Old cap at 200s caused L2 io_gap runs (100k req @ ~500 req/s) to end early → Lua panic → status 1.
     duration=$(awk -v r="$TOTAL_REQ" -v s="$speed" 'BEGIN{d=int(1.5*r/s); if(d<120)d=120; if(d>600)d=600; print d}')
+    duration=${duration:-120}
     echo "[run.sh] Speed is $speed, duration is $duration"
 
     echo "[run.sh] Fix the request number."
