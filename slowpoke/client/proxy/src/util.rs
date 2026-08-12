@@ -24,9 +24,16 @@ pub async fn send_req(ip: &str, method: &str, req: String) -> Bytes {
         .body(hyper::Body::from(req))
         .unwrap();
     let client = GCLIENT.with(|c| c.clone());
-    let resp = match client.request(r).await {
-        Ok(r) => r,
-        Err(_) => return Bytes::new(),
+    // Timeout must be shorter than the sch_plug hold duration so proxy workers
+    // are never stalled waiting for a response buffered inside the plug qdisc.
+    // IO_POKER_BATCH_REQ=100 at ~40 req/s → plug fires every ~2.5s; 500ms
+    // ensures the worker unblocks well before the next plug cycle.
+    let resp = match tokio::time::timeout(
+        std::time::Duration::from_millis(500),
+        client.request(r),
+    ).await {
+        Ok(Ok(r)) => r,
+        _ => return Bytes::new(),
     };
     hyper::body::to_bytes(resp.into_body()).await.unwrap_or_default()
 }
