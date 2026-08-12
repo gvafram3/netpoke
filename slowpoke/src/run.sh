@@ -126,9 +126,17 @@ fix_req_num() {
         # Reset mix.lua from .orig before appending to avoid accumulation on retries.
         kubectl exec ${client} -- /bin/sh -c "
             orig=/wrk/scripts/online-boutique/${request}.lua.orig
-            if [ ! -f \"\$orig\" ]; then cp /wrk/scripts/online-boutique/${request}.lua \"\$orig\"; fi
-            cp \"\$orig\" /wrk/scripts/online-boutique/${request}.lua
-            cat /wrk/fix_req_n.lua >> /wrk/scripts/online-boutique/${request}.lua
+            lua=/wrk/scripts/online-boutique/${request}.lua
+            # Bootstrap .orig only if it doesn't exist yet.
+            if [ ! -f \"\$orig\" ]; then cp \"\$lua\" \"\$orig\"; fi
+            # If .orig already contains fix_req_n hooks (corrupted from a prior run),
+            # refuse to use it and abort so the operator can fix manually.
+            if grep -q 'stop time:' \"\$orig\"; then
+                echo '[run.sh] ERROR: .orig is corrupted (contains fix_req_n hooks). Delete it on the pod and retry.' >&2
+                exit 1
+            fi
+            cp \"\$orig\" \"\$lua\"
+            cat /wrk/fix_req_n.lua >> \"\$lua\"
         "
         return
     fi
