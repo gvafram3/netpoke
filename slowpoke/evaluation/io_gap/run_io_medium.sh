@@ -71,6 +71,12 @@ fi
 
 var_req="IO_NUM_REQ_${BENCH^^}"
 NUM_REQ="${!var_req:-100000}"
+# NetPoke boutique bypasses the proxy and stays fast (~700 req/s); use a
+# higher num_req so fix_req_n.lua doesn't finish in ~1s and corrupt throughput.
+if [[ "${SLOWPOKE_NETPOKE:-}" == "1" ]]; then
+  var_req_np="IO_NUM_REQ_NETPOKE_${BENCH^^}"
+  [[ -n "${!var_req_np:-}" ]] && NUM_REQ="${!var_req_np}"
+fi
 
 var_conn="IO_CONN_${BENCH^^}"
 IO_CONN="${!var_conn:-${IO_CONN:-1024}}"
