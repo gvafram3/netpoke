@@ -1,0 +1,9 @@
+yamls=yamls-freeze   (ground truth, no freezing)   wrk 8 threads, 512 connections, 20s   evidence: /home/ubuntu/results/quick_tput/20260924_124613_yamls-freeze
+TARGET us      THROUGHPUT   NOTES
+800            1810.05 req/s   
+680            1913.21 req/s   
+640            1972.32 req/s   
+600            2045.80 req/s   
+520            2138.80 req/s   
+400            2202.25 req/s   
+evidence saved in /home/ubuntu/results/quick_tput/20260924_124613_yamls-freeze

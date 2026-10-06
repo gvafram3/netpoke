@@ -1,0 +1,137 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from PrebuiltDockerfile
+#1 transferring dockerfile: 1.38kB done
+#1 DONE 0.0s
+
+#2 [auth] library/golang:pull token for registry-1.docker.io
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/golang:alpine
+#3 DONE 0.5s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [ 1/13] FROM docker.io/library/golang:alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414
+#5 resolve docker.io/library/golang:alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414 0.0s done
+#5 DONE 0.2s
+
+#6 [internal] load build context
+#6 transferring context: 90.47MB 0.9s done
+#6 DONE 1.0s
+
+#5 [ 1/13] FROM docker.io/library/golang:alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414
+#5 sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 32B / 32B 0.0s done
+#5 sha256:1e707d1be9b7cfef08708f1d35029e5e65c69766a1e39e2c027d0acd54b8e7b5 126B / 126B 0.1s done
+#5 sha256:aa6e7f3ded592e443fd9ff13e0934fc149b642f26b962019d38fc8879f8764d1 247.53kB / 247.53kB 0.1s done
+#5 sha256:ef1dbfdbb5d59bdeac07b1398a9f0808b453513bf6a76eb3ffd509a284483095 67.11MB / 71.08MB 0.9s
+#5 sha256:e2de96513ba9eb53b431787ec8a65cdde380ac4772a3e4c4b714dcfde2a102b5 3.85MB / 3.85MB 0.1s done
+#5 extracting sha256:e2de96513ba9eb53b431787ec8a65cdde380ac4772a3e4c4b714dcfde2a102b5 0.2s done
+#5 extracting sha256:aa6e7f3ded592e443fd9ff13e0934fc149b642f26b962019d38fc8879f8764d1 0.1s done
+#5 sha256:ef1dbfdbb5d59bdeac07b1398a9f0808b453513bf6a76eb3ffd509a284483095 71.08MB / 71.08MB 1.0s done
+#5 extracting sha256:ef1dbfdbb5d59bdeac07b1398a9f0808b453513bf6a76eb3ffd509a284483095
+#5 extracting sha256:ef1dbfdbb5d59bdeac07b1398a9f0808b453513bf6a76eb3ffd509a284483095 2.3s done
+#5 DONE 3.5s
+
+#5 [ 1/13] FROM docker.io/library/golang:alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414
+#5 extracting sha256:1e707d1be9b7cfef08708f1d35029e5e65c69766a1e39e2c027d0acd54b8e7b5 done
+#5 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 done
+#5 DONE 3.5s
+
+#7 [ 2/13] RUN echo "Building image for mutex benchmark (poker 9c993ce)"
+#7 0.139 Building image for mutex benchmark (poker 9c993ce)
+#7 DONE 2.4s
+
+#8 [ 3/13] RUN apk add --no-cache gcc musl-dev linux-headers zeromq-dev iftop iproute2
+#8 0.480 ( 1/32) Installing libgcc (15.2.0-r5)
+#8 0.493 ( 2/32) Installing jansson (2.15.0-r0)
+#8 0.504 ( 3/32) Installing libstdc++ (15.2.0-r5)
+#8 0.533 ( 4/32) Installing zstd-libs (1.5.7-r2)
+#8 0.547 ( 5/32) Installing binutils (2.45.1-r1)
+#8 0.613 ( 6/32) Installing libgcc-static (15.2.0-r5)
+#8 0.644 ( 7/32) Installing libgomp (15.2.0-r5)
+#8 0.664 ( 8/32) Installing libatomic (15.2.0-r5)
+#8 0.674 ( 9/32) Installing gmp (6.3.0-r4)
+#8 0.687 (10/32) Installing isl26 (0.26-r2)
+#8 0.711 (11/32) Installing mpfr4 (4.2.2-r0)
+#8 0.725 (12/32) Installing mpc1 (1.3.1-r1)
+#8 0.735 (13/32) Installing gcc (15.2.0-r5)
+#8 1.611 (14/32) Installing ncurses-terminfo-base (6.6_p20260516-r0)
+#8 1.621 (15/32) Installing libncursesw (6.6_p20260516-r0)
+#8 1.633 (16/32) Installing libpcap (1.10.7-r0)
+#8 1.645 (17/32) Installing iftop (1.0_pre4-r0)
+#8 1.658 (18/32) Installing libcap2 (2.78-r0)
+#8 1.667 (19/32) Installing libelf (0.195-r0)
+#8 1.676 (20/32) Installing libmnl (1.0.5-r2)
+#8 1.685 (21/32) Installing iproute2-minimal (7.0.0-r0)
+#8 1.716 (22/32) Installing libxtables (1.8.13-r0)
+#8 1.725 (23/32) Installing iproute2-tc (7.0.0-r0)
+#8 1.738 (24/32) Installing iproute2-ss (7.0.0-r0)
+#8 1.747 (25/32) Installing iproute2 (7.0.0-r0)
+#8 1.760   Executing iproute2-7.0.0-r0.post-install
+#8 1.762 (26/32) Installing linux-headers (7.0.0-r1)
+#8 1.838 (27/32) Installing musl-dev (1.2.6-r2)
+#8 1.888 (28/32) Installing libsodium (1.0.22-r0)
+#8 1.900 (29/32) Installing libzmq (4.3.5-r2)
+#8 1.914 (30/32) Installing pkgconf (2.5.1-r0)
+#8 1.924 (31/32) Installing libsodium-dev (1.0.22-r0)
+#8 1.936 (32/32) Installing zeromq-dev (4.3.5-r2)
+#8 1.947 Executing busybox-1.37.0-r31.trigger
+#8 1.954 OK: 209.1 MiB in 49 packages
+#8 DONE 2.7s
+
+#9 [ 4/13] WORKDIR /app
+#9 DONE 0.0s
+
+#10 [ 5/13] COPY go.mod go.sum ./
+#10 DONE 0.0s
+
+#11 [ 6/13] RUN go mod download
+#11 DONE 5.1s
+
+#12 [ 7/13] COPY ./cmd ./cmd
+#12 DONE 0.1s
+
+#13 [ 8/13] COPY ./internal ./internal
+#13 DONE 0.7s
+
+#14 [ 9/13] COPY ./pkg ./pkg
+#14 DONE 0.0s
+
+#15 [10/13] RUN mkdir /slowpoke
+#15 DONE 0.1s
+
+#16 [11/13] COPY ./slowpoke/poker /slowpoke/poker
+#16 DONE 0.0s
+
+#17 [12/13] RUN echo "compiling poker 9c993ce" &&     gcc /slowpoke/poker/poker.c /slowpoke/poker/net_hold.c -O2 -o /usr/bin/poker
+#17 0.122 compiling poker 9c993ce
+#17 DONE 0.4s
+
+#18 [13/13] RUN mkdir -p /app/bin &&     for d in /app/cmd/mutex/*; do         if [ -d "$d" ]; then             APP_NAME=$(basename "$d");             echo "Building $APP_NAME";             CGO_ENABLED=1 GOOS=linux go build -tags k8s,node1 -o /app/bin/${APP_NAME} "$d/.";         fi     done
+#18 0.219 Building service1
+#18 51.46 Building service2
+#18 DONE 53.3s
+
+#19 exporting to image
+#19 exporting layers
+#19 exporting layers 15.4s done
+#19 exporting manifest sha256:f0260524c86728bb2b9739e9b16c0c90266c7b264364652536c86e6bc5353340 done
+#19 exporting config sha256:7ce9520b753e41829f3288821e7b2dee60723947bf05ec146f46c18ff6c0a224 done
+#19 exporting attestation manifest sha256:0417f66b818457aa6be3a2e2e2323fbc088e7af8dcf2d542cc68ac2f22c7646c 0.0s done
+#19 exporting manifest list sha256:3131bd810d1ab6a5be1446edb64f76dd5f25b89c541b354ab30a872f544c46b6 done
+#19 naming to docker.io/gvafram3/slowpoke:mutex-netpoke done
+#19 unpacking to docker.io/gvafram3/slowpoke:mutex-netpoke
+#19 unpacking to docker.io/gvafram3/slowpoke:mutex-netpoke 3.8s done
+#19 naming to docker.io/gvafram3/slowpoke:mutex-netpoke-9c993ce done
+#19 unpacking to docker.io/gvafram3/slowpoke:mutex-netpoke-9c993ce done
+#19 DONE 19.3s
+
+ [33m5 warnings found (use docker --debug to expand):
+[0m - UndefinedVar: Usage of undefined variable '$APP_NAMESPACE' (line 38)
+ - UndefinedVar: Usage of undefined variable '$NODE_IDX' (line 39)
+ - UndefinedVar: Usage of undefined variable '$CM_ENABLED' (line 40)
+ - UndefinedVar: Usage of undefined variable '$EXPIRATION_TTL' (line 41)
+ - UndefinedVar: Usage of undefined variable '$APP_NAME' (line 37)

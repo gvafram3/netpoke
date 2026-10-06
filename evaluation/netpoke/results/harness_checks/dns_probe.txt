@@ -1,0 +1,39 @@
+CoreDNS cache setting: cache 30
+===== run 1  request: 200 connect=0.001934s
+   service1 is now 10.105.212.226 | client resolves 'service1' -> 10.105.212.226  [ok]
+   service2 is now 10.106.157.115 | service1 pod resolves 'service2' -> 10.106.157.115  [ok]
+===== run 2  request: 000 connect=0.001967s
+   service1 is now 10.105.74.239 | client resolves 'service1' -> 10.105.74.239  [ok]
+   service2 is now 10.97.32.133 | service1 pod resolves 'service2' -> 10.97.32.133  [ok]
+   retry straight to 10.105.74.239 (no DNS): 000 connect=0.000507s
+===== run 3  request: 000 connect=0.001900s
+   service1 is now 10.108.15.133 | client resolves 'service1' -> 10.108.15.133  [ok]
+   service2 is now 10.111.44.24 | service1 pod resolves 'service2' -> 10.111.44.24  [ok]
+   retry straight to 10.108.15.133 (no DNS): 000 connect=0.000534s
+===== run 4  request: 000 connect=0.000000s
+   service1 is now 10.98.171.152 | client resolves 'service1' -> 10.98.171.152  [ok]
+   service2 is now 10.101.43.133 | service1 pod resolves 'service2' -> 10.101.43.133  [ok]
+   retry straight to 10.98.171.152 (no DNS): 200 connect=0.001095s
+===== run 5  request: 000 connect=0.002283s
+   service1 is now 10.107.198.92 | client resolves 'service1' -> 10.107.198.92  [ok]
+   service2 is now 10.108.4.29 | service1 pod resolves 'service2' -> 10.108.4.29  [ok]
+   retry straight to 10.107.198.92 (no DNS): 000 connect=0.000570s
+===== run 6  request: 200 connect=0.001950s
+   service1 is now 10.97.110.121 | client resolves 'service1' -> 10.97.110.121  [ok]
+   service2 is now 10.101.214.10 | service1 pod resolves 'service2' -> 10.101.214.10  [ok]
+===== run 7  request: 000 connect=0.003011s
+   service1 is now 10.105.163.98 | client resolves 'service1' -> 10.105.163.98  [ok]
+   service2 is now 10.105.191.84 | service1 pod resolves 'service2' -> 10.105.191.84  [ok]
+   retry straight to 10.105.163.98 (no DNS): 000 connect=0.000487s
+===== run 8  request: 000 connect=0.000000s
+   service1 is now 10.109.179.92 | client resolves 'service1' -> 10.109.179.92  [ok]
+   service2 is now 10.97.118.87 | service1 pod resolves 'service2' -> 10.97.118.87  [ok]
+   retry straight to 10.109.179.92 (no DNS): 200 connect=0.001249s
+===== run 9  request: 200 connect=0.002114s
+   service1 is now 10.110.20.93 | client resolves 'service1' -> 10.110.20.93  [ok]
+   service2 is now 10.104.100.75 | service1 pod resolves 'service2' -> 10.104.100.75  [ok]
+===== run 10  request: 000 connect=0.000000s
+   service1 is now 10.99.8.134 | client resolves 'service1' -> 10.99.8.134  [ok]
+   service2 is now 10.110.238.201 | service1 pod resolves 'service2' -> 10.110.238.201  [ok]
+   retry straight to 10.99.8.134 (no DNS): 200 connect=0.001284s
+===== dns probe finished

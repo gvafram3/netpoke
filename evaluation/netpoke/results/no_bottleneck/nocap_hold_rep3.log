@@ -1,0 +1,1734 @@
+benchmark                        : mutex
+num_threads                      : 8
+num_conns                        : 512
+target_service                   : service1
+request_type                     : mix
+repetitions                      : 1
+target_num_exp                   : 10
+pre_run                          : False
+num_req                          : 60000
+groundtruths                     : []
+slowdowns                        : []
+predicteds                       : []
+errs                             : []
+poker_batch_req                  : 100
+client_cpu_quota                 : 4
+random_seed                      : 1234
+request_ratio                    : {'service1': 1, 'service2': 1}
+baseline_service_processing_time : {'service1': 800, 'service2': 350}
+cpu_quota                        : {'service1': 2, 'service2': 2}
+target_processing_time_range     : [400, 800]
+baseline_throughputs             : []
+poker_batch                      : 20000000
+mutex_lock                       : False
+[test.py] Starting experiment...
+[test.py] >>>>>>>>>>>>>>>>>>>>>>>>>>>>> Running experiment 0...
+[test.py] Actual processing time range: [400, 440, 480, 520, 560, 600, 640, 680, 720, 760]
+[test.py] Running baseline experiment
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 created
+        deployment.apps/service1 created
+        service/service2 created
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-x24sq        1m           3Mi
+        service2-d48695fdf-6mg2z         1m           2Mi
+        ubuntu-client-6866bb9595-qlj4f   15m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   269.13ms  127.86ms 686.60ms   69.06%
+        Req/Sec   245.66    168.37   757.00     69.52%
+        Latency Distribution
+        50%  254.83ms
+        75%  351.09ms
+        90%  440.24ms
+        99%  622.96ms
+        5523 requests in 3.03s, 792.85KB read
+        Requests/sec:   1824.99
+        Transfer/sec:    261.99KB
+        [run.sh] Speed is 1824.99, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6159 (speed=1824.99 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   270.69ms  127.83ms 842.53ms   66.56%
+        Req/Sec   242.17    165.37   760.00     63.83%
+        Latency Distribution
+        50%  263.58ms
+        75%  357.98ms
+        90%  439.74ms
+        99%  579.85ms
+        49272 requests in 2.00m, 6.91MB read
+        Requests/sec:    410.60
+        Transfer/sec:     58.94KB
+        ------------------------------
+        stop time: 25.947795
+        stop time: 26.161783
+        stop time: 26.318122
+        stop time: 26.240593
+        stop time: 26.156226
+        stop time: 26.331590
+        stop time: 26.304930
+        stop time: 26.223470
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [25.947795, 26.161783, 26.318122, 26.240593, 26.156226, 26.33159, 26.30493, 26.22347]
+    [exp] Throughput: 2289.153368024912
+[test.py] Baseline throughput: 2289.153368024912
+[test.py] Running 0th optmization experiment
+[test.py] Running 0th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '400', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-87f4b4f88-4ltf4         0m           3Mi
+        service2-d48695fdf-nwkkg         0m           3Mi
+        ubuntu-client-6866bb9595-9b7fc   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   180.32ms   83.90ms 483.20ms   69.68%
+        Req/Sec   359.52    194.23     0.86k    63.32%
+        Latency Distribution
+        50%  170.27ms
+        75%  226.68ms
+        90%  298.61ms
+        99%  413.19ms
+        8461 requests in 3.10s, 1.19MB read
+        Requests/sec:   2731.28
+        Transfer/sec:    392.09KB
+        [run.sh] Speed is 2731.28, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   165.55ms   77.33ms 713.61ms   70.47%
+        Req/Sec   389.91    180.23   830.00     67.36%
+        Latency Distribution
+        50%  154.14ms
+        75%  210.95ms
+        90%  264.85ms
+        99%  394.70ms
+        60000 requests in 2.00m, 8.41MB read
+        Requests/sec:    500.00
+        Transfer/sec:     71.78KB
+        ------------------------------
+        stop time: 19.518558
+        stop time: 19.382729
+        stop time: 19.576190
+        stop time: 19.499941
+        stop time: 19.582833
+        stop time: 19.504781
+        stop time: 19.461432
+        stop time: 19.499794
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [19.518558, 19.382729, 19.57619, 19.499941, 19.582833, 19.504781, 19.461432, 19.499794]
+    [exp] Throughput: 3076.405254812943
+[test.py] Running 0th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '200.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-qvqrd        0m           3Mi
+        service2-c657f6f75-47cqj         1m           3Mi
+        ubuntu-client-6866bb9595-l5nkc   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   261.75ms  123.25ms 732.23ms   69.94%
+        Req/Sec   236.88    137.81   585.00     63.27%
+        Latency Distribution
+        50%  259.37ms
+        75%  343.62ms
+        90%  428.70ms
+        99%  561.75ms
+        5617 requests in 3.10s, 806.35KB read
+        Requests/sec:   1812.15
+        Transfer/sec:    260.14KB
+        [run.sh] Speed is 1812.15, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6116 (speed=1812.15 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   273.03ms  122.37ms   1.01s    69.13%
+        Req/Sec   236.62    146.10   696.00     63.67%
+        Latency Distribution
+        50%  264.99ms
+        75%  342.71ms
+        90%  430.87ms
+        99%  617.21ms
+        48928 requests in 2.00m, 6.86MB read
+        Requests/sec:    407.73
+        Transfer/sec:     58.53KB
+        ------------------------------
+        stop time: 26.237042
+        stop time: 26.277616
+        stop time: 26.339722
+        stop time: 26.366680
+        stop time: 26.272851
+        stop time: 26.370749
+        stop time: 26.114143
+        stop time: 26.346406
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [26.237042, 26.277616, 26.339722, 26.36668, 26.272851, 26.370749, 26.114143, 26.346406]
+    [exp] Throughput: 2282.180069056772
+[test.py] Finished running 0th optmization experiment: groundtruth->3076.405254812943, slowdown->2282.180069056772, predicted->4198.549070660348, err->36.47581260927326
+[test.py] Running 1th optmization experiment
+[test.py] Running 1th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '440', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-5989656dd8-8nvdw        1m           3Mi
+        service2-d48695fdf-5sml7         1m           3Mi
+        ubuntu-client-6866bb9595-hp5kx   15m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   167.09ms   64.02ms 410.96ms   68.37%
+        Req/Sec   374.31    171.14   757.00     59.32%
+        Latency Distribution
+        50%  158.56ms
+        75%  202.19ms
+        90%  257.32ms
+        99%  345.26ms
+        8830 requests in 3.02s, 1.24MB read
+        Requests/sec:   2919.24
+        Transfer/sec:    419.07KB
+        [run.sh] Speed is 2919.24, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   172.53ms   78.57ms 653.69ms   70.92%
+        Req/Sec   371.39    159.88   838.00     65.16%
+        Latency Distribution
+        50%  164.72ms
+        75%  215.65ms
+        90%  269.87ms
+        99%  405.46ms
+        60000 requests in 2.00m, 8.41MB read
+        Requests/sec:    500.00
+        Transfer/sec:     71.78KB
+        ------------------------------
+        stop time: 20.213501
+        stop time: 20.297093
+        stop time: 20.198901
+        stop time: 20.422564
+        stop time: 20.196872
+        stop time: 20.415401
+        stop time: 20.462848
+        stop time: 20.295985
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [20.213501, 20.297093, 20.198901, 20.422564, 20.196872, 20.415401, 20.462848, 20.295985]
+    [exp] Throughput: 2953.7886231323555
+[test.py] Running 1th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '180.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-2cwc8        0m           3Mi
+        service2-754978549d-kz8rz        0m           3Mi
+        ubuntu-client-6866bb9595-mwv7s   15m          4Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   294.38ms  162.39ms 870.17ms   70.23%
+        Req/Sec   223.85    151.90   580.00     62.38%
+        Latency Distribution
+        50%  263.10ms
+        75%  402.67ms
+        90%  571.46ms
+        99%  663.21ms
+        4834 requests in 3.03s, 693.94KB read
+        Requests/sec:   1595.73
+        Transfer/sec:    229.07KB
+        [run.sh] Speed is 1595.73, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 5385 (speed=1595.73 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   273.05ms  123.92ms 882.36ms   67.86%
+        Req/Sec   239.41    140.07   707.00     67.34%
+        Latency Distribution
+        50%  261.16ms
+        75%  348.34ms
+        90%  447.37ms
+        99%  591.37ms
+        43080 requests in 2.00m, 6.04MB read
+        Requests/sec:    359.00
+        Transfer/sec:     51.54KB
+        ------------------------------
+        stop time: 22.835253
+        stop time: 23.145327
+        stop time: 23.037802
+        stop time: 23.048252
+        stop time: 23.296601
+        stop time: 23.031860
+        stop time: 23.183808
+        stop time: 23.185864
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [22.835253, 23.145327, 23.037802, 23.048252, 23.296601, 23.03186, 23.183808, 23.185864]
+    [exp] Throughput: 2597.8978990079854
+[test.py] Finished running 1th optmization experiment: groundtruth->2953.7886231323555, slowdown->2597.8978990079854, predicted->4879.796035098623, err->65.20464588707863
+[test.py] Running 2th optmization experiment
+[test.py] Running 2th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '480', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-566895d644-xhkqm        0m           3Mi
+        service2-d48695fdf-n4hl4         1m           3Mi
+        ubuntu-client-6866bb9595-rslcr   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   175.24ms   70.51ms 419.35ms   69.33%
+        Req/Sec   351.47    147.83   727.00     69.75%
+        Latency Distribution
+        50%  166.18ms
+        75%  219.32ms
+        90%  275.52ms
+        99%  356.39ms
+        8400 requests in 3.10s, 1.18MB read
+        Requests/sec:   2712.32
+        Transfer/sec:    389.37KB
+        [run.sh] Speed is 2712.32, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   183.74ms   86.37ms 894.77ms   70.89%
+        Req/Sec   349.24    172.06     0.92k    66.31%
+        Latency Distribution
+        50%  176.32ms
+        75%  229.29ms
+        90%  288.73ms
+        99%  438.97ms
+        60000 requests in 2.00m, 8.41MB read
+        Requests/sec:    500.00
+        Transfer/sec:     71.78KB
+        ------------------------------
+        stop time: 21.659471
+        stop time: 21.665836
+        stop time: 21.735875
+        stop time: 21.414696
+        stop time: 21.659065
+        stop time: 21.758454
+        stop time: 21.836776
+        stop time: 21.615803
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [21.659471, 21.665836, 21.735875, 21.414696, 21.659065, 21.758454, 21.836776, 21.615803]
+    [exp] Throughput: 2769.0288005301027
+[test.py] Running 2th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '160.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: attempt 1 failed (http=000)
+        [run.sh] gate: first successful request after 2 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-b2dcj        0m           3Mi
+        service2-8495fd6b4-6x8xn         0m           2Mi
+        ubuntu-client-6866bb9595-rxm4z   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   273.44ms  141.29ms 874.36ms   65.92%
+        Req/Sec   229.53    132.32   636.00     67.26%
+        Latency Distribution
+        50%  239.41ms
+        75%  377.28ms
+        90%  472.48ms
+        99%  705.26ms
+        5412 requests in 3.03s, 776.92KB read
+        Requests/sec:   1787.30
+        Transfer/sec:    256.58KB
+        [run.sh] Speed is 1787.30, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6032 (speed=1787.30 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   273.12ms  124.33ms 989.62ms   69.97%
+        Req/Sec   237.96    154.27   740.00     63.91%
+        Latency Distribution
+        50%  260.34ms
+        75%  343.24ms
+        90%  437.23ms
+        99%  633.33ms
+        48256 requests in 2.00m, 6.77MB read
+        Requests/sec:    402.13
+        Transfer/sec:     57.73KB
+        ------------------------------
+        stop time: 25.886082
+        stop time: 25.885367
+        stop time: 25.941699
+        stop time: 25.885864
+        stop time: 25.896600
+        stop time: 25.691306
+        stop time: 25.935780
+        stop time: 25.879721
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [25.886082, 25.885367, 25.941699, 25.885864, 25.8966, 25.691306, 25.93578, 25.879721]
+    [exp] Throughput: 2318.8134820781975
+[test.py] Finished running 2th optmization experiment: groundtruth->2769.0288005301027, slowdown->2318.8134820781975, predicted->3686.5674515617106, err->33.13575687099948
+[test.py] Running 3th optmization experiment
+[test.py] Running 3th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '520', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-764dddf785-qddh9        0m           3Mi
+        service2-d48695fdf-4b2ps         0m           3Mi
+        ubuntu-client-6866bb9595-llckm   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   199.40ms  101.93ms 536.01ms   67.37%
+        Req/Sec   324.47    205.50   818.00     53.88%
+        Latency Distribution
+        50%  182.37ms
+        75%  241.10ms
+        90%  376.96ms
+        99%  439.32ms
+        7382 requests in 3.04s, 1.03MB read
+        Requests/sec:   2430.46
+        Transfer/sec:    348.90KB
+        [run.sh] Speed is 2430.46, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   194.98ms   97.45ms 797.47ms   69.64%
+        Req/Sec   329.09    180.40     1.26k    64.96%
+        Latency Distribution
+        50%  187.84ms
+        75%  248.71ms
+        90%  317.90ms
+        99%  479.97ms
+        60000 requests in 2.00m, 8.41MB read
+        Requests/sec:    500.00
+        Transfer/sec:     71.78KB
+        ------------------------------
+        stop time: 22.784025
+        stop time: 22.938094
+        stop time: 23.092172
+        stop time: 22.802035
+        stop time: 23.162355
+        stop time: 22.866135
+        stop time: 23.024411
+        stop time: 23.134545
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [22.784025, 22.938094, 23.092172, 22.802035, 23.162355, 22.866135, 23.024411, 23.134545]
+    [exp] Throughput: 2611.4806827794587
+[test.py] Running 3th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '140.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-9h72b        1m           3Mi
+        service2-785d49976b-g8c7c        1m           2Mi
+        ubuntu-client-6866bb9595-k7pjc   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   264.15ms  109.95ms 654.74ms   67.08%
+        Req/Sec   235.75    108.53   474.00     65.95%
+        Latency Distribution
+        50%  250.45ms
+        75%  328.31ms
+        90%  404.81ms
+        99%  605.02ms
+        5484 requests in 3.03s, 787.25KB read
+        Requests/sec:   1810.37
+        Transfer/sec:    259.89KB
+        [run.sh] Speed is 1810.37, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6109 (speed=1810.37 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   271.89ms  132.81ms   1.00s    66.38%
+        Req/Sec   236.79    145.47   787.00     68.05%
+        Latency Distribution
+        50%  264.70ms
+        75%  356.64ms
+        90%  441.65ms
+        99%  606.32ms
+        48872 requests in 2.00m, 6.85MB read
+        Requests/sec:    407.27
+        Transfer/sec:     58.46KB
+        ------------------------------
+        stop time: 26.099879
+        stop time: 26.202927
+        stop time: 26.179343
+        stop time: 26.082348
+        stop time: 26.097724
+        stop time: 26.208267
+        stop time: 26.091391
+        stop time: 25.840101
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [26.099879, 26.202927, 26.179343, 26.082348, 26.097724, 26.208267, 26.091391, 25.840101]
+    [exp] Throughput: 2298.8287754742555
+[test.py] Finished running 3th optmization experiment: groundtruth->2611.4806827794587, slowdown->2298.8287754742555, predicted->3389.7831089650017, err->29.803108685344665
+[test.py] Running 4th optmization experiment
+[test.py] Running 4th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '560', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-56f87648df-4p5xh        0m           3Mi
+        service2-d48695fdf-f4nm2         0m           3Mi
+        ubuntu-client-6866bb9595-l4kfz   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   205.34ms   83.25ms 521.09ms   71.33%
+        Req/Sec   306.80    186.79   650.00     57.96%
+        Latency Distribution
+        50%  194.74ms
+        75%  249.72ms
+        90%  329.48ms
+        99%  425.89ms
+        7109 requests in 3.02s, 1.00MB read
+        Requests/sec:   2353.04
+        Transfer/sec:    337.79KB
+        [run.sh] Speed is 2353.04, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   206.07ms   94.44ms 751.42ms   72.82%
+        Req/Sec   315.40    178.91   797.00     60.55%
+        Latency Distribution
+        50%  197.32ms
+        75%  252.49ms
+        90%  324.87ms
+        99%  504.91ms
+        60001 requests in 2.00m, 8.41MB read
+        Requests/sec:    500.01
+        Transfer/sec:     71.78KB
+        ------------------------------
+        stop time: 24.099302
+        stop time: 24.173872
+        stop time: 24.220846
+        stop time: 24.333061
+        stop time: 24.349576
+        stop time: 24.221323
+        stop time: 24.467220
+        stop time: 24.201933
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [24.099302, 24.173872, 24.220846, 24.333061, 24.349576, 24.221323, 24.46722, 24.201933]
+    [exp] Throughput: 2473.370903047246
+[test.py] Running 4th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '120.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-gb6vz        0m           3Mi
+        service2-6d4bfdc484-q52q6        0m           3Mi
+        ubuntu-client-6866bb9595-w5zcs   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   276.79ms  125.85ms 720.59ms   67.19%
+        Req/Sec   243.05    172.56   630.00     55.71%
+        Latency Distribution
+        50%  246.17ms
+        75%  364.12ms
+        90%  443.56ms
+        99%  656.11ms
+        5486 requests in 3.10s, 787.54KB read
+        Requests/sec:   1772.17
+        Transfer/sec:    254.40KB
+        [run.sh] Speed is 1772.17, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 5981 (speed=1772.17 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   274.15ms  141.59ms   1.20s    66.94%
+        Req/Sec   241.36    153.78   777.00     66.43%
+        Latency Distribution
+        50%  266.67ms
+        75%  354.86ms
+        90%  471.29ms
+        99%  666.35ms
+        47848 requests in 2.00m, 6.71MB read
+        Requests/sec:    398.73
+        Transfer/sec:     57.24KB
+        ------------------------------
+        stop time: 25.685863
+        stop time: 25.695062
+        stop time: 25.686427
+        stop time: 25.689845
+        stop time: 25.693662
+        stop time: 25.841977
+        stop time: 25.777020
+        stop time: 25.677560
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [25.685863, 25.695062, 25.686427, 25.689845, 25.693662, 25.841977, 25.77702, 25.67756]
+    [exp] Throughput: 2332.957610510161
+[test.py] Finished running 4th optmization experiment: groundtruth->2473.370903047246, slowdown->2332.957610510161, predicted->3240.016012159133, err->30.995962157045017
+[test.py] Running 5th optmization experiment
+[test.py] Running 5th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '600', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-68dbb44bc8-z4s49        1m           3Mi
+        service2-d48695fdf-kn8t9         1m           3Mi
+        ubuntu-client-6866bb9595-d5sfs   15m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   218.89ms  103.02ms 755.83ms   75.62%
+        Req/Sec   299.67    174.85   787.00     62.16%
+        Latency Distribution
+        50%  193.46ms
+        75%  259.67ms
+        90%  351.07ms
+        99%  595.78ms
+        6869 requests in 3.02s, 0.96MB read
+        Requests/sec:   2274.04
+        Transfer/sec:    326.45KB
+        [run.sh] Speed is 2274.04, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   213.78ms  113.44ms 992.21ms   67.13%
+        Req/Sec   301.56    161.79   840.00     66.53%
+        Latency Distribution
+        50%  201.49ms
+        75%  286.12ms
+        90%  367.42ms
+        99%  525.12ms
+        60000 requests in 2.00m, 8.41MB read
+        Requests/sec:    500.00
+        Transfer/sec:     71.78KB
+        ------------------------------
+        stop time: 24.920699
+        stop time: 25.263012
+        stop time: 24.921440
+        stop time: 25.225122
+        stop time: 25.287756
+        stop time: 25.313754
+        stop time: 25.245698
+        stop time: 25.220364
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [24.920699, 25.263012, 24.92144, 25.225122, 25.287756, 25.313754, 25.245698, 25.220364]
+    [exp] Throughput: 2383.3422845214654
+[test.py] Running 5th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '100.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-pfx25        0m           3Mi
+        service2-84998b5d94-2nt4n        0m           3Mi
+        ubuntu-client-6866bb9595-n65cx   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   263.20ms  110.60ms 844.33ms   74.00%
+        Req/Sec   254.17    129.72   550.00     67.49%
+        Latency Distribution
+        50%  257.04ms
+        75%  330.38ms
+        90%  379.53ms
+        99%  637.60ms
+        5633 requests in 3.02s, 808.64KB read
+        Requests/sec:   1862.95
+        Transfer/sec:    267.44KB
+        [run.sh] Speed is 1862.95, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6287 (speed=1862.95 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   269.95ms  128.70ms 906.02ms   67.69%
+        Req/Sec   243.39    149.86   707.00     65.94%
+        Latency Distribution
+        50%  255.58ms
+        75%  344.85ms
+        90%  439.48ms
+        99%  605.55ms
+        50297 requests in 2.00m, 7.05MB read
+        Requests/sec:    419.14
+        Transfer/sec:     60.17KB
+        ------------------------------
+        stop time: 26.463348
+        stop time: 26.675611
+        stop time: 26.643543
+        stop time: 26.670754
+        stop time: 26.621274
+        stop time: 26.796193
+        stop time: 26.840261
+        stop time: 26.663415
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [26.463348, 26.675611, 26.643543, 26.670754, 26.621274, 26.796193, 26.840261, 26.663415]
+    [exp] Throughput: 2249.566968903331
+[test.py] Finished running 5th optmization experiment: groundtruth->2383.3422845214654, slowdown->2249.566968903331, predicted->2902.504879246757, err->21.782964121308762
+[test.py] Running 6th optmization experiment
+[test.py] Running 6th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '640', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-5c77d9bffd-d86c9        0m           3Mi
+        service2-d48695fdf-pq5n7         0m           2Mi
+        ubuntu-client-6866bb9595-vxn7f   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   239.88ms   92.83ms 627.03ms   69.03%
+        Req/Sec   277.30    154.73   616.00     61.88%
+        Latency Distribution
+        50%  218.85ms
+        75%  301.60ms
+        90%  374.50ms
+        99%  496.22ms
+        6301 requests in 3.10s, 0.88MB read
+        Requests/sec:   2033.12
+        Transfer/sec:    291.86KB
+        [run.sh] Speed is 2033.12, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6861 (speed=2033.12 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   225.74ms  111.18ms 784.12ms   68.68%
+        Req/Sec   287.46    173.78   830.00     62.37%
+        Latency Distribution
+        50%  211.36ms
+        75%  298.55ms
+        90%  363.77ms
+        99%  537.93ms
+        54888 requests in 2.00m, 7.69MB read
+        Requests/sec:    457.40
+        Transfer/sec:     65.66KB
+        ------------------------------
+        stop time: 24.021825
+        stop time: 24.053410
+        stop time: 24.356760
+        stop time: 24.437672
+        stop time: 24.459358
+        stop time: 24.356261
+        stop time: 24.459261
+        stop time: 24.299517
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [24.021825, 24.05341, 24.35676, 24.437672, 24.459358, 24.356261, 24.459261, 24.299517]
+    [exp] Throughput: 2468.576258517205
+[test.py] Running 6th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '80.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-r2n44        0m           3Mi
+        service2-8967c4d65-gj29w         0m           3Mi
+        ubuntu-client-6866bb9595-n4b6r   15m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   268.81ms  114.46ms 697.19ms   63.52%
+        Req/Sec   254.53    157.85   717.00     69.35%
+        Latency Distribution
+        50%  281.73ms
+        75%  367.13ms
+        90%  407.62ms
+        99%  488.29ms
+        5575 requests in 3.03s, 800.32KB read
+        Requests/sec:   1842.71
+        Transfer/sec:    264.53KB
+        [run.sh] Speed is 1842.71, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6219 (speed=1842.71 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   274.15ms  135.26ms 928.78ms   67.47%
+        Req/Sec   239.72    154.89   690.00     61.73%
+        Latency Distribution
+        50%  254.50ms
+        75%  362.20ms
+        90%  454.35ms
+        99%  640.09ms
+        49752 requests in 2.00m, 6.97MB read
+        Requests/sec:    414.60
+        Transfer/sec:     59.52KB
+        ------------------------------
+        stop time: 26.663013
+        stop time: 26.881386
+        stop time: 26.859029
+        stop time: 26.680552
+        stop time: 26.872075
+        stop time: 26.885843
+        stop time: 26.846895
+        stop time: 26.436861
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [26.663013, 26.881386, 26.859029, 26.680552, 26.872075, 26.885843, 26.846895, 26.436861]
+    [exp] Throughput: 2241.674414220353
+[test.py] Finished running 6th optmization experiment: groundtruth->2468.576258517205, slowdown->2241.674414220353, predicted->2731.5305937060275, err->10.65206449594434
+[test.py] Running 7th optmization experiment
+[test.py] Running 7th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '680', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: attempt 1 failed (http=000)
+        [run.sh] gate: first successful request after 2 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-7fbc95cbf4-kg9rm        0m           3Mi
+        service2-d48695fdf-mtqjc         0m           3Mi
+        ubuntu-client-6866bb9595-5fvr5   15m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   243.89ms  108.28ms 783.60ms   66.48%
+        Req/Sec   265.16    174.14   626.00     54.82%
+        Latency Distribution
+        50%  231.62ms
+        75%  314.88ms
+        90%  400.18ms
+        99%  482.93ms
+        6189 requests in 3.10s, 0.87MB read
+        Requests/sec:   1996.19
+        Transfer/sec:    286.56KB
+        [run.sh] Speed is 1996.19, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6737 (speed=1996.19 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   240.57ms  117.54ms 766.93ms   67.52%
+        Req/Sec   268.90    161.78   797.00     65.96%
+        Latency Distribution
+        50%  232.03ms
+        75%  312.64ms
+        90%  399.04ms
+        99%  553.08ms
+        53896 requests in 2.00m, 7.56MB read
+        Requests/sec:    449.13
+        Transfer/sec:     64.48KB
+        ------------------------------
+        stop time: 25.389105
+        stop time: 25.537010
+        stop time: 25.383530
+        stop time: 25.522985
+        stop time: 25.373846
+        stop time: 25.519050
+        stop time: 25.326085
+        stop time: 25.366561
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [25.389105, 25.53701, 25.38353, 25.522985, 25.373846, 25.51905, 25.326085, 25.366561]
+    [exp] Throughput: 2359.671190044909
+[test.py] Running 7th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '60.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-xcpc5        0m           3Mi
+        service2-f867b59c5-r9tlx         0m           2Mi
+        ubuntu-client-6866bb9595-l2lbt   15m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   258.94ms  141.68ms 789.68ms   59.02%
+        Req/Sec   242.46    159.99   710.00     63.59%
+        Latency Distribution
+        50%  262.69ms
+        75%  359.20ms
+        90%  439.22ms
+        99%  604.01ms
+        5433 requests in 3.10s, 779.93KB read
+        Requests/sec:   1752.63
+        Transfer/sec:    251.60KB
+        [run.sh] Speed is 1752.63, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 5915 (speed=1752.63 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   273.33ms  134.10ms 924.52ms   65.63%
+        Req/Sec   239.06    156.68   750.00     65.21%
+        Latency Distribution
+        50%  265.54ms
+        75%  354.85ms
+        90%  457.40ms
+        99%  604.35ms
+        47321 requests in 2.00m, 6.63MB read
+        Requests/sec:    394.34
+        Transfer/sec:     56.61KB
+        ------------------------------
+        stop time: 25.155720
+        stop time: 25.504615
+        stop time: 25.152433
+        stop time: 25.549923
+        stop time: 25.551937
+        stop time: 25.261486
+        stop time: 25.473518
+        stop time: 25.473992
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [25.15572, 25.504615, 25.152433, 25.549923, 25.551937, 25.261486, 25.473518, 25.473992]
+    [exp] Throughput: 2363.0929310319907
+[test.py] Finished running 7th optmization experiment: groundtruth->2359.671190044909, slowdown->2363.0929310319907, predicted->2753.4994339034624, err->16.689962801599407
+[test.py] Running 8th optmization experiment
+[test.py] Running 8th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '720', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-d6455c4ff-dfw4s         1m           3Mi
+        service2-d48695fdf-bkpjk         1m           3Mi
+        ubuntu-client-6866bb9595-hdft7   15m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   242.66ms   91.01ms 652.92ms   67.77%
+        Req/Sec   256.32    184.11   750.00     65.53%
+        Latency Distribution
+        50%  242.09ms
+        75%  299.73ms
+        90%  360.31ms
+        99%  450.28ms
+        6066 requests in 3.02s, 0.85MB read
+        Requests/sec:   2008.50
+        Transfer/sec:    288.33KB
+        [run.sh] Speed is 2008.50, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6778 (speed=2008.50 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   248.91ms  134.22ms 877.88ms   64.21%
+        Req/Sec   260.52    162.07   800.00     67.20%
+        Latency Distribution
+        50%  243.35ms
+        75%  340.30ms
+        90%  423.45ms
+        99%  570.08ms
+        54224 requests in 2.00m, 7.60MB read
+        Requests/sec:    451.87
+        Transfer/sec:     64.87KB
+        ------------------------------
+        stop time: 26.354969
+        stop time: 26.630987
+        stop time: 26.337316
+        stop time: 26.717109
+        stop time: 26.512722
+        stop time: 26.337237
+        stop time: 26.503223
+        stop time: 26.548093
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [26.354969, 26.630987, 26.337316, 26.717109, 26.512722, 26.337237, 26.503223, 26.548093]
+    [exp] Throughput: 2264.7742263559553
+[test.py] Running 8th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '40.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-f756w        0m           3Mi
+        service2-54f47d568f-wj9ld        0m           3Mi
+        ubuntu-client-6866bb9595-4ngvc   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   257.77ms  110.06ms 668.24ms   64.62%
+        Req/Sec   245.56    175.92   696.00     59.45%
+        Latency Distribution
+        50%  251.10ms
+        75%  338.84ms
+        90%  406.44ms
+        99%  492.51ms
+        5523 requests in 3.02s, 792.85KB read
+        Requests/sec:   1829.28
+        Transfer/sec:    262.60KB
+        [run.sh] Speed is 1829.28, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6173 (speed=1829.28 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   272.95ms  141.79ms   1.02s    67.48%
+        Req/Sec   237.69    162.34   780.00     67.29%
+        Latency Distribution
+        50%  258.48ms
+        75%  364.33ms
+        90%  460.34ms
+        99%  658.74ms
+        49384 requests in 2.00m, 6.92MB read
+        Requests/sec:    411.53
+        Transfer/sec:     59.08KB
+        ------------------------------
+        stop time: 26.323712
+        stop time: 26.500786
+        stop time: 26.494423
+        stop time: 26.498739
+        stop time: 26.323096
+        stop time: 26.621228
+        stop time: 26.622009
+        stop time: 26.229139
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [26.323712, 26.500786, 26.494423, 26.498739, 26.323096, 26.621228, 26.622009, 26.229139]
+    [exp] Throughput: 2268.290230683793
+[test.py] Finished running 8th optmization experiment: groundtruth->2264.7742263559553, slowdown->2268.290230683793, predicted->2494.632227076892, err->10.149267774509271
+[test.py] Running 9th optmization experiment
+[test.py] Running 9th groundtruth exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '760', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: first successful request after 1 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-846d5cd475-jtb9m        0m           3Mi
+        service2-d48695fdf-27858         0m           3Mi
+        ubuntu-client-6866bb9595-8ptl8   14m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   298.57ms  142.90ms 825.61ms   61.10%
+        Req/Sec   219.60    146.02   606.00     65.33%
+        Latency Distribution
+        50%  281.68ms
+        75%  394.17ms
+        90%  522.73ms
+        99%  567.97ms
+        4998 requests in 3.03s, 717.49KB read
+        Requests/sec:   1650.37
+        Transfer/sec:    236.92KB
+        [run.sh] Speed is 1650.37, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 5569 (speed=1650.37 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   261.11ms  137.01ms   1.01s    66.80%
+        Req/Sec   247.86    153.53   770.00     66.17%
+        Latency Distribution
+        50%  237.41ms
+        75%  344.58ms
+        90%  453.11ms
+        99%  599.81ms
+        44552 requests in 2.00m, 6.25MB read
+        Requests/sec:    371.27
+        Transfer/sec:     53.30KB
+        ------------------------------
+        stop time: 22.962757
+        stop time: 22.628854
+        stop time: 22.629399
+        stop time: 22.834780
+        stop time: 22.957229
+        stop time: 22.948588
+        stop time: 22.813572
+        stop time: 22.941091
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [22.962757, 22.628854, 22.629399, 22.83478, 22.957229, 22.948588, 22.813572, 22.941091]
+    [exp] Throughput: 2627.0238550732233
+[test.py] Running 9th slowdown exp
+    [exp] Running (pre_run: False) workload mutex/mix request with the following configuration: {'CLIENT_CPU_QUOTA': '4', 'SLOWPOKE_POKER_BATCH_THRESHOLD': '20000000', 'SLOWPOKE_TOP': '/home/ubuntu/slowpoke', 'SPIN_TIME_SERVICE1': '800', 'SPIN_TIME_SERVICE2': '350', 'SLOWPOKE_DELAY_MICROS_SERVICE1': '0.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE1': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE1': 'true', 'SLOWPOKE_DELAY_MICROS_SERVICE2': '20.0', 'SLOWPOKE_POKER_BATCH_THRESHOLD_SERVICE2': '100', 'SLOWPOKE_IS_TARGET_SERVICE_SERVICE2': 'false'}
+    [exp] Executing cmd `bash /home/ubuntu/slowpoke/src/run.sh mutex mix 8 512 60000`:
+        SLOWPOKE_TOP is set to /home/ubuntu/slowpoke
+        [run.sh] Running benchmark mutex with request mix, thread 8, conn 512, duration 60
+        [run.sh] Deleting all services
+        deployment.apps "service1" deleted
+        deployment.apps "service2" deleted
+        deployment.apps "ubuntu-client" deleted
+        [run.sh] Waiting for all pods to be deleted
+        [run.sh] Deploying all services
+        service/service1 unchanged
+        deployment.apps/service1 created
+        service/service2 unchanged
+        deployment.apps/service2 created
+        [run.sh] Client pod not found, deploying client
+        deployment.apps/ubuntu-client created
+        [run.sh] Waiting for all pods to be running
+        [run.sh] Waiting for all pod containers to be ready
+        [run.sh] All pods are running
+        [run.sh] gate: attempt 1 failed (http=000)
+        [run.sh] gate: first successful request after 2 attempt(s)
+        [run.sh] Starting the rust proxy first for mutex
+        [run.sh] Checking the resource usage
+        NAME                             CPU(cores)   MEMORY(bytes)
+        service1-847d8bf86d-qb999        1m           3Mi
+        service2-77d75bdc5f-ftkwf        1m           3Mi
+        ubuntu-client-6866bb9595-sk28c   15m          1Mi
+        [run.sh] WARNING: proxy heartbeat not confirmed; continuing (see /tmp/proxy-mutex.log)
+        error: Found argument 'mutex' which wasn't expected, or isn't valid in this context
+        
+        USAGE:
+        proxy <SUBCOMMAND>
+        
+        For more information try --help
+        [run.sh] Running warmup test
+        [run.sh] /wrk/wrk -t8 -c512 -d3s -L http://service1:80/
+        Running 3s test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   266.24ms  114.82ms 679.35ms   60.47%
+        Req/Sec   244.58    170.37   626.00     62.50%
+        Latency Distribution
+        50%  264.75ms
+        75%  339.14ms
+        90%  419.19ms
+        99%  503.94ms
+        5478 requests in 3.04s, 786.39KB read
+        Requests/sec:   1800.12
+        Transfer/sec:    258.42KB
+        [run.sh] Speed is 1800.12, duration is 120
+        [run.sh] Fix the request number.
+        [run.sh] fix_req_num: capping counter 7500 -> 6075 (speed=1800.12 duration=120)
+        [run.sh] Running the actual test
+        [run.sh] /wrk/wrk --timeout 20s -t8 -c512 -d120s -L -s /wrk/fix_req_n.lua http://service1:80/
+        Running 2m test @ http://service1:80/
+        8 threads and 512 connections
+        Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency   272.40ms  149.93ms   1.15s    67.73%
+        Req/Sec   240.07    153.35     0.91k    69.19%
+        Latency Distribution
+        50%  259.25ms
+        75%  369.51ms
+        90%  469.20ms
+        99%  686.07ms
+        48600 requests in 2.00m, 6.81MB read
+        Requests/sec:    405.00
+        Transfer/sec:     58.14KB
+        ------------------------------
+        stop time: 26.050701
+        stop time: 26.038862
+        stop time: 26.075086
+        stop time: 25.679006
+        stop time: 25.991346
+        stop time: 25.927520
+        stop time: 26.170004
+        stop time: 26.083532
+        [run.sh] Test finished with status 0
+        > STDERR
+    [exp] Times: [26.050701, 26.038862, 26.075086, 25.679006, 25.991346, 25.92752, 26.170004, 26.083532]
+    [exp] Throughput: 2307.5141742543465
+[test.py] Finished running 9th optmization experiment: groundtruth->2627.0238550732233, slowdown->2307.5141742543465, predicted->2419.1590502173926, err->-7.912558709903183
+[test.py] Baseline throughput:  2289.153368024912
+[test.py] Groundtruth:  [3076.405254812943, 2953.7886231323555, 2769.0288005301027, 2611.4806827794587, 2473.370903047246, 2383.3422845214654, 2468.576258517205, 2359.671190044909, 2264.7742263559553, 2627.0238550732233]
+[test.py] Slowdown:  [2282.180069056772, 2597.8978990079854, 2318.8134820781975, 2298.8287754742555, 2332.957610510161, 2249.566968903331, 2241.674414220353, 2363.0929310319907, 2268.290230683793, 2307.5141742543465]
+[test.py] Predicted:  [4198.549070660348, 4879.796035098623, 3686.5674515617106, 3389.7831089650017, 3240.016012159133, 2902.504879246757, 2731.5305937060275, 2753.4994339034624, 2494.632227076892, 2419.1590502173926]
+[test.py] Error percentage:  [36.47581260927326, 65.20464588707863, 33.13575687099948, 29.803108685344665, 30.995962157045017, 21.782964121308762, 10.65206449594434, 16.689962801599407, 10.149267774509271, -7.912558709903183]
+[test.py] ++++++++++++++++++++++++++++++++ Summary: 
+[test.py] Result for the experiment 0: 
+    Baseline throughput: 2289.153368024912
+    Groundtruth: [3076.405254812943, 2953.7886231323555, 2769.0288005301027, 2611.4806827794587, 2473.370903047246, 2383.3422845214654, 2468.576258517205, 2359.671190044909, 2264.7742263559553, 2627.0238550732233]
+    Slowdown:    [2282.180069056772, 2597.8978990079854, 2318.8134820781975, 2298.8287754742555, 2332.957610510161, 2249.566968903331, 2241.674414220353, 2363.0929310319907, 2268.290230683793, 2307.5141742543465]
+    Predicted:   [4198.549070660348, 4879.796035098623, 3686.5674515617106, 3389.7831089650017, 3240.016012159133, 2902.504879246757, 2731.5305937060275, 2753.4994339034624, 2494.632227076892, 2419.1590502173926]
+    Error Perc:  [36.47581260927326, 65.20464588707863, 33.13575687099948, 29.803108685344665, 30.995962157045017, 21.782964121308762, 10.65206449594434, 16.689962801599407, 10.149267774509271, -7.912558709903183]

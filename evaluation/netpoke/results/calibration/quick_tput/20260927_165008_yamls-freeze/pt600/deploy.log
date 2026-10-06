@@ -1,0 +1,14 @@
+service/service1 unchanged
+deployment.apps/service1 created
+service/service2 unchanged
+deployment.apps/service2 created
+waiting for pods...
+gate: first successful request after 1 attempt(s)
+NAME                             READY   STATUS    RESTARTS   AGE     IP          NODE      NOMINATED NODE   READINESS GATES
+service1-7b9b57687f-bmc6z        1/1     Running   0          3s      10.36.0.1   worker1   <none>           <none>
+service2-c5c946ddb-f2bfw         1/1     Running   0          3s      10.39.0.1   worker2   <none>           <none>
+ubuntu-client-6866bb9595-wvsqh   1/1     Running   0          4h44m   10.44.0.1   worker0   <none>           <none>
+
+READY.  delay per request on service2 = 0 us  -> ~0 ms pause per 100-request batch
+Start your capture, then generate load (client pod: ubuntu-client-6866bb9595-wvsqh):
+   kubectl exec ubuntu-client-6866bb9595-wvsqh -- /wrk/wrk -t8 -c512 --timeout 20s -d40s -L http://service1:80/

@@ -1,0 +1,11 @@
+RESULT scen=idle hold=0 pause_ms=50 cycles=12 run_pkts=0.0 paused_pkts=0.0 burst_pkts=0.0 run_kb=0.0 paused_kb=0.0 leak_pct=NA dropped=NA
+RESULT scen=sender hold=0 pause_ms=50 cycles=12 run_pkts=15.2 paused_pkts=17.2 burst_pkts=3.5 run_kb=748.1 paused_kb=857.2 leak_pct=112.6 dropped=NA
+RESULT scen=sender hold=0 pause_ms=50 cycles=12 run_pkts=17.3 paused_pkts=17.1 burst_pkts=4.0 run_kb=849.9 paused_kb=834.4 leak_pct=98.6 dropped=NA
+RESULT scen=sender hold=0 pause_ms=50 cycles=12 run_pkts=16.9 paused_pkts=17.8 burst_pkts=6.5 run_kb=769.0 paused_kb=818.3 leak_pct=104.9 dropped=NA
+RESULT scen=sender hold=1 pause_ms=50 cycles=12 run_pkts=15.8 paused_pkts=0.0 burst_pkts=8.4 run_kb=784.7 paused_kb=0.0 leak_pct=0.0 dropped=0
+RESULT scen=sender hold=1 pause_ms=50 cycles=12 run_pkts=19.0 paused_pkts=0.0 burst_pkts=6.8 run_kb=1003.1 paused_kb=0.0 leak_pct=0.0 dropped=0
+RESULT scen=sender hold=1 pause_ms=50 cycles=12 run_pkts=16.1 paused_pkts=0.0 burst_pkts=4.9 run_kb=685.4 paused_kb=0.0 leak_pct=0.0 dropped=0
+RESULT scen=sender hold=1 pause_ms=200 cycles=8 run_pkts=71.1 paused_pkts=0.0 burst_pkts=7.8 run_kb=3537.2 paused_kb=0.0 leak_pct=0.0 dropped=0
+RESULT scen=sender hold=1 pause_ms=1000 cycles=6 run_pkts=393.8 paused_pkts=0.0 burst_pkts=5.7 run_kb=19033.4 paused_kb=0.0 leak_pct=0.0 dropped=0
+RESULT scen=receiver hold=0 pause_ms=50 cycles=12 run_pkts=14.6 paused_pkts=1.0 burst_pkts=3.8 run_kb=0.0 paused_kb=0.0 leak_pct=6.9 dropped=NA
+RESULT scen=receiver hold=1 pause_ms=50 cycles=12 run_pkts=14.6 paused_pkts=0.0 burst_pkts=6.9 run_kb=0.0 paused_kb=0.0 leak_pct=0.0 dropped=0

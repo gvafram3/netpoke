@@ -1,0 +1,14 @@
+===== in-pod leak: yamls-hold p_t=400 20s [pfifo5] 21:36:59
+gate: first successful request after 1 attempt(s)
+  service2 service2-84444ddd65-gfgh5 ip 10.39.0.1 SLOWPOKE_NETPOKE=1
+  captures running (pid 331972, enp39s0, 172.31.40.3)
+    25043 requests in 20.04s, 3.51MB read
+  Requests/sec:   1249.73
+  markers: 254 pauses; pod qdisc: qdisc plug 1: root refcnt 3 Sent 270151014 bytes 233024 pkt (dropped 101, overlimits 0 requeues 0) 
+A pod eth0: 245 pauses analysed (of 245 logged), median pause 21.0 ms
+   running:   13.424 pkt/ms   17780.7 B/ms   paused:    0.000 pkt/ms       0.0 B/ms
+   LEAK = 0.0% of packets, 0.0% of bytes   [0% = the resource is idle during pauses]
+B host NIC (bottleneck): 245 pauses analysed (of 245 logged), median pause 21.0 ms
+   running:   13.435 pkt/ms   16004.4 B/ms   paused:    0.001 pkt/ms       1.0 B/ms
+   LEAK = 0.0% of packets, 0.0% of bytes   [0% = the resource is idle during pauses]
+SUMMARY hold_pt400_pfifo5 | A pod: 0.0% of packets, 0.0% of bytes | B bottleneck: 0.0% of packets, 0.0% of bytes

@@ -1,0 +1,41 @@
+(nocap_hold_rep1.log: 15 capped measurement(s) - throughputs corrected by capped/planned counter)
+(nocap_hold_rep2.log: 15 capped measurement(s) - throughputs corrected by capped/planned counter)
+(nocap_hold_rep3.log: 15 capped measurement(s) - throughputs corrected by capped/planned counter)
+(nocap_freeze_rep1.log: 15 capped measurement(s) - throughputs corrected by capped/planned counter)
+(nocap_freeze_rep2.log: 16 capped measurement(s) - throughputs corrected by capped/planned counter)
+(nocap_freeze_rep3.log: 15 capped measurement(s) - throughputs corrected by capped/planned counter)
+1. OVERVIEW  (RMSE = typical size of the error; BIAS = average signed error, + means over-prediction)
+ARM           RUNS  RMSE % (mean ± sd)  BIAS % (mean ± sd)  WORST |ERR| %  BASELINE req/s
+------------  ----  ------------------  ------------------  -------------  --------------
+nocap_hold       3         2.48 ± 0.49        -2.15 ± 0.53            4.9            1883
+nocap_freeze     3         2.81 ± 0.28        -2.29 ± 0.40            5.7            1851
+
+2. PER-LEVEL RESULTS — nocap_hold  (mean of 3 run(s))
+LEVEL  TARGET us  OPT %  TRUTH req/s  PREDICTED  ERROR %  RANGE ACROSS RUNS  DIRECTION
+-----  ---------  -----  -----------  ---------  -------  -----------------  ---------
+0            400     50         3081       2995    -2.80       -3.6 .. -2.2      under
+1            440     45         2951       2821    -4.41       -4.9 .. -3.7      under
+2            480     40         2751       2686    -2.34       -4.0 .. -1.2      under
+3            520     35         2612       2546    -2.55       -2.8 .. -2.2      under
+4            560     30         2478       2405    -2.94       -3.2 .. -2.7      under
+5            600     25         2364       2317    -1.98       -2.5 .. -0.9      under
+6            640     20         2239       2214    -1.13       -3.3 .. +0.1      under
+7            680     15         2128       2097    -1.48       -2.2 .. -1.0      under
+8            720     10         2049       2025    -1.14       -1.7 .. -0.3      under
+9            760      5         1952       1937    -0.77       -1.2 .. -0.5      close
+
+2. PER-LEVEL RESULTS — nocap_freeze  (mean of 3 run(s))
+LEVEL  TARGET us  OPT %  TRUTH req/s  PREDICTED  ERROR %  RANGE ACROSS RUNS  DIRECTION
+-----  ---------  -----  -----------  ---------  -------  -----------------  ---------
+0            400     50         3047       2935    -3.69       -5.6 .. -2.4      under
+1            440     45         2908       2804    -3.52       -5.7 .. +0.5      under
+2            480     40         2753       2662    -3.32       -5.7 .. -1.1      under
+3            520     35         2609       2545    -2.45       -3.0 .. -1.7      under
+4            560     30         2499       2440    -2.39       -3.3 .. -1.7      under
+5            600     25         2361       2306    -2.33       -3.5 .. -1.5      under
+6            640     20         2250       2228    -0.98       -1.6 .. -0.5      close
+7            680     15         2143       2113    -1.41       -1.5 .. -1.4      under
+8            720     10         2066       2024    -2.03       -3.8 .. -0.5      under
+9            760      5         1972       1957    -0.78       -1.3 .. -0.5      close
+
+Saved: /home/ubuntu/results/summary/summary.md, /home/ubuntu/results/summary/levels.csv, chart_nocap_hold.png, chart_nocap_freeze.png   (folder /home/ubuntu/results/summary)

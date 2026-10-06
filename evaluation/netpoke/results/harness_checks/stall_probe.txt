@@ -1,0 +1,71 @@
+===== run 1   one request: 000 connect=0.000000s total=3.002403scommand terminated with exit code 28
+  pod/service1-7b9b57687f-zm2d8 processes: 1(poker)=S 15(sh)=R 7(service1)=S 
+  pod/service1-7b9b57687f-zm2d8 qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-7b9b57687f-zm2d8 log:   poker: pause_start uptime_s=7732.010|poker: pause_end uptime_s=7732.010|
+  pod/service2-c5c946ddb-4g9qt processes: 1(poker)=S 14(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-4g9qt qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-4g9qt log:   poker: pause_end uptime_s=7766.662|poker: pause_start uptime_s=7766.676|poker: pause_end uptime_s=7766.676|
+===== run 2   one request: 000 connect=0.002462s total=3.002506scommand terminated with exit code 28
+  pod/service1-858c475869-xfbdt processes: 1(poker)=S 15(sh)=R 7(service1)=S 
+  pod/service1-858c475869-xfbdt qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-xfbdt log:   poker: pause_start uptime_s=7856.303|poker: pause_end uptime_s=7856.303|
+  pod/service2-c5c946ddb-xlvpb processes: 1(poker)=S 14(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-xlvpb qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-xlvpb log:   poker: pause_start uptime_s=7856.180|poker: pause_end uptime_s=7856.181|
+===== run 3   one request: 200 connect=0.002080s total=0.011588s
+  pod/service1-858c475869-rcv8b processes: 1(poker)=S 15(sh)=R 7(service1)=S 
+  pod/service1-858c475869-rcv8b qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-rcv8b log:   poker: pause_start uptime_s=7895.064|poker: pause_end uptime_s=7895.064|
+  pod/service2-c5c946ddb-d5w2r processes: 1(poker)=S 15(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-d5w2r qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-d5w2r log:   poker: pause_start uptime_s=7893.891|poker: pause_end uptime_s=7893.891|
+===== run 4   one request: 200 connect=0.002402s total=0.012430s
+  pod/service1-858c475869-2ds9j processes: 1(poker)=S 15(sh)=R 7(service1)=S 
+  pod/service1-858c475869-2ds9j qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-2ds9j log:   poker: pause_start uptime_s=7932.990|poker: pause_end uptime_s=7932.990|
+  pod/service2-c5c946ddb-vfm88 processes: 1(poker)=S 14(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-vfm88 qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-vfm88 log:   poker: pause_start uptime_s=7930.293|poker: pause_end uptime_s=7930.293|
+===== run 5   one request: 000 connect=0.000000s total=3.002978scommand terminated with exit code 28
+  pod/service1-858c475869-v45j5 processes: 1(poker)=S 14(sh)=R 7(service1)=S 
+  pod/service1-858c475869-v45j5 qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-v45j5 log:   poker: pause_start uptime_s=7968.969|poker: pause_end uptime_s=7968.969|
+  pod/service2-c5c946ddb-gchqf processes: 1(poker)=S 14(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-gchqf qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-gchqf log:   poker: pause_start uptime_s=7967.757|poker: pause_end uptime_s=7967.757|
+===== run 6   one request: 000 connect=0.001986s total=3.001676scommand terminated with exit code 28
+  pod/service1-858c475869-b6j8v processes: 1(poker)=S 14(sh)=R 7(service1)=S 
+  pod/service1-858c475869-b6j8v qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-b6j8v log:   poker: pause_start uptime_s=8007.423|poker: pause_end uptime_s=8007.423|
+  pod/service2-c5c946ddb-ncl4v processes: 1(poker)=S 15(sh)=R 8(service2)=S 
+  pod/service2-c5c946ddb-ncl4v qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-ncl4v log:   poker: pause_start uptime_s=8006.329|poker: pause_end uptime_s=8006.330|
+===== run 7   one request: 200 connect=0.002029s total=0.014814s
+  pod/service1-858c475869-7nqzk processes: 1(poker)=S 15(sh)=R 7(service1)=S 
+  pod/service1-858c475869-7nqzk qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-7nqzk log:   poker: pause_start uptime_s=8044.768|poker: pause_end uptime_s=8044.768|
+  pod/service2-c5c946ddb-5gpjs processes: 1(poker)=S 15(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-5gpjs qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-5gpjs log:   poker: pause_start uptime_s=8043.720|poker: pause_end uptime_s=8043.720|
+===== run 8   one request: 000 connect=0.001635s total=3.003141scommand terminated with exit code 28
+  pod/service1-858c475869-dgpw2 processes: 1(poker)=S 15(sh)=R 8(service1)=S 
+  pod/service1-858c475869-dgpw2 qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-dgpw2 log:   poker: pause_start uptime_s=8080.189|poker: pause_end uptime_s=8080.189|
+  pod/service2-c5c946ddb-fh42t processes: 1(poker)=S 14(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-fh42t qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-fh42t log:   poker: pause_start uptime_s=8078.990|poker: pause_end uptime_s=8078.990|
+===== run 9   one request: 000 connect=0.000000s total=3.002554scommand terminated with exit code 28
+  pod/service1-858c475869-fvskk processes: 1(poker)=S 14(sh)=R 7(service1)=S 
+  pod/service1-858c475869-fvskk qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-fvskk log:   poker: pause_start uptime_s=8118.815|poker: pause_end uptime_s=8118.815|
+  pod/service2-c5c946ddb-xcfww processes: 1(poker)=S 14(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-xcfww qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-xcfww log:   poker: pause_start uptime_s=8117.224|poker: pause_end uptime_s=8117.224|
+===== run 10   one request: 200 connect=0.002625s total=0.018448s
+  pod/service1-858c475869-2zsb6 processes: 1(poker)=S 15(sh)=R 8(service1)=S 
+  pod/service1-858c475869-2zsb6 qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service1-858c475869-2zsb6 log:   poker: pause_start uptime_s=8156.761|poker: pause_end uptime_s=8156.761|
+  pod/service2-c5c946ddb-bxtjd processes: 1(poker)=S 14(sh)=R 7(service2)=S 
+  pod/service2-c5c946ddb-bxtjd qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) backlog 0b 0p requeues 0 
+  pod/service2-c5c946ddb-bxtjd log:   poker: pause_start uptime_s=8155.603|poker: pause_end uptime_s=8155.603|
+===== probe finished

@@ -1,0 +1,21 @@
+.vscode
+.idea
+__pycache__
+venv
+
+scripts/vars.sh
+target
+
+manifest.xml
+ec2-local-testing
+
+# NetPoke: secrets and machine-specific files (never commit)
+*.pem
+*.key
+*accessKeys*
+*credentials*
+evaluation/netpoke/cluster/config.env
+evaluation/netpoke/logs/
+
+# output of new runs (the paper's data lives in evaluation/netpoke/results/)
+evaluation/results/

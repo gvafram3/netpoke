@@ -1,0 +1,23 @@
+(deepq_hold_rep1.log: 21 capped measurement(s) - throughputs corrected by capped/planned counter)
+(deepq_hold_rep2.log: 21 capped measurement(s) - throughputs corrected by capped/planned counter)
+(deepq_hold_rep3.log: 21 capped measurement(s) - throughputs corrected by capped/planned counter)
+1. OVERVIEW  (RMSE = typical size of the error; BIAS = average signed error, + means over-prediction)
+ARM         RUNS  RMSE % (mean ± sd)  BIAS % (mean ± sd)  WORST |ERR| %  BASELINE req/s
+----------  ----  ------------------  ------------------  -------------  --------------
+deepq_hold     3        10.26 ± 0.32         8.19 ± 0.07           24.2            1819
+
+2. PER-LEVEL RESULTS — deepq_hold  (mean of 3 run(s))
+LEVEL  TARGET us  OPT %  TRUTH req/s  PREDICTED  ERROR %  RANGE ACROSS RUNS          DIRECTION
+-----  ---------  -----  -----------  ---------  -------  -----------------  -----------------
+0            400     50         2237       2730   +22.08     +20.1 .. +24.2  over (optimistic)
+1            440     45         2219       2578   +16.18     +15.5 .. +17.2  over (optimistic)
+2            480     40         2219       2449   +10.36      +9.0 .. +11.8  over (optimistic)
+3            520     35         2189       2358    +7.70       +7.5 .. +7.9  over (optimistic)
+4            560     30         2120       2259    +6.56       +5.6 .. +7.6  over (optimistic)
+5            600     25         2073       2179    +5.12       +2.9 .. +6.4  over (optimistic)
+6            640     20         2003       2106    +5.15       +4.1 .. +5.9  over (optimistic)
+7            680     15         1952       2033    +4.16       +3.0 .. +4.9  over (optimistic)
+8            720     10         1914       1982    +3.57       +2.5 .. +4.1  over (optimistic)
+9            760      5         1874       1893    +1.05       +0.0 .. +1.8  over (optimistic)
+
+Saved: /home/ubuntu/results/summary/summary.md, /home/ubuntu/results/summary/levels.csv, chart_deepq_hold.png   (folder /home/ubuntu/results/summary)

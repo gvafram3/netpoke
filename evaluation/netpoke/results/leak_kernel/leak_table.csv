@@ -1,0 +1,8 @@
+scenario,hold,pause_ms,runs,pkts_running,pkts_frozen,leak_pct_mean,plug_drops_max,reading
+idle,0,50,1,0.0,0.0,,,"CONTROL OK: nothing sent, nothing leaked"
+receiver,0,50,1,14.6,1.0,6.9,,acknowledgements only (no data sent)
+receiver,1,50,1,14.6,0.0,0.0,0.0,HOLD WORKS
+sender,0,50,3,16.466666666666665,17.366666666666667,105.36666666666666,,GAP CONFIRMED: frozen service keeps sending
+sender,1,50,3,16.96666666666667,0.0,0.0,0.0,HOLD WORKS
+sender,1,200,1,71.1,0.0,0.0,0.0,HOLD WORKS
+sender,1,1000,1,393.8,0.0,0.0,0.0,HOLD WORKS

@@ -1,0 +1,19 @@
+===== run 1   request: 200 connect=0.002569s
+   service1 10.36.0.1  real MAC 9a:99:be:8d:38:ff   worker0 cache: 10.36.0.1 dev weave lladdr 9a:99:be:8d:38:ff STALE ;   -> MATCH
+   service2 10.39.0.1  real MAC d6:c2:65:d8:55:5f   worker1 cache: 10.39.0.1 dev weave lladdr d6:c2:65:d8:55:5f STALE ;   -> MATCH
+===== run 2   request: 200 connect=0.002223s
+   service1 10.36.0.1  real MAC c2:4b:49:c7:87:24   worker0 cache: 10.36.0.1 dev weave lladdr c2:4b:49:c7:87:24 STALE ;   -> MATCH
+   service2 10.39.0.1  real MAC de:cd:e7:5a:74:49   worker1 cache: 10.39.0.1 dev weave lladdr de:cd:e7:5a:74:49 STALE ;   -> MATCH
+===== run 3   request: 200 connect=0.002172s
+   service1 10.36.0.1  real MAC 12:e2:b0:1a:dc:53   worker0 cache: 10.36.0.1 dev weave lladdr 12:e2:b0:1a:dc:53 STALE ;   -> MATCH
+   service2 10.39.0.1  real MAC e6:1f:53:e5:35:5e   worker1 cache: 10.39.0.1 dev weave lladdr e6:1f:53:e5:35:5e STALE ;   -> MATCH
+===== run 4   request: 200 connect=0.002110s
+   service1 10.36.0.1  real MAC 6e:26:94:30:74:cb   worker0 cache: 10.36.0.1 dev weave lladdr 6e:26:94:30:74:cb STALE ;   -> MATCH
+   service2 10.39.0.1  real MAC 7e:df:fc:8d:34:5a   worker1 cache: 10.39.0.1 dev weave lladdr 7e:df:fc:8d:34:5a STALE ;   -> MATCH
+===== run 5   request: 200 connect=0.002624s
+   service1 10.36.0.1  real MAC 62:c2:a0:f9:a5:70   worker0 cache: 10.36.0.1 dev weave lladdr 62:c2:a0:f9:a5:70 STALE ;   -> MATCH
+   service2 10.39.0.1  real MAC ca:2d:f5:01:9a:db   worker1 cache: 10.39.0.1 dev weave lladdr ca:2d:f5:01:9a:db STALE ;   -> MATCH
+===== run 6   request: 200 connect=0.001986s
+   service1 10.36.0.1  real MAC 7a:36:2b:29:ba:4d   worker0 cache: 10.36.0.1 dev weave lladdr 7a:36:2b:29:ba:4d STALE ;   -> MATCH
+   service2 10.39.0.1  real MAC 9a:06:a5:d9:e8:e9   worker1 cache: 10.39.0.1 dev weave lladdr 9a:06:a5:d9:e8:e9 STALE ;   -> MATCH
+===== neigh probe finished

@@ -1,0 +1,121 @@
+===== queue-depth leak matrix 2026-09-24 21:32
+
+########## bottleneck queue: fq_codel
+cap set: 175 Mbit/s, bottleneck queue: fq_codel
+qdisc fq_codel 10: parent 1:10 limit 10240p flows 1024 quantum 9015 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+===== in-pod leak: yamls-hold p_t=400 20s [fq_codel] 21:32:54
+gate: first successful request after 1 attempt(s)
+  service2 service2-84444ddd65-tk7bq ip 10.39.0.1 SLOWPOKE_NETPOKE=1
+  captures running (pid 328681, enp39s0, 172.31.40.3)
+    33056 requests in 20.04s, 4.63MB read
+  Requests/sec:   1649.90
+  markers: 286 pauses; pod qdisc: qdisc plug 1: root refcnt 3 Sent 312334714 bytes 361429 pkt (dropped 2628, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: 177 pauses analysed (of 177 logged), median pause 32.0 ms
+   running:   12.902 pkt/ms   21601.1 B/ms   paused:    0.000 pkt/ms       0.0 B/ms
+   LEAK = 0.0% of packets, 0.0% of bytes   [0% = the resource is idle during pauses]
+B host NIC (bottleneck): 177 pauses analysed (of 177 logged), median pause 32.0 ms
+   running:   19.250 pkt/ms   17926.7 B/ms   paused:   14.922 pkt/ms   12702.4 B/ms
+   LEAK = 77.5% of packets, 70.9% of bytes   [0% = the resource is idle during pauses]
+SUMMARY hold_pt400_fq_codel | A pod: 0.0% of packets, 0.0% of bytes | B bottleneck: 77.5% of packets, 70.9% of bytes
+===== in-pod leak: yamls-freeze p_t=400 20s [fq_codel] 21:33:53
+gate: first successful request after 1 attempt(s)
+  service2 service2-55cf665d8d-4mnsq ip 10.39.0.1 SLOWPOKE_NETPOKE=0
+  captures running (pid 329466, enp39s0, 172.31.40.3)
+    34944 requests in 20.04s, 4.90MB read
+  Requests/sec:   1743.99
+  markers: 319 pauses; pod qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: 216 pauses analysed (of 216 logged), median pause 26.0 ms
+   running:   12.063 pkt/ms   22243.3 B/ms   paused:    2.751 pkt/ms    1005.4 B/ms
+   LEAK = 22.8% of packets, 4.5% of bytes   [0% = the resource is idle during pauses]
+B host NIC (bottleneck): 216 pauses analysed (of 216 logged), median pause 26.0 ms
+   running:   18.991 pkt/ms   18363.6 B/ms   paused:   17.637 pkt/ms   13862.7 B/ms
+   LEAK = 92.9% of packets, 75.5% of bytes   [0% = the resource is idle during pauses]
+SUMMARY freeze_pt400_fq_codel | A pod: 22.8% of packets, 4.5% of bytes | B bottleneck: 92.9% of packets, 75.5% of bytes
+
+########## bottleneck queue: pfifo limit 20
+cap set: 175 Mbit/s, bottleneck queue: pfifo limit 20
+qdisc pfifo 10: parent 1:10 limit 20p
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+===== in-pod leak: yamls-hold p_t=400 20s [pfifo20] 21:34:54
+gate: attempt 1 failed (http=000, curl exit 28)
+gate: first successful request after 2 attempt(s)
+  service2 service2-84444ddd65-8dbxb ip 10.39.0.1 SLOWPOKE_NETPOKE=1
+  captures running (pid 330282, enp39s0, 172.31.40.3)
+    26878 requests in 20.04s, 3.77MB read
+  Requests/sec:   1341.21
+  markers: 270 pauses; pod qdisc: qdisc plug 1: root refcnt 3 Sent 303828316 bytes 266631 pkt (dropped 1735, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: 253 pauses analysed (of 253 logged), median pause 21.0 ms
+   running:   15.627 pkt/ms   21428.5 B/ms   paused:    0.000 pkt/ms       0.0 B/ms
+   LEAK = 0.0% of packets, 0.0% of bytes   [0% = the resource is idle during pauses]
+B host NIC (bottleneck): 253 pauses analysed (of 253 logged), median pause 21.0 ms
+   running:   16.060 pkt/ms   18845.0 B/ms   paused:    0.010 pkt/ms       9.7 B/ms
+   LEAK = 0.1% of packets, 0.1% of bytes   [0% = the resource is idle during pauses]
+SUMMARY hold_pt400_pfifo20 | A pod: 0.0% of packets, 0.0% of bytes | B bottleneck: 0.1% of packets, 0.1% of bytes
+===== in-pod leak: yamls-freeze p_t=400 20s [pfifo20] 21:35:58
+gate: first successful request after 1 attempt(s)
+  service2 service2-55cf665d8d-vz52r ip 10.39.0.1 SLOWPOKE_NETPOKE=0
+  captures running (pid 331109, enp39s0, 172.31.40.3)
+    34763 requests in 20.03s, 4.87MB read
+  Requests/sec:   1735.62
+  markers: 339 pauses; pod qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: 276 pauses analysed (of 276 logged), median pause 22.0 ms
+   running:   18.101 pkt/ms   24192.7 B/ms   paused:    9.441 pkt/ms   10320.3 B/ms
+   LEAK = 52.2% of packets, 42.7% of bytes   [0% = the resource is idle during pauses]
+B host NIC (bottleneck): 276 pauses analysed (of 276 logged), median pause 22.0 ms
+   running:   16.036 pkt/ms   18684.2 B/ms   paused:   10.269 pkt/ms   10907.7 B/ms
+   LEAK = 64.0% of packets, 58.4% of bytes   [0% = the resource is idle during pauses]
+SUMMARY freeze_pt400_pfifo20 | A pod: 52.2% of packets, 42.7% of bytes | B bottleneck: 64.0% of packets, 58.4% of bytes
+
+########## bottleneck queue: pfifo limit 5
+cap set: 175 Mbit/s, bottleneck queue: pfifo limit 5
+qdisc pfifo 10: parent 1:10 limit 5p
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+===== in-pod leak: yamls-hold p_t=400 20s [pfifo5] 21:36:59
+gate: first successful request after 1 attempt(s)
+  service2 service2-84444ddd65-gfgh5 ip 10.39.0.1 SLOWPOKE_NETPOKE=1
+  captures running (pid 331972, enp39s0, 172.31.40.3)
+    25043 requests in 20.04s, 3.51MB read
+  Requests/sec:   1249.73
+  markers: 254 pauses; pod qdisc: qdisc plug 1: root refcnt 3 Sent 270151014 bytes 233024 pkt (dropped 101, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: 245 pauses analysed (of 245 logged), median pause 21.0 ms
+   running:   13.424 pkt/ms   17780.7 B/ms   paused:    0.000 pkt/ms       0.0 B/ms
+   LEAK = 0.0% of packets, 0.0% of bytes   [0% = the resource is idle during pauses]
+B host NIC (bottleneck): 245 pauses analysed (of 245 logged), median pause 21.0 ms
+   running:   13.435 pkt/ms   16004.4 B/ms   paused:    0.001 pkt/ms       1.0 B/ms
+   LEAK = 0.0% of packets, 0.0% of bytes   [0% = the resource is idle during pauses]
+SUMMARY hold_pt400_pfifo5 | A pod: 0.0% of packets, 0.0% of bytes | B bottleneck: 0.0% of packets, 0.0% of bytes
+===== in-pod leak: yamls-freeze p_t=400 20s [pfifo5] 21:37:58
+gate: first successful request after 1 attempt(s)
+  service2 service2-55cf665d8d-qhxl6 ip 10.39.0.1 SLOWPOKE_NETPOKE=0
+  captures running (pid 332783, enp39s0, 172.31.40.3)
+    28678 requests in 20.04s, 4.02MB read
+  Requests/sec:   1431.03
+  markers: 289 pauses; pod qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: 276 pauses analysed (of 276 logged), median pause 21.0 ms
+   running:   16.640 pkt/ms   21134.9 B/ms   paused:    4.473 pkt/ms    4643.4 B/ms
+   LEAK = 26.9% of packets, 22.0% of bytes   [0% = the resource is idle during pauses]
+B host NIC (bottleneck): 276 pauses analysed (of 276 logged), median pause 21.0 ms
+   running:   14.505 pkt/ms   17543.1 B/ms   paused:    4.232 pkt/ms    4499.9 B/ms
+   LEAK = 29.2% of packets, 25.7% of bytes   [0% = the resource is idle during pauses]
+SUMMARY freeze_pt400_pfifo5 | A pod: 26.9% of packets, 22.0% of bytes | B bottleneck: 29.2% of packets, 25.7% of bytes
+
+(cap restored to 175 Mbit/s fq_codel)
+
+===== SUMMARY
+SUMMARY freeze_pt400_fq_codel | A pod: 22.8% of packets, 4.5% of bytes | B bottleneck: 92.9% of packets, 75.5% of bytes
+SUMMARY freeze_pt400_pfifo20 | A pod: 52.2% of packets, 42.7% of bytes | B bottleneck: 64.0% of packets, 58.4% of bytes
+SUMMARY freeze_pt400_pfifo5 | A pod: 26.9% of packets, 22.0% of bytes | B bottleneck: 29.2% of packets, 25.7% of bytes
+SUMMARY hold_pt400_fq_codel | A pod: 0.0% of packets, 0.0% of bytes | B bottleneck: 77.5% of packets, 70.9% of bytes
+SUMMARY hold_pt400_pfifo20 | A pod: 0.0% of packets, 0.0% of bytes | B bottleneck: 0.1% of packets, 0.1% of bytes
+SUMMARY hold_pt400_pfifo5 | A pod: 0.0% of packets, 0.0% of bytes | B bottleneck: 0.0% of packets, 0.0% of bytes
+===== matrix finished 21:39

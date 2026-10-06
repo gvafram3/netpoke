@@ -1,0 +1,14 @@
+===== in-pod leak: yamls-hold p_t=400 20s [fq_codel] 21:32:54
+gate: first successful request after 1 attempt(s)
+  service2 service2-84444ddd65-tk7bq ip 10.39.0.1 SLOWPOKE_NETPOKE=1
+  captures running (pid 328681, enp39s0, 172.31.40.3)
+    33056 requests in 20.04s, 4.63MB read
+  Requests/sec:   1649.90
+  markers: 286 pauses; pod qdisc: qdisc plug 1: root refcnt 3 Sent 312334714 bytes 361429 pkt (dropped 2628, overlimits 0 requeues 0) 
+A pod eth0: 177 pauses analysed (of 177 logged), median pause 32.0 ms
+   running:   12.902 pkt/ms   21601.1 B/ms   paused:    0.000 pkt/ms       0.0 B/ms
+   LEAK = 0.0% of packets, 0.0% of bytes   [0% = the resource is idle during pauses]
+B host NIC (bottleneck): 177 pauses analysed (of 177 logged), median pause 32.0 ms
+   running:   19.250 pkt/ms   17926.7 B/ms   paused:   14.922 pkt/ms   12702.4 B/ms
+   LEAK = 77.5% of packets, 70.9% of bytes   [0% = the resource is idle during pauses]
+SUMMARY hold_pt400_fq_codel | A pod: 0.0% of packets, 0.0% of bytes | B bottleneck: 77.5% of packets, 70.9% of bytes

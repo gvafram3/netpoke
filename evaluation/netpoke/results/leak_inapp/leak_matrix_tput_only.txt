@@ -1,0 +1,138 @@
+===== queue-depth leak matrix 2026-09-24 20:56
+
+########## bottleneck queue: fq_codel
+cap set: 175 Mbit/s, bottleneck queue: fq_codel
+qdisc fq_codel 10: parent 1:10 limit 10240p flows 1024 quantum 9015 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+800            1792.69 req/s   
+400            2216.88 req/s   
+===== in-pod leak: yamls-hold p_t=400 20s [fq_codel] 20:58:29
+gate: first successful request after 1 attempt(s)
+  service2 service2-84444ddd65-zklnd ip 10.39.0.1 SLOWPOKE_NETPOKE=1
+bash: line 4: /tmp/off.txt: Permission denied
+bash: line 5: /tmp/cap_pod.err: Permission denied
+bash: line 6: /tmp/cap_host.err: Permission denied
+  captures running (pid 313495, enp39s0, 172.31.40.3)
+    34202 requests in 20.04s, 4.79MB read
+  Requests/sec:   1706.63
+  markers: 305 pauses; pod qdisc: qdisc plug 1: root refcnt 3 Sent 321683221 bytes 361383 pkt (dropped 805, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: no packets in capture
+A pod eth0: no packets in capture
+B host NIC (bottleneck): no packets in capture
+B host NIC (bottleneck): no packets in capture
+command terminated with exit code 1
+SUMMARY hold_pt400_fq_codel | A pod:  | B bottleneck: 
+===== in-pod leak: yamls-freeze p_t=400 20s [fq_codel] 20:59:30
+gate: first successful request after 1 attempt(s)
+  service2 service2-55cf665d8d-5vjjm ip 10.39.0.1 SLOWPOKE_NETPOKE=0
+bash: line 4: /tmp/off.txt: Permission denied
+bash: line 5: /tmp/cap_pod.err: Permission denied
+bash: line 6: /tmp/cap_host.err: Permission denied
+  captures running (pid 314262, enp39s0, 172.31.40.3)
+    34895 requests in 20.04s, 4.89MB read
+  Requests/sec:   1741.42
+  markers: 300 pauses; pod qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: no packets in capture
+A pod eth0: no packets in capture
+B host NIC (bottleneck): no packets in capture
+B host NIC (bottleneck): no packets in capture
+command terminated with exit code 1
+SUMMARY freeze_pt400_fq_codel | A pod:  | B bottleneck: 
+
+########## bottleneck queue: pfifo limit 20
+cap set: 175 Mbit/s, bottleneck queue: pfifo limit 20
+qdisc pfifo 10: parent 1:10 limit 20p
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+800            1788.00 req/s   
+400            2111.40 req/s   
+===== in-pod leak: yamls-hold p_t=400 20s [pfifo20] 21:02:21
+gate: first successful request after 1 attempt(s)
+  service2 service2-84444ddd65-29lzz ip 10.39.0.1 SLOWPOKE_NETPOKE=1
+bash: line 4: /tmp/off.txt: Permission denied
+bash: line 5: /tmp/cap_pod.err: Permission denied
+bash: line 6: /tmp/cap_host.err: Permission denied
+  captures running (pid 316212, enp39s0, 172.31.40.3)
+    28178 requests in 20.04s, 3.95MB read
+  Requests/sec:   1406.21
+  markers: 284 pauses; pod qdisc: qdisc plug 1: root refcnt 3 Sent 317947930 bytes 278656 pkt (dropped 2642, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: no packets in capture
+A pod eth0: no packets in capture
+B host NIC (bottleneck): no packets in capture
+B host NIC (bottleneck): no packets in capture
+command terminated with exit code 1
+SUMMARY hold_pt400_pfifo20 | A pod:  | B bottleneck: 
+===== in-pod leak: yamls-freeze p_t=400 20s [pfifo20] 21:03:22
+gate: first successful request after 1 attempt(s)
+  service2 service2-55cf665d8d-drwlc ip 10.39.0.1 SLOWPOKE_NETPOKE=0
+bash: line 4: /tmp/off.txt: Permission denied
+bash: line 5: /tmp/cap_pod.err: Permission denied
+bash: line 6: /tmp/cap_host.err: Permission denied
+  captures running (pid 316976, enp39s0, 172.31.40.3)
+    34879 requests in 20.04s, 4.89MB read
+  Requests/sec:   1740.41
+  markers: 342 pauses; pod qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: no packets in capture
+A pod eth0: no packets in capture
+B host NIC (bottleneck): no packets in capture
+B host NIC (bottleneck): no packets in capture
+command terminated with exit code 1
+SUMMARY freeze_pt400_pfifo20 | A pod:  | B bottleneck: 
+
+########## bottleneck queue: pfifo limit 5
+cap set: 175 Mbit/s, bottleneck queue: pfifo limit 5
+qdisc pfifo 10: parent 1:10 limit 5p
+ Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+800            1767.07 req/s   
+400            1924.02 req/s   
+===== in-pod leak: yamls-hold p_t=400 20s [pfifo5] 21:06:13
+gate: first successful request after 1 attempt(s)
+  service2 service2-84444ddd65-q5vn5 ip 10.39.0.1 SLOWPOKE_NETPOKE=1
+bash: line 4: /tmp/off.txt: Permission denied
+bash: line 5: /tmp/cap_pod.err: Permission denied
+bash: line 6: /tmp/cap_host.err: Permission denied
+  captures running (pid 318879, enp39s0, 172.31.40.3)
+    25640 requests in 20.02s, 3.59MB read
+  Requests/sec:   1280.75
+  markers: 259 pauses; pod qdisc: qdisc plug 1: root refcnt 3 Sent 276546543 bytes 240580 pkt (dropped 89, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: no packets in capture
+A pod eth0: no packets in capture
+B host NIC (bottleneck): no packets in capture
+B host NIC (bottleneck): no packets in capture
+command terminated with exit code 1
+SUMMARY hold_pt400_pfifo5 | A pod:  | B bottleneck: 
+===== in-pod leak: yamls-freeze p_t=400 20s [pfifo5] 21:07:10
+gate: first successful request after 1 attempt(s)
+  service2 service2-55cf665d8d-w5g4n ip 10.39.0.1 SLOWPOKE_NETPOKE=0
+bash: line 4: /tmp/off.txt: Permission denied
+bash: line 5: /tmp/cap_pod.err: Permission denied
+bash: line 6: /tmp/cap_host.err: Permission denied
+  captures running (pid 319614, enp39s0, 172.31.40.3)
+    28933 requests in 20.03s, 4.06MB read
+  Requests/sec:   1444.57
+  markers: 290 pauses; pod qdisc: qdisc noqueue 0: root refcnt 2 Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+command terminated with exit code 143
+A pod eth0: no packets in capture
+A pod eth0: no packets in capture
+B host NIC (bottleneck): no packets in capture
+B host NIC (bottleneck): no packets in capture
+command terminated with exit code 1
+SUMMARY freeze_pt400_pfifo5 | A pod:  | B bottleneck: 
+
+(cap restored to 175 Mbit/s fq_codel)
+
+===== SUMMARY
+SUMMARY freeze_pt400_fq_codel | A pod:  | B bottleneck: 
+SUMMARY freeze_pt400_pfifo20 | A pod:  | B bottleneck: 
+SUMMARY freeze_pt400_pfifo5 | A pod:  | B bottleneck: 
+SUMMARY hold_pt400_fq_codel | A pod:  | B bottleneck: 
+SUMMARY hold_pt400_pfifo20 | A pod:  | B bottleneck: 
+SUMMARY hold_pt400_pfifo5 | A pod:  | B bottleneck: 
+===== matrix finished 21:08

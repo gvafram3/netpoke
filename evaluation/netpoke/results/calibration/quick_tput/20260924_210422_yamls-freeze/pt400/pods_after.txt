@@ -1,0 +1,4 @@
+NAME                             READY   STATUS    RESTARTS   AGE     IP          NODE      NOMINATED NODE   READINESS GATES
+service1-858c475869-8k8xh        1/1     Running   0          23s     10.36.0.1   worker1   <none>           <none>
+service2-c5c946ddb-lh79g         1/1     Running   0          23s     10.39.0.1   worker2   <none>           <none>
+ubuntu-client-6866bb9595-tjrsb   1/1     Running   0          4h10m   10.44.0.1   worker0   <none>           <none>

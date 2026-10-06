@@ -1,0 +1,16 @@
+FIFO created
+Recovery FIFO created
+SLEEP_TIME: 800
+SLOWPOKE_DELAY_MICROS=0
+SLOWPOKE_PROCESSING_MICROS=-1
+SLOWPOKE_PRERUN=false
+SLOWPOKE_POKER_BATCH_THRESHOLD=100
+SLOWPOKE_SERV_NAME=service1
+env=true
+SLOWPOKE_IS_TARGET_SERVICE=%!b(bool=true)
+SLOWPOKE_FIFO=/tmp/slowpoke_fifo
+SLOWPOKE_FIFO_RECOVER=/tmp/slowpoke_fifo_recover
+poker: pause_start uptime_s=5234.645
+Server started on :3000
+TCP JSON server listening on :5550
+poker: pause_end uptime_s=5234.646
